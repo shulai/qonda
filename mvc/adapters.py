@@ -506,7 +506,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             sender[i].remove_observer(self)
 
         def setitem(i, parent):
-            sender[i].add_observer(self, "observe_item", i)
+            try:
+                sender[i].add_observer(self, "observe_item", i)
+            except AttributeError:
+                pass
             self.dataChanged.emit(self.createIndex(i, 0),
                 self.createIndex(i, len(self._properties) - 1))
 
@@ -523,34 +526,51 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def setslice(indexes):
             for i in range(*indexes):
-                sender[i].add_observer(self, "observe_item", i)
+                try:
+                    sender[i].add_observer(self, "observe_item", i)
+                except AttributeError:
+                    pass
             # Update observer_data after the slice
             for i, row in enumerate(sender[indexes[1]:]):
-                row.set_observer_data(self, indexes[0] + i)
+                try:
+                    row.set_observer_data(self, indexes[0] + i)
+                except AttributeError:
+                    pass
 
             self.dataChanged.emit(self.createIndex(indexes[0], 0),
                 self.createIndex(indexes[1], len(self._properties) - 1))
 
         def before_delslice(indexes):
             for i in range(*indexes):
-                sender[i].remove_observer(self)
+                try:
+                    sender[i].remove_observer(self)
+                except AttributeError:
+                    pass
             self.beginRemoveRows(QtCore.QModelIndex(), indexes[0], indexes[1])
 
         def delslice(indexes):
             # Update observer_data starting in the slice (as elements shifted)
             for i, row in enumerate(sender[indexes[0]:]):
-                row.set_observer_data(self, indexes[0] + i)
-
+                try:
+                    row.set_observer_data(self, indexes[0] + i)
+                except AttributeError:
+                    pass
             self.endRemoveRows()
 
         def before_insert(i):
             self.beginInsertRows(QtCore.QModelIndex(), i, i)
 
         def insert(i):
-            sender[i].add_observer(self, "observe_item", i)
+            try:
+                sender[i].add_observer(self, "observe_item", i)
+            except AttributeError:
+                pass
             # Update observer_data after the inserted element
             for j, row in enumerate(sender[i + 1:]):
-                row.set_observer_data(self, j + i)
+                try:
+                    row.set_observer_data(self, j + i)
+                except AttributeError:
+                    pass
             self.endInsertRows()
 
         def before_append(dummy):
@@ -558,7 +578,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 len(sender))
 
         def append(dummy):
-            sender[-1].add_observer(self, "observe_item", len(sender) - 1)
+            try:
+                sender[-1].add_observer(self, "observe_item", len(sender) - 1)
+            except AttributeError:
+                pass
             self.endInsertRows()
 
         def before_extend(n):
@@ -567,7 +590,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def extend(n):
             for i in range(-n):
-                sender[i].add_observer(self, "observe_item", i)
+                try:
+                    sender[i].add_observer(self, "observe_item", i)
+                except AttributeError:
+                    pass
             self.endInsertRows()
 
         # Llamo a la función asociada al event_type
