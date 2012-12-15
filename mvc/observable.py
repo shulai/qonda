@@ -173,7 +173,7 @@ class ObservableListProxy(ReadOnlyProxy, Observable, MutableSequence):
     def __setslice__(self, i, j, x):
         self._notify('before_setslice', (i, j))
         self._target.__setitem__(slice(i, j), x)
-        self._notify('setslice', (i, j))  # Deprecated
+        self._notify('setslice', (i, j, len(x)))  # Deprecated
 
     def __delslice__(self, i, j):
         self._notify('before_delslice', (i, j))

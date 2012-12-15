@@ -439,8 +439,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         if parent != QtCore.QModelIndex():
             return 0
         count = len(self._model)
-        if 'append' in self.options:
-            count += 1
+        if count == 0 and 'append' in self.options:
+            count = 1
         return count
 
     def index(self, row, column, parent):
@@ -478,7 +478,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     def _set_value(self, index, value):
 
         print "_set_value"
-        if index.row() + 1 > len(self._model):
+        if index.row() == 0 and len(self._model) == 0: #+ 1 > len(self._model):
             self._model.append(self._class())
         setattr(self._model[index.row()], self._properties[index.column()],
             value)
@@ -488,8 +488,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         print "insertRows"
         if parent != QtCore.QModelIndex():
             return False
-        self.beginInsertRows(parent, row, row)
-        newrows = [self._class() for x in range(1, count)]
+        self.beginInsertRows(parent, row, row + count - 1)
+        newrows = [self._class() for x in range(0, count)]
         self._model[row:row] = newrows
         self.endInsertRows()
         return True
@@ -525,20 +525,22 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 sender[i].remove_observer(self)
 
         def setslice(indexes):
-            for i in range(*indexes):
+            first, last = indexes[0], indexes[1] + indexes[2]
+            for i in range(first, last):
                 try:
                     sender[i].add_observer(self, "observe_item", i)
                 except AttributeError:
+                    print "AttributeError"
                     pass
             # Update observer_data after the slice
-            for i, row in enumerate(sender[indexes[1]:]):
+            for i, row in enumerate(sender[last:]):
                 try:
-                    row.set_observer_data(self, indexes[0] + i)
+                    row.set_observer_data(self, last + i)
                 except AttributeError:
                     pass
 
-            self.dataChanged.emit(self.createIndex(indexes[0], 0),
-                self.createIndex(indexes[1], len(self._properties) - 1))
+            self.dataChanged.emit(self.createIndex(first, 0),
+                self.createIndex(last, len(self._properties) - 1))
 
         def before_delslice(indexes):
             for i in range(*indexes):
@@ -819,18 +821,20 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
                 sender[i].remove_observer(self)
 
         def setslice(indexes):
+            first = indexes[0]
+            last = indexes[1] + indexes[2]
             print "mark"
             # FIXME: Logic for setting slices must be
             # rewritten
             print "FIXME"
-            for i in range(*indexes):
+            for i in range(first, last):
                 row_index = self.index(i, 0, list_index)
                 sender[i].add_observer(self, "observe_item",
                     QtCore.QPersistentModelIndex(row_index))
 
             # Note: I guess Qt keeps row number of QModelIndex by itself!
-            self.dataChanged.emit(self.index(indexes[0], 0, list_index),
-                self.index(indexes[1], len(self._properties) - 1, list_index))
+            self.dataChanged.emit(self.index(first, 0, list_index),
+                self.index(last, len(self._properties) - 1, list_index))
 
         def before_delslice(indexes):
             print "mark"
