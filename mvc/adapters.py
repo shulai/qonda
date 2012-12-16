@@ -494,9 +494,17 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         self.endInsertRows()
         return True
 
-    #def deleteRow
-
+    def removeRows(self, row, count, parent=QtCore.QModelIndex()):
+        print "removeRows"
+        if parent != QtCore.QModelIndex():
+            return False
+        self.beginRemoveRows(parent, row, row + count - 1)
+        # Terminar
+        self._model[row:row + count] = []
+        self.endRemoveRows()
+        return True
     ##
+
     def observe(self, sender, event_type, list_row, attrs):
         print "ObjectListAdapter.observe"
         if sender != self._model:
