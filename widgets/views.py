@@ -6,7 +6,7 @@ from PyQt4.QtCore import Qt
 
 class EditableView(object):
 
-    def keyReleaseEvent(self, event):
+    def keyPressEvent(self, event):
         # TODO: Implement
         key = event.key()
         mod = event.modifiers()
