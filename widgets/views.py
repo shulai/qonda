@@ -12,7 +12,7 @@ class EditableView(object):
         mod = event.modifiers()
         current_row = self.currentIndex().row()
         root = self.rootIndex()
-        row_count = self.model.rowCount(root)
+        row_count = self.model().rowCount(root)
         if (mod == Qt.NoModifier and key == Qt.Key_Down and
             current_row + 1 == row_count):
             self.model().insertRow(row_count, root)
@@ -20,7 +20,7 @@ class EditableView(object):
             if key == Qt.Key_Insert:
                 self.model().insertRow(current_row, root)
             elif key == Qt.Key_Delete:
-                self.removeRow(current_row, root)
+                self.model().removeRow(current_row, root)
         super(TableView, self).keyPressEvent(event)
 
 
