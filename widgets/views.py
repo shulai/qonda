@@ -6,6 +6,7 @@ from PyQt4.QtCore import Qt
 
 class EditableView(object):
 
+    # TODO: Add attribute confirmDeletion
     def keyPressEvent(self, event):
         # TODO: Implement
         key = event.key()
@@ -18,7 +19,9 @@ class EditableView(object):
             self.model().insertRow(row_count, root)
         elif mod == Qt.ControlModifier:
             if key == Qt.Key_Insert:
+                idx = self.currentIndex()
                 self.model().insertRow(current_row, root)
+                self.setCurrentIndex(idx)
             elif key == Qt.Key_Delete:
                 self.model().removeRow(current_row, root)
         super(TableView, self).keyPressEvent(event)
