@@ -40,9 +40,9 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:12pt; font-weight:600;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;1) contacts.py is a 226-line source file, but the interesting part is 80 lines long, spanning from line 98 to line 178. The rest is mostly boilerplate, model definition, example data setup, and the PyQt application setup.&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2) Contact data is hold in a Python list holding Contact instances. Model classes can be normal Python classes, but the Contact class inherits from qonda's ObservableObject in order to enhance the functionality.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2) Contact data is hold in a Python list holding Contact instances. Model classes can be normal Python classes, but the Contact class inherits from qonda's ObservableObject in order to enhance the functionality, so changes made to the models automatically trigger view updates.&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;3) At the top right there is a QTableView showing the list of contacts. with contact data. The list is wrapped into an adapter class (Qt Model/View model) and set as the QTableView model. Code required: 5 sentences in lines 116-137, including 16 lines for column metadata.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;3) At the top right there is a QTableView showing the list of contacts. with contact data. The list is wrapped into an adapter class (Qt Model/View model) and set as the QTableView model. Code required: 5 sentences in lines 116-137, including 16 lines for column metadata. The QTableView is promoted into a qonda.widgets.views.TableView, that implements inline row appending and deleting using Ctrl+Insert and Ctrl+Delete.&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;4) Below the table is a form showing the full contact data of the selected row. The form is set up setting a mapper (2 sentences, lines 106-112), plus setting the contact and phone list adapters (5 sentences in lines 140-168, with 20 lines for column metadata declaration). The mapper isn't a standard QDataWidgetMapper but an enhanced Qonda DataWidgetMapper.&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
@@ -64,10 +64,10 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QTableView" name="tableView">
+        <widget class="TableView" name="tableView">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -129,7 +129,7 @@ p, li { white-space: pre-wrap; }
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QTableView" name="phones">
+           <widget class="TableView" name="phones">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -204,6 +204,11 @@ p, li { white-space: pre-wrap; }
    <extends>QWidget</extends>
    <header>qonda/widgets/lookupwidget</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableView</extends>
+   <header>qonda.widgets.views</header>
   </customwidget>
  </customwidgets>
  <tabstops>
