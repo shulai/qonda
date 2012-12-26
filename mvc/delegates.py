@@ -26,12 +26,14 @@ PythonObjectRole = 32
 
 class SpinBoxDelegate(QtGui.QStyledItemDelegate):
 
-    # TODO: __init__ with max, min, etc.
+    def __init__(self, parent=None, **properties):
+        QtGui.QStyledItemDelegate.__init__(self, parent)
+        self.__properties = properties
 
-    def createEditor(self, parent, option, index, max_=100, min_=0):
+    def createEditor(self, parent, option, index):
         editor = QtGui.QSpinBox(parent)
-        editor.setMinimum(min_)
-        editor.setMaximum(max_)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
         return editor
 
     def setEditorData(self, editor, index):
@@ -48,14 +50,17 @@ class SpinBoxDelegate(QtGui.QStyledItemDelegate):
 
 class ComboBoxDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, parent=None, model=None):
+    def __init__(self, parent=None, model=None, **properties):
         QtGui.QStyledItemDelegate.__init__(self, parent)
         self.model = model
+        self.__properties = properties
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QComboBox(parent)
         if self.model:
             editor.setModel(self.model)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
         return editor
 
     def setEditorData(self, editor, index):
@@ -81,8 +86,19 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
 
 class DateEditDelegate(QtGui.QStyledItemDelegate):
 
+    def __init__(self, parent=None, **properties):
+        QtGui.QStyledItemDelegate.__init__(self, parent)
+        self.__properties = properties
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QDateEdit(parent)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
+        return editor
+
     def setModelData(self, editor, model, index):
-        date = editor.date()
+        # PyQt authors like QDate more than datetime.date, setapi doesn't work
+        date = editor.date().toPyDate()
         if date == datetime.date(1752, 9, 14):
             date = None
         model.setData(index, date, Qt.EditRole)
@@ -103,23 +119,17 @@ class LineEditDelegate(QtGui.QStyledItemDelegate):
             maxLength
             alignment
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, validator=None, **properties):
         QtGui.QStyledItemDelegate.__init__(self, parent)
-        self.inputMask = None
-        self.validator = None
-        self.maxLength = None
-        self.alignment = None
+        self.validator = validator
+        self.__properties = properties
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QLineEdit(parent)
-        if self.inputMask:
-            editor.setInputMask(self.inputMask)
         if self.validator:
             editor.setValidator(self.validator)
-        if self.maxLength:
-            editor.setMaxLength(self.maxLength)
-        if self.alignment:
-            editor.setAlignment(self.alignment)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
         return editor
 
     def setEditorData(self, editor, index):
