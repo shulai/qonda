@@ -228,7 +228,8 @@ class AdapterWriter(object):
             try:
                 value = self._column_meta[index.column()]['parser'](value)
             except (IndexError, KeyError, TypeError):
-                pass
+                if value == u'':
+                    value = None
             self._set_value(index, value)
             return True
         elif role == PythonObjectRole:
@@ -268,14 +269,16 @@ class BaseAdapter(QtCore.QAbstractTableModel):
             if no flags info is available.
         """
         o = index.internalPointer()
-        flags = 0
+        flags = Qt.ItemFlags()
         try:
             for flagbit, flagvalue in (self._column_meta[index.column()]
                 ['flags'].iteritems()):
                 try:
-                    flags |= flagbit if flagvalue(o) else 0
+                    if flagvalue(o):
+                        flags |= flagbit
                 except TypeError:
-                    flags |= flagbit if flagvalue else 0
+                    if flagvalue:
+                        flags |= flagbit
             return flags
         except (KeyError, TypeError):
             return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
@@ -298,7 +301,7 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return QtCore.QModelIndex()
 
         if row != 0:  # item model has a single row
-            print "ObjectAdapter: invalid row", row
+            print "ObjectAdapter: invalid row ({0}, {1})".format(row, column)
             return QtCore.QModelIndex()
 
         return self.createIndex(row, column, self._model)
@@ -478,7 +481,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     def _set_value(self, index, value):
 
         print "_set_value"
-        if index.row() == 0 and len(self._model) == 0: #+ 1 > len(self._model):
+        if index.row() == 0 and len(self._model) == 0:
             self._model.append(self._class())
         setattr(self._model[index.row()], self._properties[index.column()],
             value)
@@ -499,11 +502,9 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         if parent != QtCore.QModelIndex():
             return False
         self.beginRemoveRows(parent, row, row + count - 1)
-        # Terminar
         self._model[row:row + count] = []
         self.endRemoveRows()
         return True
-    ##
 
     def observe(self, sender, event_type, list_row, attrs):
         print "ObjectListAdapter.observe"
@@ -533,7 +534,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 sender[i].remove_observer(self)
 
         def setslice(indexes):
-            first, last = indexes[0], indexes[1] + indexes[2]
+            first, last = indexes[0], indexes[0] + indexes[2]
             for i in range(first, last):
                 try:
                     sender[i].add_observer(self, "observe_item", i)
