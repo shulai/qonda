@@ -21,6 +21,8 @@ import datetime
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
+from qonda.widgets import widgets
+
 PythonObjectRole = 32
 
 
@@ -68,15 +70,15 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
             editor.setCurrentIndex(editor.model().
                 _model.index(index.data(role=PythonObjectRole)))
         except AttributeError:
-            raise TypeError('Invalid QComboBox model. Did you assign a '
-                'Qonda Model?')
+            raise TypeError('Invalid QComboBox model {0}. Did you assign a '
+                'Qonda Model?'.format(editor.model()))
 
     def setModelData(self, editor, model, index):
         try:
             value = editor.model()._model[editor.currentIndex()]
         except AttributeError:
-            raise TypeError('Invalid QComboBox model. Did you assign a '
-                'Qonda Model?')
+            raise TypeError('Invalid QComboBox model {0}. Did you assign a '
+                'Qonda Model?'.format(editor.model()))
 
         model.setData(index, value, role=PythonObjectRole)
 
@@ -91,7 +93,7 @@ class DateEditDelegate(QtGui.QStyledItemDelegate):
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QDateEdit(parent)
+        editor = widgets.DateEdit(parent)
         for prop_name, prop_value in self.__properties.iteritems():
             editor.setProperty(prop_name, prop_value)
         return editor
@@ -104,10 +106,11 @@ class DateEditDelegate(QtGui.QStyledItemDelegate):
         model.setData(index, date, Qt.EditRole)
 
     def setEditorData(self, editor, index):
-        date = int(index.model().data(index, Qt.EditRole))
-        if not date:
-            date = datetime.date(1752, 9, 14)
-        editor.setDate(date)
+        date = index.model().data(index, PythonObjectRole)
+        if date:
+            editor.setDate(date)
+        else:
+            editor.clear()
 
 
 class LineEditDelegate(QtGui.QStyledItemDelegate):
