@@ -39,7 +39,6 @@ class Observable(object):
         pass
 
     def add_observer(self, observer, callback, observer_data=None):
-        print "add_observer on", type(self)
         self.__observers[observer] = [callback, observer_data]
 
     def remove_observer(self, observer):
@@ -77,6 +76,7 @@ class ObservableObject(Observable):
                 getattr(self, name).remove_observer(self)
             except AttributeError:
                 pass
+
         object.__setattr__(self, name, value)
         try:
             if name in self._notifiables:
@@ -201,5 +201,3 @@ class ObservableListProxy(ReadOnlyProxy, Observable, MutableSequence):
 
     def __repr__(self):
         return self._target.__repr__()
-
-
