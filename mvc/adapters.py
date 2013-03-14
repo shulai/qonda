@@ -16,6 +16,7 @@
 #    along with Qonda; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import copy
 import cPickle
 from functools import partial
 
@@ -131,7 +132,8 @@ class AdapterReader(object):
             try:
                 return self._column_meta[section]['title']
             except (KeyError, TypeError):
-                return self._properties[section].split('.').pop().title()
+                return (self._properties[section].split('.').pop().
+                    title().replace('_', ' '))
 
         def get_size_hint_role(section):
             try:
@@ -172,9 +174,11 @@ class AdapterReader(object):
                 return QtCore.QSize(20, 20)
             return None
 
+    # For DnD
     def mimeTypes(self):
         return ['application/qonda.pyobject', 'text/plain']
 
+    # For DnD
     def mimeData(self, indexes):
 
         def mime_data(index):
@@ -256,6 +260,14 @@ class BaseAdapter(QtCore.QAbstractTableModel):
             # If not observable (ok if the model doesn't change)
             "Notice: " + str(type(model)) + " is not observable"
 
+    # TODO
+    def _combine_column_metas(self, class_, adapter_meta):
+
+        meta = copy.copy(class_._qonda_column_meta)
+        for column_meta1, column_meta2 in zip(meta, adapter_meta):
+            column_meta1.update(column_meta2)
+        return meta
+
     def columnCount(self, parent):
         if parent != QtCore.QModelIndex():
             return 0
@@ -294,9 +306,10 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, column_meta, parent)
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=None):
 
-        if parent.isValid():  # Non hierarchical item model has no valid parent
+        if parent is not None and parent.isValid():
+            # Non hierarchical item model has no valid parent
             print "parent valid"
             return QtCore.QModelIndex()
 
@@ -374,9 +387,10 @@ class ValueListAdapter(AdapterReader, QtCore.QAbstractListModel):
             return 0
         return 1
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=None):
 
-        if parent.isValid():  # Non hierarchical item model has no valid parent
+        if parent is not None and parent.isValid():
+            # Non hierarchical item model has no valid parent
             print "parent valid"
             return QtCore.QModelIndex()
 
@@ -446,9 +460,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             count = 1
         return count
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=None):
 
-        if parent.isValid():  # Non hierarchical item model has no valid parent
+        if parent is not None and parent.isValid():
+            # Non hierarchical item model has no valid parent
             return QtCore.QModelIndex()
 
         try:
@@ -685,9 +700,9 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
     def columnCount(self, parent):
         return len(self._properties)
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=None):
 
-        if parent.isValid():
+        if parent is not None and parent.isValid():
             parentItem = parent.internalPointer()
         else:
             parentItem = self._model
