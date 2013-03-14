@@ -115,9 +115,10 @@ class ContactView(QtGui.QFrame):
     def setModel(self, model):
         # Set up model adapter and widget mapper
         self.model = model
-        self.list_adapter = ObjectListAdapter(Contact,
+        self.list_adapter = ObjectListAdapter(
             ('name', 'phones', 'loaned'),
-            self.model, column_meta=[
+            self.model, Contact,
+            column_meta=[
                 {'title': u'Nombre'},
                 {
                     'width': 10,
@@ -160,8 +161,9 @@ class ContactView(QtGui.QFrame):
             ])
         self.mapper.setModel(self.edit_adapter)
 
-        self.phones_adapter = ObjectListAdapter(Phone, ('number', 'type_'),
-            model.phones, column_meta=[
+        self.phones_adapter = ObjectListAdapter(('number', 'type_'),
+            model.phones, Phone, 
+            column_meta=[
                 {},
                 {'title': u'Type',
                     'size': 10}

@@ -301,7 +301,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         Adapts a Python object into a single row PyQt QAbstractTableModel.
     """
 
-    def __init__(self, properties, model=None, column_meta=None, parent=None):
+    def __init__(self, properties, model=None, class_=None,
+            column_meta=None, parent=None):
         # super is *really* harmful
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, column_meta, parent)
@@ -372,7 +373,7 @@ class ValueListAdapter(AdapterReader, QtCore.QAbstractListModel):
         Adapts a list of Python values into a single column
         PyQt QAbstractTableModel.
     """
-    def __init__(self, model, parent=None, column_meta=None):
+    def __init__(self, model, parent=None, class_=None, column_meta=None):
         # super is *really* harmful
         AdapterReader.__init__(self)
         QtCore.QAbstractListModel.__init__(self, parent)
@@ -428,15 +429,15 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         The list items should have all the same type.
     """
 
-    def __init__(self, class_, properties, model=None, column_meta=None,
+    def __init__(self, properties, model=None, class_=None, column_meta=None,
         parent=None, options=None):
         """
             Create a ObjectListAdapter.
-            class_: class of list elements. Used when inserting new elements in
-                    the model.
             properties: list of properties of the elements to be shown in the
                         view.
             model: the model itself.
+            class_: class of list elements. Used when inserting new elements in
+                    the model.
         """
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, column_meta, parent)
@@ -651,7 +652,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             setattr(self, child_attr, childs)
             setattr(self, parent_attr, None)
 
-    def __init__(self, class_, properties, model=None,
+    def __init__(self, properties, model=None, class_=None,
             column_meta=None, qparent=None,
             rootless=False, options=None, parent_attr='parent',
             child_attr='childs'):
