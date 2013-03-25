@@ -248,25 +248,20 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         Base class for adapting Python objects into a PyQt QAbstractTableModel
         compatible wrapper.
     """
-    def __init__(self, properties, model=None, column_meta=None, parent=None):
+    def __init__(self, properties, model=None, class_=None, column_meta=None,
+            parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._model = model
         self._properties = properties
+        self._class = class_
         self._column_meta = column_meta
+        print "self._column_meta", self._column_meta
 
         try:
             model.add_observer(self, "observe")
         except AttributeError:
             # If not observable (ok if the model doesn't change)
             "Notice: " + str(type(model)) + " is not observable"
-
-    # TODO
-    def _combine_column_metas(self, class_, adapter_meta):
-
-        meta = copy.copy(class_._qonda_column_meta)
-        for column_meta1, column_meta2 in zip(meta, adapter_meta):
-            column_meta1.update(column_meta2)
-        return meta
 
     def columnCount(self, parent):
         if parent != QtCore.QModelIndex():
@@ -295,6 +290,50 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         except (KeyError, TypeError):
             return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
+# Ver donde ubicar esto después
+
+
+def _build_class_meta(class_, properties):
+
+    def resolve_meta(class_, p):
+        try:
+            v = class_._qonda_column_meta[p]
+            # Property can be a reference and meta a link to expected class
+            if isinstance(v, type):
+                v = v._qonda_column_meta['.']
+        except KeyError:
+            head, tail = p.split('.', 1)
+            v = class_._qonda_column_meta[head]
+            if isinstance(v, type):
+                v = resolve_meta(v, tail)
+        return v
+
+    meta = []
+    for p in properties:
+        try:
+            v = resolve_meta(class_, p)
+        except (ValueError, AttributeError):
+            v = {}
+        meta.append(v)
+    return meta
+
+
+def _combine_column_metas(class_, adapter_meta, properties):
+
+    print class_, adapter_meta
+    if class_ is None:
+        return adapter_meta
+
+    class_meta = _build_class_meta(class_, properties)
+    if adapter_meta is None:
+        return class_meta
+    meta = []
+    for am, cm in zip(adapter_meta, class_meta):
+        m = cm.copy()
+        m.update(am)
+        meta.append(m)
+    return meta
+
 
 class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     """
@@ -305,7 +344,9 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             column_meta=None, parent=None):
         # super is *really* harmful
         AdapterReader.__init__(self)
-        BaseAdapter.__init__(self, properties, model, column_meta, parent)
+        column_meta = _combine_column_metas(class_, column_meta, properties)
+        BaseAdapter.__init__(self, properties, model, class_, column_meta,
+            parent)
 
     def index(self, row, column, parent=None):
 
@@ -440,8 +481,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                     the model.
         """
         AdapterReader.__init__(self)
-        BaseAdapter.__init__(self, properties, model, column_meta, parent)
-        self._class = class_
+        column_meta = _combine_column_metas(class_, column_meta, properties)
+        print column_meta
+        BaseAdapter.__init__(self, properties, model, class_, column_meta,
+            parent)
         # TODO: Check if edit_allowed is necessary (Can disable item editing
         # in the view)
         self.options = set(['edit', 'append']) if options is None else options
@@ -668,8 +711,9 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             model = ObjectTreeAdapter.RootNode(model, parent_attr, child_attr)
 
         self._model = model
-        self._column_meta = column_meta
-
+        self._column_meta = _combine_column_metas(class_, column_meta,
+            properties)
+        print self._column_meta
         self.options = set(['edit', 'append']) if options is None else options
         self.parent_attr = parent_attr
         self.child_attr = child_attr
