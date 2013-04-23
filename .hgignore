@@ -1,6 +1,5 @@
 syntax: glob
 
 *.pyc
-*.py~
-*.pdf
-
+*~
+*_ui.py
