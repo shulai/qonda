@@ -25,7 +25,7 @@ setup(
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',
     url='http://jotacege.com.ar/qonda',
-    packages=['qonda.mvc', 'qonda.widgets'],
+    packages=['qonda', 'qonda.mvc', 'qonda.widgets'],
     package_dir={'qonda': '.'},
     use_2to3 = True,
     long_description="""
@@ -50,7 +50,5 @@ setup(
         "Topic :: Software Development :: User Interfaces",
         ],
     keywords='gui pyqt4',
-    license='GPL',
-    install_requires=[
-        'PyQt4'
-        ])
+    license='GPL'
+        )
