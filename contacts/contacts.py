@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
+#
+# This file is part of the Qonda framework
+# Qonda is (C)2010,2013 Julio César Gázquez
+#
+# Qonda is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# any later version.
+#
+# Qonda is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 """
-Second tutorial
+Tutorial example
 """
 
 import sys
@@ -61,11 +77,17 @@ class Phone(object):
         self.number = number
         self.type_ = type_
 
+    def __str__(self):  # Because 2to3 doesn't convert __unicode__
+        return '{0} ({1})'.format(self.number, self.type_)
+
     def __unicode__(self):
         return u'{0} ({1})'.format(self.number, self.type_)
 
 
 class Phones(list):
+
+    def __str__(self):  # Because 2to3 doesn't convert __unicode__
+        return ', '.join((unicode(ph) for ph in self))
 
     def __unicode__(self):
         return u', '.join((unicode(ph) for ph in self))
@@ -119,10 +141,13 @@ class ContactView(QtGui.QFrame):
             ('name', 'phones', 'loaned'),
             self.model, Contact,
             column_meta=[
-                {'title': u'Nombre'},
+                {'title': u'Full Name'},
                 {
                     'width': 10,
-		    'flags': {Qt.ItemIsSelectable: True, Qt.ItemIsEnabled: True} 
+                    'flags': {
+                        Qt.ItemIsSelectable: True,
+                        Qt.ItemIsEnabled: True
+                        }
                 },
                 {
                     'displayFormatter': lambda(v): u'{0:.2f}'.format(v),
@@ -162,7 +187,7 @@ class ContactView(QtGui.QFrame):
         self.mapper.setModel(self.edit_adapter)
 
         self.phones_adapter = ObjectListAdapter(('number', 'type_'),
-            model.phones, Phone, 
+            model.phones, Phone,
             column_meta=[
                 {},
                 {'title': u'Type',
@@ -187,7 +212,7 @@ class ContactsApp(QtGui.QApplication):
 
         # Set up model
         try:
-            self.model = pickle.load(file('contacts.pickle', 'r'))
+            self.model = pickle.load(open('contacts.pickle', 'r'))
         except IOError:
             print "Can't unpickle, creating sample contact list"
             self.model = []
@@ -213,7 +238,7 @@ class ContactsApp(QtGui.QApplication):
         QtGui.QApplication.exec_()
 
         #try:
-            #pickle.dump(self.model, file('contacts.pickle', 'w'))
+            #pickle.dump(self.model, open('contacts.pickle', 'w'))
         #except IOError:
             #print "Error pickling the contact"
 
