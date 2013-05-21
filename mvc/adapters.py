@@ -255,7 +255,6 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         self._properties = properties
         self._class = class_
         self._column_meta = column_meta
-        print "self._column_meta", self._column_meta
 
         try:
             model.add_observer(self, "observe")
@@ -320,7 +319,6 @@ def _build_class_meta(class_, properties):
 
 def _combine_column_metas(class_, adapter_meta, properties):
 
-    print class_, adapter_meta
     if class_ is None:
         return adapter_meta
 
@@ -570,10 +568,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         if sender != self._model:
             return
 
-        def before_setitem(i, parent):
+        def before_setitem(i):
             sender[i].remove_observer(self)
 
-        def setitem(i, parent):
+        def setitem(i):
             try:
                 sender[i].add_observer(self, "observe_item", i)
             except AttributeError:
