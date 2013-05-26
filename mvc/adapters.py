@@ -379,7 +379,19 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
     def _set_value(self, index, value):
 
-        setattr(self._model, self._properties[index.column()], value)
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+            obj = self._model
+            prop = propertyparts.pop(0)
+
+            while len(propertyparts):
+                obj = getattr(obj, prop)
+                prop = propertyparts.pop(0)
+            setattr(obj, prop, value)
+        except IndexError:
+            pass
+        except AttributeError:
+            pass
 
     def rowCount(self, parent):
         if parent != QtCore.QModelIndex():
