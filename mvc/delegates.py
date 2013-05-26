@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import datetime
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 
 from qonda.widgets import widgets
@@ -68,16 +69,36 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
         try:
             editor.setCurrentIndex(editor.model().
                 _model.index(index.data(role=PythonObjectRole)))
-        except AttributeError:
-            raise TypeError('Invalid QComboBox model {0}. Did you assign a '
-                'Qonda Model?'.format(editor.model()))
+        except ValueError:
+            v = index.data(role=PythonObjectRole)
+            if v is None:  # Set first element if no value present
+                editor.setCurrentIndex(-1 if editor.allowEmpty else 0)
+            else:
+                raise ValueError('Value "{0}" not present in QComboBox model!'
+                    .format(index.data(role=PythonObjectRole)))
+        except AttributeError as e:
+            if sys.version_info.major == 3:
+                new_e = TypeError('Invalid QComboBox model {0}. Did you assign'
+                    ' a Qonda Model?\nHint: Value {1}'.format(editor.model(),
+                    index.data(role=PythonObjectRole)))
+                new_e.__cause__ = e
+                raise new_e
+            else:
+                raise TypeError('Invalid QComboBox model {0}. Did you assign'
+                    ' a Qonda Model?'.format(editor.model()))
 
     def setModelData(self, editor, model, index):
         try:
             value = editor.model()._model[editor.currentIndex()]
-        except AttributeError:
-            raise TypeError('Invalid QComboBox model {0}. Did you assign a '
-                'Qonda Model?'.format(editor.model()))
+        except AttributeError as e:
+            if sys.version_info.major == 3:
+                new_e = TypeError('Invalid QComboBox model {0}. Did you assign'
+                    ' a Qonda Model?'.format(editor.model()))
+                new_e.__cause__ = e
+                raise new_e
+            else:
+                raise TypeError('Invalid QComboBox model {0}. Did you assign'
+                    ' a Qonda Model?'.format(editor.model()))
 
         model.setData(index, value, role=PythonObjectRole)
 
@@ -135,7 +156,7 @@ class LineEditDelegate(QtGui.QStyledItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        value = index.model().data(index, Qt.EditRole)
+        value = index.data(Qt.EditRole)
         editor.setText(value)
 
     def setModelData(self, editor, model, index):
@@ -143,5 +164,3 @@ class LineEditDelegate(QtGui.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
-
-
