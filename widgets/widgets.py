@@ -19,27 +19,93 @@
 import datetime
 
 from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, pyqtProperty
 
 
 class DateEdit(QtGui.QDateEdit):
 
+    def __init__(self, parent=None):
+        super(QtGui.QDateEdit, self).__init__(parent)
+        self.setMinimumDate(datetime.date(1752, 9, 14))
+        self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
+        self.__allowEmpty = True
+
+    def clear(self):
+        if self.__allowEmpty:
+            self.setDate(self.minimumDate())
+
     def keyPressEvent(self, event):
         print "keyPressEvent"
-        if True:  # self.currentSection == QtGui.QDateTimeEdit.NoSection:
-
-            if event.key() == Qt.Key_Delete:
-                self.setDate(datetime.date(1752, 9, 14))
-                event.accept()
-                return
+        if event.key() == Qt.Key_Delete:
+            self.clear()
+            event.accept()
+            return
         super(DateEdit, self).keyPressEvent(event)
+
+    def getAllowEmpty(self):
+        return self.__allowEmpty
+
+    def setAllowEmpty(self, value):
+        self.__allowEmpty = value
+
+    def resetAllowEmpty(self):
+        self.__allowEmpty = True
+
+    allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
 class DateTimeEdit(QtGui.QDateTimeEdit):
 
+    def __init__(self, parent=None):
+        super(QtGui.QDateTimeEdit, self).__init__(parent)
+        self.setMinimumDate(datetime.date(1752, 9, 14))
+        self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
+        self.__allowEmpty = True
+
+    def clear(self):
+        if self.__allowEmpty:
+            self.setDate(self.minimumDate())
+
     def keyPressEvent(self, event):
         print "keyPressEvent"
-        if True:  # self.currentSection == QtGui.QDateTimeEdit.NoSection:
-            if event.key() == Qt.Key_Delete:
-                self.clear()
-        super(DateTimeEdit, self).keyPressEvent(event)
+        if event.key() == Qt.Key_Delete:
+            self.clear()
+            event.accept()
+            return
+        super(DateEdit, self).keyPressEvent(event)
+
+    def getAllowEmpty(self):
+        return self.__allowEmpty
+
+    def setAllowEmpty(self, value):
+        self.__allowEmpty = value
+
+    def resetAllowEmpty(self):
+        self.__allowEmpty = True
+
+    allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
+
+
+class ComboBox(QtGui.QComboBox):
+
+    def __init__(self, parent=None):
+        super(QtGui.QComboBox, self).__init__(parent)
+        self.__allowEmpty = True
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete and self.__allowEmpty:
+            self.setCurrentIndex(-1)
+            event.accept()
+            return
+        super(ComboBox, self).keyPressEvent(event)
+
+    def getAllowEmpty(self):
+        return self.__allowEmpty
+
+    def setAllowEmpty(self, value):
+        self.__allowEmpty = value
+
+    def resetAllowEmpty(self):
+        self.__allowEmpty = True
+
+    allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
