@@ -50,7 +50,7 @@ class LookupWidgetDelegate(QtGui.QItemDelegate):
     def paint(self, painter, options, index):
         try:
             model = index.model().data(index, Qt.EditRole)
-            value = getattr(model, self.lookupattr)
+            value = unicode(model)
         except AttributeError:
             value = ''
 
