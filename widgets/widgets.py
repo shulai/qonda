@@ -25,7 +25,7 @@ from PyQt4.QtCore import Qt, pyqtProperty
 class DateEdit(QtGui.QDateEdit):
 
     def __init__(self, parent=None):
-        super(QtGui.QDateEdit, self).__init__(parent)
+        super(DateEdit, self).__init__(parent)
         self.setMinimumDate(datetime.date(1752, 9, 14))
         self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
         self.__allowEmpty = True
@@ -35,7 +35,6 @@ class DateEdit(QtGui.QDateEdit):
             self.setDate(self.minimumDate())
 
     def keyPressEvent(self, event):
-        print "keyPressEvent"
         if event.key() == Qt.Key_Delete:
             self.clear()
             event.accept()
@@ -57,7 +56,7 @@ class DateEdit(QtGui.QDateEdit):
 class DateTimeEdit(QtGui.QDateTimeEdit):
 
     def __init__(self, parent=None):
-        super(QtGui.QDateTimeEdit, self).__init__(parent)
+        super(DateTimeEdit, self).__init__(parent)
         self.setMinimumDate(datetime.date(1752, 9, 14))
         self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
         self.__allowEmpty = True
@@ -89,7 +88,7 @@ class DateTimeEdit(QtGui.QDateTimeEdit):
 class ComboBox(QtGui.QComboBox):
 
     def __init__(self, parent=None):
-        super(QtGui.QComboBox, self).__init__(parent)
+        super(ComboBox, self).__init__(parent)
         self.__allowEmpty = True
 
     def keyPressEvent(self, event):
@@ -109,3 +108,16 @@ class ComboBox(QtGui.QComboBox):
         self.__allowEmpty = True
 
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
+
+
+class LineEdit(QtGui.QLineEdit):
+
+    def __init__(self, parent=None):
+        super(LineEdit, self).__init__(parent)
+        self.editableValue = ''
+
+    def focusInEvent(self, event):
+        super(LineEdit, self).focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        super(LineEdit, self).focusInEvent(event)
