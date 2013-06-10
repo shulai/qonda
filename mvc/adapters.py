@@ -257,7 +257,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         self._column_meta = column_meta
 
         try:
-            model.add_observer(self, "observe")
+            model.add_callback(self.observe)
         except AttributeError:
             # If not observable (ok if the model doesn't change)
             "Notice: " + str(type(model)) + " is not observable"
@@ -501,7 +501,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         for i, row in enumerate(self._model):
             try:
-                row.add_observer(self, "observe_item", i)
+                row.add_callback(self.observe_item, i)
             except AttributeError:
                 # If not observable (ok if the model doesn't change)
                 pass
@@ -581,39 +581,47 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return
 
         def before_setitem(i):
-            sender[i].remove_observer(self)
+            sender[i].remove_callback(self.observe_item)
 
         def setitem(i):
             try:
-                sender[i].add_observer(self, "observe_item", i)
+                sender[i].add_callback(self.observe_item, i)
             except AttributeError:
                 pass
             self.dataChanged.emit(self.createIndex(i, 0),
                 self.createIndex(i, len(self._properties) - 1))
 
         def before_delitem(i):
-            sender[i].remove_observer(self)
+            # FIXME!!!
+            sender[i].remove_callback(self.observerve_item)
             self.beginRemoveRows(QtCore.QModelIndex(), i, i)
 
         def delitem(i):
+            # Update observer_data starting in the slice (as elements shifted)
+            following = i + 1 if type(i) == int else i.stop
+            for i, row in enumerate(sender[following:]):
+                try:
+                    row.set_callback_data(self.observe_item, indexes[0] + i)
+                except AttributeError:
+                    pass
             self.endRemoveRows()
 
         def before_setslice(indexes):
             for i in range(*indexes):
-                sender[i].remove_observer(self)
+                sender[i].remove_callback(self.observe_item)
 
         def setslice(indexes):
             first, last = indexes[0], indexes[0] + indexes[2]
             for i in range(first, last):
                 try:
-                    sender[i].add_observer(self, "observe_item", i)
+                    sender[i].add_callback(self.observe_item, i)
                 except AttributeError:
                     print "AttributeError"
                     pass
             # Update observer_data after the slice
             for i, row in enumerate(sender[last:]):
                 try:
-                    row.set_observer_data(self, last + i)
+                    row.set_callback_data(self.observe_item, last + i)
                 except AttributeError:
                     pass
 
@@ -623,32 +631,23 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         def before_delslice(indexes):
             for i in range(*indexes):
                 try:
-                    sender[i].remove_observer(self)
+                    sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
             self.beginRemoveRows(QtCore.QModelIndex(), indexes[0], indexes[1])
-
-        def delslice(indexes):
-            # Update observer_data starting in the slice (as elements shifted)
-            for i, row in enumerate(sender[indexes[0]:]):
-                try:
-                    row.set_observer_data(self, indexes[0] + i)
-                except AttributeError:
-                    pass
-            self.endRemoveRows()
 
         def before_insert(i):
             self.beginInsertRows(QtCore.QModelIndex(), i, i)
 
         def insert(i):
             try:
-                sender[i].add_observer(self, "observe_item", i)
+                sender[i].add_callback(self.observe_item, i)
             except AttributeError:
                 pass
             # Update observer_data after the inserted element
             for j, row in enumerate(sender[i + 1:]):
                 try:
-                    row.set_observer_data(self, j + i)
+                    row.set_callback_data(self.observe_item, j + i)
                 except AttributeError:
                     pass
             self.endInsertRows()
@@ -659,7 +658,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def append(dummy):
             try:
-                sender[-1].add_observer(self, "observe_item", len(sender) - 1)
+                sender[-1].add_callback(self.observe_item, len(sender) - 1)
             except AttributeError:
                 pass
             self.endInsertRows()
@@ -671,7 +670,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         def extend(n):
             for i in range(-n):
                 try:
-                    sender[i].add_observer(self, "observe_item", i)
+                    sender[i].add_callback(self.observe_item, i)
                 except AttributeError:
                     pass
             self.endInsertRows()
@@ -730,14 +729,14 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
 
         root_index = QtCore.QModelIndex()
 
-        self._model.add_observer(self, "observe_item", root_index)
+        self._model.add_callback(self.observe_item, root_index)
         self._observe(getattr(self._model, self.child_attr), root_index)
 
     def _observe(self, submodel, model_index):
         if submodel is None:
             return
         try:
-            submodel.add_observer(self, "observe",
+            submodel.add_callback(self.observe,
                 QtCore.QPersistentModelIndex(model_index))
         except AttributeError:
             print "Notice: " + str(type(submodel)) + " is not observable"
@@ -745,7 +744,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         for i, row in enumerate(submodel):
             row_index = self.index(i, 0, model_index)
             try:
-                row.add_observer(self, "observe_item",
+                row.add_callback(self.observe_item,
                     QtCore.QPersistentModelIndex(row_index))
             except AttributeError:
                 print "Warning: " + str(type(submodel)) + " is not observable"
@@ -874,30 +873,25 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         # varies depending each event) but sender
         # and list_index are directly available by scope
         def before_setitem(i):
-            print "mark"
-            sender[i].remove_observer(self)
+            sender[i].remove_callback(self.observe_item)
 
         def setitem(i):
-            print "mark"
             row_index = self.index(i, 0, list_index)
-            sender[i].add_observer(self, "observe_item",
+            sender[i].add_callback(self.observe_item,
                     QtCore.QPersistentModelIndex(row_index))
             self.dataChanged.emit(row_index,
                 self.index(i, len(self._properties) - 1), list_index)
 
         def before_delitem(i):
-            print "mark"
-            sender[i].remove_observer(self)
+            sender[i].remove_callback(self)
             self.beginRemoveRows(list_index, i, i)
 
         def delitem(i):
-            print "mark"
             self.endRemoveRows()
 
         def before_setslice(indexes):
-            print "mark"
             for i in range(*indexes):
-                sender[i].remove_observer(self)
+                sender[i].remove_callback(self.observe_item)
 
         def setslice(indexes):
             first = indexes[0]
@@ -908,7 +902,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             print "FIXME"
             for i in range(first, last):
                 row_index = self.index(i, 0, list_index)
-                sender[i].add_observer(self, "observe_item",
+                sender[i].add_callback(self.observe_item,
                     QtCore.QPersistentModelIndex(row_index))
 
             # Note: I guess Qt keeps row number of QModelIndex by itself!
@@ -916,9 +910,8 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
                 self.index(last, len(self._properties) - 1, list_index))
 
         def before_delslice(indexes):
-            print "mark"
             for i in range(*indexes):
-                sender[i].remove_observer(self)
+                sender[i].remove_callback(self.observe_item)
             self.beginRemoveRows(list_index, indexes[0], indexes[1])
 
         def delslice(indexes):
@@ -933,7 +926,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         def insert(i):
             print "mark"
             row_index = self.index(i, 0, list_index)
-            sender[i].add_observer(self, "observe_item",
+            sender[i].add_callback(self.observe_item,
                 QtCore.QPersistentModelIndex(row_index))
             # Note: I guess Qt keeps row number of QModelIndex by itself!
             self.endInsertRows()
@@ -945,7 +938,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         def append(dummy):
             print "mark"
             row_index = self.index(len(sender) - 1, 0, list_index)
-            sender[-1].add_observer(self, "observe_item", row_index)
+            sender[-1].add_callback(self.observe_item, row_index)
             self.endInsertRows()
 
         def before_extend(n):
@@ -957,7 +950,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             print "mark"
             for i in range(-n):
                 row_index = self.index(i, 0, list_index)
-                sender[i].add_observer(self, "observe_item",
+                sender[i].add_callback(self.observe_item,
                     QtCore.QPersistentModelIndex(row_index))
             self.endInsertRows()
 

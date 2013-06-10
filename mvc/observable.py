@@ -18,6 +18,7 @@
 
 from collections import MutableSequence
 
+
 try:
     from sqlalchemy import orm
 except ImportError:
@@ -29,30 +30,30 @@ class Observable(object):
         Base class for observable objects
     """
     def __init__(self):
-        self.__dict__['_Observable__observers'] = dict()
+        self.__dict__['_Observable__callbacks'] = dict()
 
     try:
         @orm.reconstructor
         def __reconstructor(self):
-            self.__observers = dict()
+            self.__callbacks = dict()
     except NameError:
         pass
 
-    def add_observer(self, observer, callback, observer_data=None):
-        self.__observers[observer] = [callback, observer_data]
+    def add_callback(self, callback, observer_data=None):
+        self.__callbacks[callback] = observer_data
 
-    def remove_observer(self, observer):
-        del self.__observers[observer]
+    def remove_callback(self, callback):
+        del self.__callbacks[callback]
 
-    def get_observer_data(self, observer):
-        return self.__observers[observer][1]
+    def get_callback_data(self, callback):
+        return self.__callbacks[callback]
 
-    def set_observer_data(self, observer, data):
-        self.__observers[observer][1] = data
+    def set_callback_data(self, callback, data):
+        self.__callbacks[callback] = data
 
     def _notify(self, event_type, event_data=None):
-        for k, v in self.__observers.iteritems():
-            k.__getattribute__(v[0])(self, event_type, v[1], event_data)
+        for k, v in self.__callbacks.iteritems():
+            k(self, event_type, v, event_data)
 
 
 class ObservableObject(Observable):
@@ -73,7 +74,7 @@ class ObservableObject(Observable):
     def __setattr__(self, name, value):
         if name in self._notifiables:
             try:
-                getattr(self, name).remove_observer(self)
+                getattr(self, name).remove_callback(self._observe_attr)
             except AttributeError:
                 pass
 
@@ -82,7 +83,7 @@ class ObservableObject(Observable):
             if name in self._notifiables:
                 self._notify('update', (name,))
                 print "observo relacion", getattr(self, name)
-                getattr(self, name).add_observer(self, "_observe_attr", name)
+                getattr(self, name).add_callback(self._observe_attr, name)
         except AttributeError:
             pass  # If invoked in object construction
 
@@ -162,23 +163,12 @@ class ObservableListProxy(ReadOnlyProxy, Observable, MutableSequence):
     def __setitem__(self, i, x):
         self._notify('before_setitem', i)
         self._target.__setitem__(i, x)
-        self._notify('setitem', i)
+        self._notify('setitem', (i, len(x)))
 
     def __delitem__(self, i):
         self._notify('before_delitem', i)
         self._target.__delitem__(i)
         self._notify('delitem', i)
-
-    # Deprecated
-    def __setslice__(self, i, j, x):
-        self._notify('before_setslice', (i, j))
-        self._target.__setitem__(slice(i, j), x)
-        self._notify('setslice', (i, j, len(x)))  # Deprecated
-
-    def __delslice__(self, i, j):
-        self._notify('before_delslice', (i, j))
-        self._target.__delitem__(slice(i, j))
-        self._notify('delslice', (i, j))
 
     def insert(self, i, x):
         self._notify('before_insert', i)

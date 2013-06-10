@@ -72,13 +72,13 @@ class ObservableDataTestCase(unittest.TestCase):
         observer2 = Observer()
         observer3 = Observer()
 
-        observable.add_observer(observer1, "observe")
+        observable.add_callback(observer1.observe)
         observable.action1()
         self.assertEqual(len(observer1.events), 1,
             "Observer1 didn't observe an event? Event count: {0}, expected 1".
             format(len(observer1.events)))
 
-        observable.add_observer(observer2, "observe")
+        observable.add_callback(observer2.observe)
         observable.action1()
         self.assertEqual(len(observer1.events), 2,
             "Observer1 didn't observe an event? Event count: {0}, expected 2".
@@ -87,8 +87,8 @@ class ObservableDataTestCase(unittest.TestCase):
             "Observer2 didn't observe an event? Event count: {0}, expected 1".
             format(len(observer2.events)))
 
-        observable.add_observer(observer3, "observe")
-        observable.remove_observer(observer1)
+        observable.add_callback(observer3.observe)
+        observable.remove_callback(observer1.observe)
         observable.action1()
         self.assertEqual(len(observer1.events), 2,
             "Observer1 still observes events? Event count: {0}, expected 2".
@@ -100,7 +100,7 @@ class ObservableDataTestCase(unittest.TestCase):
             "Observer3 didn't observe an event. Event count: {0}, expected 1".
             format(len(observer3.events)))
 
-        observable.remove_observer(observer3)
+        observable.remove_callback(observer3.observe)
         observable.action1()
         self.assertEqual(len(observer1.events), 2,
             "Observer1 still observes events? Event count: {0}, expected 2".
@@ -112,7 +112,7 @@ class ObservableDataTestCase(unittest.TestCase):
             "Observer3 still observes events? Event count: {0}, expected 1".
             format(len(observer3.events)))
 
-        observable.remove_observer(observer2)
+        observable.remove_callback(observer2.observe)
         observable.action1()
         self.assertEqual(len(observer1.events), 2,
             "Observer1 still observes events? Event count: {0}, expected 2".
@@ -130,7 +130,7 @@ class ObservableDataTestCase(unittest.TestCase):
         """
         observable = Observable()
         observer = Observer()
-        observable.add_observer(observer, "observe")
+        observable.add_callback(observer.observe)
         observable.action1()
 
         self.assertEqual(len(observer.events), 1,
@@ -153,7 +153,7 @@ class ObservableDataTestCase(unittest.TestCase):
         """
         observable = Observable()
         observer = Observer()
-        observable.add_observer(observer, "observe", "**Observer data**")
+        observable.add_callback(observer.observe, "**Observer data**")
         observable.action1()
 
         self.assertEqual(len(observer.events), 1,
@@ -176,7 +176,7 @@ class ObservableDataTestCase(unittest.TestCase):
         """
         observable = Observable()
         observer = Observer()
-        observable.add_observer(observer, "observe")
+        observable.add_callback(observer.observe)
         observable.action2("**Event Data**")
 
         self.assertEqual(len(observer.events), 1,
@@ -199,7 +199,7 @@ class ObservableDataTestCase(unittest.TestCase):
         """
         observable = Observable()
         observer = Observer()
-        observable.add_observer(observer, "observe", "Sendme this back!")
+        observable.add_callback(observer.observe, "Sendme this back!")
         observable.action2("Interesting data")
 
         self.assertEqual(len(observer.events), 1,
@@ -222,17 +222,17 @@ class ObservableDataTestCase(unittest.TestCase):
         """
         observable = Observable()
         observer = Observer()
-        observable.add_observer(observer, "observe", "Send this back")
+        observable.add_callback(observer.observe, "Send this back")
         # Get sure that works fine even if events happen
         observable.action2("**Event Data**")
 
-        self.assertEqual(observable.get_observer_data(observer),
-            "Send this back", "get_observer_data returned wrong data")
+        self.assertEqual(observable.get_callback_data(observer.observe),
+            "Send this back", "get_callback_data returned wrong data")
 
-        observable.set_observer_data(observer, "New data")
+        observable.set_callback_data(observer.observe, "New data")
         observable.action2("**Event Data**")
-        self.assertEqual(observable.get_observer_data(observer), "New data",
-            "set_observer_data failed")
+        self.assertEqual(observable.get_callback_data(observer.observe),
+            "New data", "set_callback_data failed")
 
 
 class ObservableObjectTestCase(unittest.TestCase):
@@ -240,7 +240,7 @@ class ObservableObjectTestCase(unittest.TestCase):
     def setUp(self):
         self.obj = ObservableObject()
         self.observer = Observer()
-        self.obj.add_observer(self.observer, "observe")
+        self.obj.add_callback(self.observer.observe)
 
     def test_event_attribute(self):
 
