@@ -95,7 +95,21 @@ class Phones(list):
 
 class Contact(ObservableObject):
 
-    _notifiables = ('name', 'address', 'city', 'category', 'loaned')
+    _notifiables_ = ('name', 'address', 'city', 'category', 'loaned')
+
+    _qonda_column_meta_ = {
+        'loaned': {
+            'displayFormatter': lambda v: u'{0:.2f}'.format(v),
+            'editFormatter': lambda v: u'{0:.2f}'.format(v),
+            'parser': lambda v: float(v),
+            'font': lambda o: None if o.loaned < 100
+                else QtGui.QFont('Arial', weight=QtGui.QFont.Bold),
+            'foreground': lambda o: None if o.loaned < 100
+                else QtGui.QColor(255, 0, 0),
+            'background': lambda o: None if o.loaned < 50
+                else QtGui.QColor(255, 255, 0)
+            }
+        }
 
     def __init__(self):
         ObservableObject.__init__(self)
@@ -150,15 +164,6 @@ class ContactView(QtGui.QFrame):
                         }
                 },
                 {
-                    'displayFormatter': lambda(v): u'{0:.2f}'.format(v),
-                    'editFormatter': lambda(v): u'{0:.2f}'.format(v),
-                    'parser': lambda(v): float(v),
-                    'font': lambda(o): None if o.loaned < 100
-                        else QtGui.QFont('Arial', weight=QtGui.QFont.Bold),
-                    'foreground': lambda(o): None if o.loaned < 100
-                        else QtGui.QColor(255, 0, 0),
-                    'background': lambda(o): None if o.loaned < 50
-                        else QtGui.QColor(255, 255, 0)
                 }])
         self.ui.tableView.setModel(self.list_adapter)
         self.ui.tableView.resizeColumnsToContents()
@@ -166,24 +171,7 @@ class ContactView(QtGui.QFrame):
 
     def setEditorModel(self, model):
         self.edit_adapter = ObjectAdapter(('name', 'address', 'city',
-            'category', 'loaned'), model,
-            column_meta=[
-                {},
-                {},
-                {},
-                {},
-                {
-                    'editFormatter': lambda(v): u'{0:.2f}'.format(v),
-                    'parser': lambda(v): float(v),
-                    'font': lambda(o): None if o.loaned < 100
-                        else QtGui.QFont('Arial', weight=QtGui.QFont.Bold),
-                    'foreground': lambda(o): None if o.loaned < 100
-                        else QtGui.QColor(255, 0, 0),
-                    'background': lambda(o): None if o.loaned < 50
-                        else QtGui.QColor(255, 255, 0)
-
-                }
-            ])
+            'category', 'loaned'), model, Contact)
         self.mapper.setModel(self.edit_adapter)
 
         self.phones_adapter = ObjectListAdapter(('number', 'type_'),
