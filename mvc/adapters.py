@@ -449,11 +449,11 @@ class ValueListAdapter(AdapterReader, QtCore.QAbstractListModel):
             return QtCore.QModelIndex()
 
         if not (0 <= row < len(self._model)):  # item model has a single row
-            print "ValueListAdapter: invalid row", row
+            print "Warning: ValueListAdapter: invalid row", row
             return QtCore.QModelIndex()
 
         if column != 0:
-            print "ValueListAdapter: invalid column", column
+            print "Warning: ValueListAdapter: invalid column", column
             return QtCore.QModelIndex()
 
         return self.createIndex(row, column, self._model[row])
@@ -593,7 +593,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             try:
                 sender[i].add_callback(self.observe_item, i)
             except AttributeError:  # Item is not observable
-                pass
+                print "Warning: " + str(type(sender[i])) + " is not observable"
+
             self.dataChanged.emit(self.createIndex(i, 0),
                 self.createIndex(i, len(self._properties) - 1))
 
@@ -706,7 +707,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return
 
         # FIXME: This look ugly, and probably is wrong
-        print "ObjectListAdapter.observe_item", list_index, attrs
+        print "Warning: ObjectListAdapter.observe_item", list_index, attrs
         updated_prop = attrs[0]
         lu = len(updated_prop)
         for i, prop in enumerate(self._properties):
