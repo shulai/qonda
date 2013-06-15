@@ -61,18 +61,18 @@ class ObservableObject(Observable):
         Base class for observable objects with automatic property update
         notification
 
-        Inherit and put attribute names into _notifiables to trigger
+        Inherit and put attribute names into _notifiables_ to trigger
         notification for theses atributes
     """
-    _notifiables = list()
+    _notifiables_ = list()
 
     def __init__(self, notifiables=None):
         Observable.__init__(self)
         if notifiables:
-            object.__setattr__(self, '_notifiables', notifiables)
+            object.__setattr__(self, '_notifiables_', notifiables)
 
     def __setattr__(self, name, value):
-        if name in self._notifiables:
+        if name in self._notifiables_:
             try:
                 getattr(self, name).remove_callback(self._observe_attr)
             except AttributeError:
@@ -80,15 +80,13 @@ class ObservableObject(Observable):
 
         object.__setattr__(self, name, value)
         try:
-            if name in self._notifiables:
+            if name in self._notifiables_:
                 self._notify('update', (name,))
-                print "observo relacion", getattr(self, name)
                 getattr(self, name).add_callback(self._observe_attr, name)
         except AttributeError:
             pass  # If invoked in object construction
 
     def _observe_attr(self, sender, event_type, my_attr, related_attrs):
-        print "_observe_attr", my_attr + '.' + related_attrs
         self._notify('update', my_attr + '.' + related_attrs)
 
 
@@ -123,7 +121,7 @@ class ObservableProxy(Observable, Proxy):
       A class of proxies for plain objects adding Observer behavior to targets
     """
 
-    _notifiables = list()
+    _notifiables_ = list()
 
     def __init__(self, target, notifiables=None):
         Observable.__init__(self, notifiables)
@@ -132,7 +130,7 @@ class ObservableProxy(Observable, Proxy):
     def __setattr__(self, name, value):
         Proxy.__set_attr(self, name, value)
         try:
-            if name in self._notifiables:
+            if name in self._notifiables_:
                 self._notify('update', (name,))
         except AttributeError:
             pass  # If invoked in object construction

@@ -296,13 +296,13 @@ def _build_class_meta(class_, properties):
 
     def resolve_meta(class_, p):
         try:
-            v = class_._qonda_column_meta[p]
+            v = class_._qonda_column_meta_[p]
             # Property can be a reference and meta a link to expected class
             if isinstance(v, type):
-                v = v._qonda_column_meta['.']
+                v = v._qonda_column_meta_['.']
         except KeyError:
             head, tail = p.split('.', 1)
-            v = class_._qonda_column_meta[head]
+            v = class_._qonda_column_meta_[head]
             if isinstance(v, type):
                 v = resolve_meta(v, tail)
         return v
@@ -320,11 +320,19 @@ def _build_class_meta(class_, properties):
 def _combine_column_metas(class_, adapter_meta, properties):
 
     if class_ is None:
+        print ("Warning: Adapter has no model class defined. Will use only "
+            "provided metadata")
         return adapter_meta
 
     class_meta = _build_class_meta(class_, properties)
     if adapter_meta is None:
         return class_meta
+    if len(adapter_meta) != len(properties):
+        print ("Warning: Adapter provided metadata count and property count"
+            "doesn't match.")
+        if len(adapter_meta) < len(properties):
+            adapter_meta = adapter_meta + [{}] * (len(properties)
+                - len(adapter_meta))
     meta = []
     for am, cm in zip(adapter_meta, class_meta):
         m = cm.copy()
