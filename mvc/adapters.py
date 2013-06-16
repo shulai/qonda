@@ -579,7 +579,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def before_setitem(i):
             if type(i) == slice:
-                before_setslice(i)
+                before_setslice((i.start, i.stop))
                 return
             try:
                 sender[i].remove_callback(self.observe_item)
@@ -588,7 +588,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def setitem(i):
             if type(i) == slice:
-                setslice(i)
+                setslice((i.start, i.stop))
                 return
             try:
                 sender[i].add_callback(self.observe_item, i)
@@ -600,7 +600,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def before_delitem(i):
             if type(i) == slice:
-                before_delslice(i)
+                before_delslice((i.start, i.stop))
                 return
             try:
                 sender[i].remove_callback(self.observerve_item)
@@ -610,7 +610,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def delitem(i):
             if type(i) == slice:
-                delslice(i)
+                delslice((i.start, i.stop))
                 return
             for j, row in enumerate(sender[j + 1:]):
                 try:
