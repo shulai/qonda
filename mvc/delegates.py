@@ -164,3 +164,43 @@ class LineEditDelegate(QtGui.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+
+class CheckBoxDelegate(QtGui.QStyledItemDelegate):
+
+    def __init__(self, parent=None, **properties):
+        QtGui.QStyledItemDelegate.__init__(self, parent)
+        self.__properties = properties
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QCheckBox(parent)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(PythonObjectRole)
+        editor.setChecked(value)
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, bool(editor.isChecked()), PythonObjectRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
+
+    def paint(self, painter, options, index):
+        value = index.data(PythonObjectRole)
+        painter.save()
+        style = QtGui.QApplication.style()
+        #self.drawBackground(painter, options, index)
+        opt = QtGui.QStyleOptionButton()
+        opt.state |= QtGui.QStyle.State_On if value else QtGui.QStyle.State_Off
+        opt.state |= QtGui.QStyle.State_Enabled
+        #opt.text = text
+        checkbox_rect = style.subElementRect(QtGui.QStyle.SE_CheckBoxIndicator,
+            opt)
+        opt.rect = options.rect
+        opt.rect.setLeft(options.rect.x() + options.rect.width() / 2
+            - checkbox_rect.width() / 2)
+        style.drawControl(QtGui.QStyle.CE_CheckBox, opt, painter)
+        painter.restore()
