@@ -296,15 +296,18 @@ def _build_class_meta(class_, properties):
 
     def resolve_meta(class_, p):
         try:
-            v = class_._qonda_column_meta[p]
+            v = class_._qonda_column_meta_[p]
             # Property can be a reference and meta a link to expected class
             if isinstance(v, type):
-                v = v._qonda_column_meta['.']
+                v = v._qonda_column_meta_['.']
         except KeyError:
             head, tail = p.split('.', 1)
-            v = class_._qonda_column_meta[head]
-            if isinstance(v, type):
-                v = resolve_meta(v, tail)
+            try:
+                v = class_._qonda_column_meta_[head]
+                if isinstance(v, type):
+                    v = resolve_meta(v, tail)
+            except KeyError:
+                v = {}
         return v
 
     meta = []
