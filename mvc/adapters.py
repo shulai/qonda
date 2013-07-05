@@ -83,8 +83,10 @@ class AdapterReader(object):
         self._get_edit_role = partial(formatter, 'editFormatter', self)
         self._get_decoration_role = partial(callable_constant_meta,
             'decoration', self)
-        self._get_tool_tip_role = partial(constant_meta, 'tooltip', self)
-        self._get_status_tip_role = partial(constant_meta, 'statustip', self)
+        self._get_tool_tip_role = partial(callable_constant_meta, 'tooltip',
+            self)
+        self._get_status_tip_role = partial(callable_constant_meta,
+            'statustip',self)
         self._get_whats_this_role = partial(constant_meta, 'whatsthis', self)
         self._get_font_role = partial(callable_constant_meta, 'font', self)
         self._get_text_alignment_role = partial(constant_meta, 'alignment',
