@@ -54,6 +54,11 @@ class ItemDelegate(QtGui.QItemDelegate):
             delegate.setEditorData(editor, index)
         else:
             super(ItemDelegate, self).setEditorData(editor, index)
+            #v = index.data(Qt.EditRole)
+            #n = editor.metaObject().userProperty().name()
+            #if n.isEmpty() and editor.inherits("QComboBox"):
+            #    n = d.editorFactory().valuePropertyName(v.userType());
+            #editor.setProperty(n, v)
 
     def setModelData(self, editor, model, index):
         delegate = self.parent()._delegates[editor]
@@ -69,7 +74,9 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
     """
         An enhanced descendant of QDataWidgetMapper:
         * Uses the appropiate widget property if registered in the
-          _mappingPropertyName attribute of the widget class
+          _mappingPropertyName attribute of the widget class.
+          Required for QLabel as its text property isn't declared
+          as the "User" property
         * Uses an appropiate, alternative delegate if registered in
           the _mappingDelegateClass attribute of the widget class,
           or via the delegate attribute in the addMapping method
