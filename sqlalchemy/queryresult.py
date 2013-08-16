@@ -15,9 +15,12 @@ class QueryResult(ObservableListProxy):
         return self.__len
 
     def __getitem__(self, i):
+        if type(i) == slice:
+            if i.stop > self.__len:
+                raise IndexError
         try:
             if type(i) == slice:
-                if i.stop - 1 > len(self._target):
+                if i.stop > len(self._target):
                     raise IndexError
                 items = self._target[i]
                 if None in items:
