@@ -1,116 +1,121 @@
-# -*- coding: utf-8 *-*
+# -*- coding: utf-8 -*-
 
+import copy
 from operator import attrgetter
+from ..mvc.observable import Observable
 
 
 class Aggregator(object):
     """
-        source: list of objects
+        source: object
         target: object
-        operations: dict:
+        attributes: dict:
             keys = attribute names or '*' for count
-            values = tuples: operation, destination attribute
-            Operations:
-                'count', 'sum', 'avg', 'min', 'max'
+            values = list of target attributes
     """
-    def __init__(self, source, target, operations):
-        super().__init__()
+    def __init__(self, source, target, attributes):
+        super(Aggregator, self).__init__()
         self.__source = source
         self.__target = target
-        self.__operations = operations
-        source.add_observer(self, 'observe')
-        self.__count = len(source)
-        for attr, attr_ops in operations:
+        self.__attributes = attributes
+        self.__values = {}
+        self.__new_values = None
+        source.add_callback(self.observe)
+        count = len(source)
+        self.__values['*'] = count
+
+        for attr in attributes.keys():
             if attr == '*':
-                if attr_ops[0][0] == 'count':
-                    setattr(target, attr_ops[0][1], self.__count)
-                else:
-                    raise ValueException('Invalid aggregate operator {0}(*)'.
-                        format(attr_ops[0][0])
-
                 continue
+            agg_value = 0
+            for item in source:
+                agg_value += attrgetter(attr)(item)
+            self.__values[attr] = agg_value
 
-            for op, dest in attr_ops:
-                agg_value = None
-                for item in source:
-                    if value is None:
-                        agg_value = attrgetter(attr)(item)
-                    elif op in ('sum', 'avg'):
-                        agg_value += attrgetter(attr)(item)
-                    elif op == 'min':
-                        item_value = attrgetter(attr)(item)
-                        if agg_value > item_value:
-                            agg_value = item_value
-                    elif op == 'max':
-                        item_value = attrgetter(attr)(item)
-                        if agg_value < item_value:
-                            agg_value = item_value
-                    else:
-                        raise ValueException('Invalid aggregate operator '
-                            '{0}({1})'.format(op, attr))
-                if op == 'avg':
-                    agg_value /= self.__count
-                #
-                setattr(target, dest, agg_value)
         for item in source:
-        item.add_observer(self, 'observe_item')
+            item.add_callback(self.observe_item)
+        self.update_target()
+
+    def update_target(self):
+
+        for attr, target_attr in self.__attributes.items():
+            setattr(self.__target, target_attr, self.__values[attr])
 
     def observe(self, sender, event_type, list_row, attrs):
-        # Todo: Handle sliced indexes
+
         if sender != self.__source:
             return
 
-        def before_setitem(i):
-            self._notify('before_update', 'total')
-            for i in (range(i, i + 1) if type(i) == int
-                    else range(*i.indices(len(sender)))):
-                self.total -= getattr(sender[i], self.__attribute)
-                sender[i].remove_observer(self)
+        def __before_delitem(i):
+            self.__new_values = copy.copy(self.__values)
+            item_range = (range(i, i + 1) if type(i) == int
+                else range(*i.indices(len(sender))))
+            for attr in self.__attributes.keys():
+                if attr == '*':
+                    continue
+                total = self.__new_values[attr]
+                for i in item_range:
+                    total -= getattr(sender[i], attr)
+                self.__new_values[attr] = total
+            self.__new_values['*'] -= len(item_range)
+            for i in item_range:
+                sender[i].remove_callback(self.observe_item)
 
-        def setitem(i):
-            try:
-                sender[i].add_observer(self, "observe_item", i)
-            except AttributeError:
-                pass
-            self.total += getattr(sender[i], self.__attribute)
-            print('Total:', self.total)
-            self._notify('update', 'total')
+        def before_setitem(i):
+            __before_delitem(i)
+
+        def setitem(args):
+            i, length = args
+            item_range = (range(i, i + length) if type(i) == int
+                else range(i.start, i.start + length))
+
+            for i in item_range:
+                sender[i].add_callback(self.observe_item, i)
+
+            for attr in self.__attributes.keys():
+                if attr == '*':
+                    continue
+                total = self.__new_values[attr]
+                for i in item_range:
+                    total += getattr(sender[i], attr)
+                self.__new_values[attr] = total
+            self.__new_values['*'] += length
+
+            self.__values = self.__new_values
+            self.update_target()
 
         def before_delitem(i):
-            self._notify('before_update', 'total')
-            sender[i].remove_observer(self)
-            self.total -= getattr(sender[i], self.__attribute)
+            __before_delitem(i)
 
         def delitem(i):
-            self._notify('update', 'total')
+            self.__values = self.__new_values
+            self.update_target()
 
         def insert(i):
-            self._notify('before_update', 'total')
-            try:
-                sender[i].add_observer(self, "observe_item", i)
-            except AttributeError:
-                pass
-            self.total += getattr(sender[i], self.__attribute)
-            self._notify('update', 'total')
+            sender[i].add_callback(self.observe_item, i)
+            for attr in self.__attributes.keys():
+                if attr == '*':
+                    continue
+                self.__values[attr] += getattr(sender[i], attr)
+            self.__values['*'] += 1
+            self.update_target()
 
         def append(dummy):
-            self._notify('before_update', 'total')
-            try:
-                sender[-1].add_observer(self, "observe_item", len(sender) - 1)
-            except AttributeError:
-                pass
-            self.total += getattr(sender[-1], self.__attribute)
-            self._notify('update', 'total')
+            insert(len(sender) - 1)
 
-        def extend(n):
-            self._notify('before_update', 'total')
-            for i in range(-n):
-                try:
-                    sender[i].add_observer(self, "observe_item", i)
-                except AttributeError:
-                    pass
-                self.total += getattr(sender[i], self.__attribute)
-            self._notify('update', 'total')
+        def extend(length):
+            item_range = range(len(sender) - length, len(sender))
+
+            for i in item_range:
+                sender[i].add_callback(self.observe_item, i)
+
+            for attr in self.__attributes.keys():
+                if attr == '*':
+                    continue
+                for i in item_range:
+                    self.__values[attr] += getattr(sender[i], attr)
+            self.__values['*'] += length
+            self.update_target()
 
         # Llamo a la función asociada al event_type
         try:
