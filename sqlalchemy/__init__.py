@@ -1,0 +1,1 @@
+from queryresult import QueryResult

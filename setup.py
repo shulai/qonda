@@ -25,7 +25,7 @@ setup(
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',
     url='http://jotacege.com.ar/qonda',
-    packages=['qonda', 'qonda.mvc', 'qonda.widgets'],
+    packages=['qonda', 'qonda.mvc', 'qonda.widgets', 'qonda.mainwindow', 'qonda.util', 'qonda.sqlalchemy'],
     package_dir={'qonda': '.'},
     use_2to3 = True,
     long_description="""
