@@ -82,7 +82,6 @@ class ObservableObject(Observable):
         try:
             if name in self._notifiables:
                 self._notify('update', (name,))
-                print "observo relacion", getattr(self, name)
                 getattr(self, name).add_callback(self._observe_attr, name)
         except AttributeError:
             pass  # If invoked in object construction
