@@ -2,7 +2,6 @@
 
 import copy
 from operator import attrgetter
-from ..mvc.observable import Observable
 
 
 class Aggregator(object):
