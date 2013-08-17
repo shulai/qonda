@@ -591,9 +591,10 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             except AttributeError:  # Item is not observable
                 pass
 
-        def setitem(i):
+        def setitem(attrs):
+            i, l = attrs
             if type(i) == slice:
-                setslice((i.start, i.stop))
+                setslice(i.start, l)
                 return
             try:
                 sender[i].add_callback(self.observe_item, i)
@@ -631,17 +632,17 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 except AttributeError:
                     pass
 
-        def setslice(indexes):
-            first, last = indexes[0], indexes[0] + indexes[2]
-            for i in range(first, last):
+        def setslice(start, l):
+            stop = start + l
+            for i in range(start, stop):
                 try:
                     sender[i].add_callback(self.observe_item, i)
                 except AttributeError:
                     pass
             # Update observer_data after the slice
-            for i, row in enumerate(sender[last:]):
+            for i, row in enumerate(sender[stop:]):
                 try:
-                    row.set_callback_data(self.observe_item, last + i)
+                    row.set_callback_data(self.observe_item, stop + i)
                 except AttributeError:
                     pass
 

@@ -25,9 +25,14 @@ setup(
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',
     url='http://jotacege.com.ar/qonda',
+<<<<<<< local
+    packages=['qonda', 'qonda.mvc', 'qonda.widgets', 'qonda.sqla',
+        'qonda.mainwindow'],
+=======
     packages=['qonda', 'qonda.mvc', 'qonda.widgets', 'qonda.mainwindow', 'qonda.util', 'qonda.sqlalchemy'],
+>>>>>>> other
     package_dir={'qonda': '.'},
-    use_2to3 = True,
+    use_2to3=True,
     long_description="""
     Qonda is a framework consisting in a set of classes to use Python models
     as Qt views.
