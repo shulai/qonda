@@ -161,7 +161,10 @@ class ObservableListProxy(ReadOnlyProxy, Observable, MutableSequence):
     def __setitem__(self, i, x):
         self._notify('before_setitem', i)
         self._target.__setitem__(i, x)
-        self._notify('setitem', (i, len(x)))
+        if type(i) == slice:
+            self._notify('setitem', (i, len(x)))
+        else:
+            self._notify('setitem', (i, 1))
 
     def __delitem__(self, i):
         self._notify('before_delitem', i)
