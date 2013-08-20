@@ -52,8 +52,8 @@ class Observable(object):
         self.__callbacks[callback] = data
 
     def _notify(self, event_type, event_data=None):
-        for k, v in self.__callbacks.iteritems():
-            k(self, event_type, v, event_data)
+        for callback, observer_data in self.__callbacks.iteritems():
+            callback(self, event_type, observer_data, event_data)
 
 
 class ObservableObject(Observable):
