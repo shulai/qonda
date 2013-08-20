@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
-import copy
 import cPickle
 from functools import partial
 
@@ -96,7 +95,7 @@ class AdapterReader(object):
         self._get_foreground_role = partial(callable_constant_meta,
             'foreground', self)
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
 
         def get_size_hint_role(section):
             try:
@@ -365,7 +364,7 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             # Non hierarchical item model has no valid parent
             return QtCore.QModelIndex()
 
-        if row != 0:  # item model has a single row
+        if row != 0 or column < 0 or column >= len(self._properties):
             return QtCore.QModelIndex()
 
         return self.createIndex(row, column, self._model)
