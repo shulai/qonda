@@ -583,56 +583,16 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return
 
         def before_setitem(i):
-            if type(i) == slice:
-                before_setslice((i.start, i.stop))
-                return
-            try:
-                sender[i].remove_callback(self.observe_item)
-            except AttributeError:  # Item is not observable
-                pass
-
-        def setitem(attrs):
-            i, l = attrs
-            if type(i) == slice:
-                setslice(i.start, l)
-                return
-            try:
-                sender[i].add_callback(self.observe_item, i)
-            except AttributeError:  # Item is not observable
-                print "Warning: " + str(type(sender[i])) + " is not observable"
-
-            self.dataChanged.emit(self.createIndex(i, 0),
-                self.createIndex(i, len(self._properties) - 1))
-
-        def before_delitem(i):
-            if type(i) == slice:
-                before_delslice((i.start, i.stop))
-                return
-            try:
-                sender[i].remove_callback(self.observerve_item)
-            except AttributeError:  # Item is not observable
-                pass
-            self.beginRemoveRows(QtCore.QModelIndex(), i, i)
-
-        def delitem(i):
-            if type(i) == slice:
-                delslice((i.start, i.stop))
-                return
-            for j, row in enumerate(sender[j + 1:]):
-                try:
-                    row.set_callback_data(self.observe_item, i + j)
-                except AttributeError:
-                    pass
-            self.endRemoveRows()
-
-        def before_setslice(indexes):
-            for i in range(*indexes):
+            start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
+            for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
 
-        def setslice(start, l):
+        def setitem(attrs):
+            i, l = attrs
+            start = i if type(i) == int else i.start
             stop = start + l
             for i in range(start, stop):
                 try:
@@ -646,22 +606,24 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 except AttributeError:
                     pass
 
-            self.dataChanged.emit(self.createIndex(first, 0),
-                self.createIndex(last, len(self._properties) - 1))
+            self.dataChanged.emit(self.createIndex(start, 0),
+                self.createIndex(stop - 1, len(self._properties) - 1))
 
-        def before_delslice(indexes):
-            for i in range(*indexes):
+        def before_delitem(i):
+            start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
+            for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
-            self.beginRemoveRows(QtCore.QModelIndex(), indexes[0], indexes[1])
+            self.beginRemoveRows(QtCore.QModelIndex(), stop, stop - 1)
 
-        def delslice(indexes):
+        def delitem(i):
+            start = i if type(i) == int else i.start
             # Update observer_data starting in the slice (as elements shifted)
-            for i, row in enumerate(sender[indexes[0]:]):
+            for i, row in enumerate(sender[start:]):
                 try:
-                    row.set_callback_data(self.observe_item, indexes[0] + i)
+                    row.set_callback_data(self.observe_item, start + i)
                 except AttributeError:  # Item is not observable
                     pass
             self.endRemoveRows()
