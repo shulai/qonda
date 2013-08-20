@@ -217,6 +217,28 @@ class AdapterReader(object):
 
         return mime
 
+    def flags(self, index):
+        """
+            Returns the item flags for the given index.
+            This implementation checks the flags information from metadata,
+            and returns ItemIsSelectable, ItemIsEditable and ItemIsEnabled
+            if no flags info is available.
+        """
+        o = index.internalPointer()
+        flags = Qt.ItemFlags()
+        try:
+            for flagbit, flagvalue in (self._column_meta[index.column()]
+                ['flags'].iteritems()):
+                try:
+                    if flagvalue(o):
+                        flags |= flagbit
+                except TypeError:
+                    if flagvalue:
+                        flags |= flagbit
+            return flags
+        except (KeyError, TypeError):
+            return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+
 
 class AdapterWriter(object):
     """
@@ -268,28 +290,6 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         if parent != QtCore.QModelIndex():
             return 0
         return len(self._properties)
-
-    def flags(self, index):
-        """
-            Returns the item flags for the given index.
-            This implementation checks the flags information from metadata,
-            and returns ItemIsSelectable, ItemIsEditable and ItemIsEnabled
-            if no flags info is available.
-        """
-        o = index.internalPointer()
-        flags = Qt.ItemFlags()
-        try:
-            for flagbit, flagvalue in (self._column_meta[index.column()]
-                ['flags'].iteritems()):
-                try:
-                    if flagvalue(o):
-                        flags |= flagbit
-                except TypeError:
-                    if flagvalue:
-                        flags |= flagbit
-            return flags
-        except (KeyError, TypeError):
-            return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
 # Ver donde ubicar esto después
 
