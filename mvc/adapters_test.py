@@ -34,63 +34,90 @@ class ObjectAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.model1 = Employee()
-        self.model1.name = 'John'
-        self.model1.section = 'Sales'
+        self.model1.name = u'John'
+
+        self.model1.section = u'Sales'
         self.adapter1 = ObjectAdapter(
             ('name', 'section'),
             self.model1,
             Employee)
         self.model2 = Employee()
-        self.model2.name = 'Bob'
-        self.model2.section = 'H.R.'
+        self.model2.name = u'Bob'
+        self.model2.section = u'H.R.'
         self.adapter2 = ObjectAdapter(
             ('name', 'section'),
             self.model2,
             Employee)
 
+    def test_simple(self):
+        index = QtCore.QModelIndex()
+        self.assertEqual(self.adapter1.rowCount(index), 1,
+            'ObjectAdapter.rowCount must return 1')
+        self.assertEqual(self.adapter1.columnCount(index), 2,
+            'ObjectAdapter.columnCount must return 2')
+        index = self.adapter1.index(0, 0)
+        self.assertEqual(self.adapter1.rowCount(index), 0,
+            'ObjectAdapter.rowCount must return 0')
+        self.assertEqual(self.adapter1.columnCount(index), 0,
+            'ObjectAdapter.columnCount must return 0')
+
     def test_indexes(self):
 
-        index = self.adapter1.index(0, 0)
-        self.assertEqual(index.row(), 0,
-            'ObjectAdapter.index(0, 0) has wrong row')
-        self.assertEqual(index.column(), 0,
-            'ObjectAdapter.index(0, 0) has wrong column')
+        cases = ((0, 0), (0, 1))
 
-        index = self.adapter1.index(0, 1)
-        self.assertEqual(index.row(), 0,
-            'ObjectAdapter.index(0, 1) has wrong row')
-        self.assertEqual(index.column(), 1,
-            'ObjectAdapter.index(0, 1) has wrong column')
+        for case in cases:
+            index = self.adapter1.index(*case)
+            self.assertEqual(index.row(), case[0],
+                'ObjectAdapter.index{0} has wrong row'.format(case))
+            self.assertEqual(index.column(), case[1],
+                'ObjectAdapter.index{0} has wrong column'.format(case))
 
-        index = self.adapter1.index(0, 2)
-        self.assertFalse(index.isValid(),
-            'ObjectAdapter.index(0, 2) should be invalid')
-
-        index = self.adapter1.index(1, 0)
-        self.assertFalse(index.isValid(),
-            'ObjectAdapter.index(1, 0) should be invalid')
+        cases = ((0, 2), (1, 0), (-1, 0))
+        for case in cases:
+            index = self.adapter1.index(*case)
+            self.assertFalse(index.isValid(),
+            'ObjectAdapter.index{0} should be invalid'.format(case))
 
     def test_data(self):
 
-        index = self.adapter1.index(0, 0)
-        name = self.adapter1.data(index)
-        self.assertEqual(name, 'John',
-            'ObjectAdapter.data on index(0, 0) failed')
+        cases = (
+            (self.adapter1, (0, 0), u'John'),
+            (self.adapter1, (0, 1), u'Sales'),
+            (self.adapter1, (0, 2), None),
+            (self.adapter1, (1, 0), None),
+            (self.adapter1, (-1, 0), None),
+            (self.adapter2, (0, 0), u'Bob'),
+            (self.adapter2, (0, 1), u'H.R.'),
+            (self.adapter2, (0, 2), None))
 
-        index = self.adapter1.index(0, 1)
-        section = self.adapter1.data(index)
-        self.assertEqual(section, 'Sales',
-            'ObjectAdapter on index(0, 1) failed')
+        for adapter, rowcol, value in cases:
+            index = adapter.index(*rowcol)
+            adapter_value = adapter.data(index)
+            self.assertEqual(adapter_value, value,
+                'ObjectAdapter.data on index{0} failed'.format(rowcol))
 
-        index = self.adapter2.index(0, 0)
-        name = self.adapter2.data(index)
-        self.assertEqual(name, 'Bob',
-            'ObjectAdapter.data on index(0, 0) failed')
+    def test_setData(self):
 
-        index = self.adapter2.index(0, 1)
-        section = self.adapter2.data(index)
-        self.assertEqual(section, 'H.R.',
-            'ObjectAdapter.data on index(0, 1) failed')
+        cases = (
+            (self.adapter1, (0, 0), u'Rick', True),
+            (self.adapter1, (0, 1), u'Engineering', True),
+            (self.adapter1, (0, 2), u'Foo', False),
+            (self.adapter1, (1, 0), u'Foo', False),
+            (self.adapter1, (-1, 0), u'Foo', False),
+            (self.adapter2, (0, 0), u'Mike', True),
+            (self.adapter2, (0, 1), u'Store', True),
+            )
+
+        for adapter, rowcol, value, expected in cases:
+            index = adapter.index(*rowcol)
+            r = adapter.setData(index, value)
+            self.assertEqual(r, expected,
+                'ObjectAdapter.setData on index{0} failed'.format(rowcol))
+            if r:
+                adapter_value = adapter.data(index)
+                self.assertEqual(adapter_value, value,
+                    'ObjectAdapter.setData on index{0} failed'.format(rowcol))
+
 
 if __name__ == '__main__':
     unittest.main()

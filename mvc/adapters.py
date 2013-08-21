@@ -249,19 +249,19 @@ class AdapterWriter(object):
             Method _set_value(self, index, value)
     """
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=Qt.EditRole):
 
+        if not index.isValid():
+            return False
         if role == Qt.EditRole:
             try:
                 value = self._column_meta[index.column()]['parser'](value)
             except (IndexError, KeyError, TypeError):
                 if value == u'':
                     value = None
-            self._set_value(index, value)
-            return True
+            return self._set_value(index, value)
         elif role == PythonObjectRole:
-            self._set_value(index, value)
-            return True
+            return self._set_value(index, value)
 
         return False
 
@@ -399,9 +399,10 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             setattr(obj, prop, value)
         except IndexError:
-            pass
+            return False
         except AttributeError:
-            pass
+            return False
+        return True
 
     def rowCount(self, parent):
         if parent != QtCore.QModelIndex():
@@ -554,10 +555,23 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
     def _set_value(self, index, value):
 
-        if index.row() == 0 and len(self._model) == 0:
+        if (index.row() == 0 and len(self._model) == 0
+                and 'append' in self.options):
             self._model.append(self._class())
-        setattr(self._model[index.row()], self._properties[index.column()],
-            value)
+
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+            obj = self._model[index.row()]
+            prop = propertyparts.pop(0)
+
+            while len(propertyparts):
+                obj = getattr(obj, prop)
+                prop = propertyparts.pop(0)
+            setattr(obj, prop, value)
+        except IndexError:
+            return False
+        except AttributeError:
+            return False
         return True
 
     def insertRows(self, row, count, parent=QtCore.QModelIndex()):
