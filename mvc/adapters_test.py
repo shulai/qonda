@@ -18,7 +18,7 @@
 
 import unittest
 from PyQt4 import QtCore
-from observable import ObservableObject
+from observable import ObservableObject, ObservableListProxy
 from adapters import ObjectAdapter, ObjectListAdapter
 
 
@@ -28,6 +28,14 @@ class Employee(ObservableObject):
 
     def __init__(self):
         super(Employee, self).__init__()
+
+
+class Point(ObservableObject):
+
+    _notifiables = ('x', 'y', 'z')
+
+    def __init__(self):
+        super(Point, self).__init__()
 
 
 class ObjectAdapterTestCase(unittest.TestCase):
@@ -117,6 +125,85 @@ class ObjectAdapterTestCase(unittest.TestCase):
                 adapter_value = adapter.data(index)
                 self.assertEqual(adapter_value, value,
                     'ObjectAdapter.setData on index{0} failed'.format(rowcol))
+
+
+class ObjectListAdapterTestCase(unittest.TestCase):
+
+    def setUp(self):
+
+        self.model = ObservableListProxy()
+        for i in range(0, 10):
+            p = Point()
+            p.x = 'x{0}'.format(i)
+            p.y = 'y{0}'.format(i)
+            p.z = 'z{0}'.format(i)
+            self.model.append(p)
+
+        self.adapter = ObjectListAdapter(
+            ('x', 'y', 'z'),
+            self.model,
+            Point, options={'edit'})
+
+    def test_simple(self):
+        index = QtCore.QModelIndex()
+        self.assertEqual(self.adapter.rowCount(index), 10,
+            'ObjectListAdapter.rowCount must return 10')
+        self.assertEqual(self.adapter.columnCount(index), 3,
+            'ObjectListAdapter.columnCount must return 3')
+        index = self.adapter.index(0, 0)
+        self.assertEqual(self.adapter.rowCount(index), 0,
+            'ObjectListAdapter.rowCount must return 0')
+        self.assertEqual(self.adapter.columnCount(index), 0,
+            'ObjectListAdapter.columnCount must return 0')
+
+    def test_indexes(self):
+
+        for row in range(-1, 11):
+            for col in range(-1, 4):
+                index = self.adapter.index(row, col)
+                if row in (-1, 10) or col in (-1, 10):
+                    self.assertFalse(index.isValid(),
+                        ('ObjectListAdapter.index({0},{1})) should be'
+                        ' invalid').format(row, col))
+                else:
+                    self.assertEqual(index.row(), row,
+                        'ObjectListAdapter.index({0}, {1}) has wrong row'
+                        .format(row, col))
+                    self.assertEqual(index.column(), col,
+                        'ObjectListAdapter.index({0}, {1}) has wrong column'
+                        .format(row, col))
+
+    def test_data(self):
+
+        for row in range(-1, 11):
+            for col in range(-1, 4):
+                index = self.adapter.index(row, col)
+                if row in (-1, 10) or col in (-1, 3):
+                    value = None
+                else:
+                    value = ('x', 'y', 'z')[col] + str(row)
+                adapter_value = self.adapter.data(index)
+                self.assertEqual(adapter_value, value,
+                    'ObjectListAdapter.data on index({0}, {1}) failed'
+                        .format(row, col))
+
+    def test_setData(self):
+
+        for row in range(-1, 11):
+            for col in range(-1, 4):
+                index = self.adapter.index(row, col)
+                value = chr(65 + col) + str(row)
+                expected = False if row in (-1, 10) or col in (-1, 3) else True
+                r = self.adapter.setData(index, value)
+                self.assertEqual(r, expected,
+                    ('ObjectListAdapter.setData on index({0}, {1}) failed'
+                    'must return {2}')
+                    .format(row, col, expected))
+                if r:
+                    adapter_value = self.adapter.data(index)
+                    self.assertEqual(adapter_value, value,
+                    'ObjectListAdapter.setData on index({0}, {1}) failed'
+                    .format(row, col))
 
 
 if __name__ == '__main__':
