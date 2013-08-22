@@ -48,9 +48,10 @@ class AdapterReader(object):
 
         def formatter(key, self, index):
             "Partial function for functional, value derived metadata"
-            v = self._get_value(index)
-            if v is None:
-                return ''
+            try:
+                v = self._get_value(index)
+            except:
+                return None
             try:
                 return self._column_meta[index.column()][key](v)
             except (IndexError, KeyError, TypeError):
@@ -380,8 +381,9 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 value = getattr(obj, prop)
                 obj = value
                 prop = propertyparts.pop(0)
-        except IndexError:
-            pass
+        # Caught in AdapterReader.data() if index is out of bounds
+        #except IndexError:
+        #    pass
         except AttributeError:
             pass
 
@@ -546,8 +548,9 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 value = getattr(obj, prop)
                 obj = value
                 prop = propertyparts.pop(0)
-        except IndexError:
-            pass
+        # Caught in AdapterReader.data() if index is out of bounds
+        #except IndexError:
+        #    pass
         except AttributeError:
             pass
 
@@ -835,8 +838,9 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
                 value = getattr(obj, prop)
                 obj = value
                 prop = propertyparts.pop(0)
-        except IndexError:
-            pass
+        # Caught in AdapterReader.data() if index is out of bounds
+        #except IndexError:
+        #    pass
         except AttributeError:
             pass
 
