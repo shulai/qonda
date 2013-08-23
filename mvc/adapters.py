@@ -61,15 +61,16 @@ class AdapterReader(object):
             """Partial function for functional, object entity derived, or
             constant metadata"""
             o = index.internalPointer()
-            if o:
+            if o is None:
+                return None
+            try:
+                m = self._column_meta[index.column()][key]
                 try:
-                    m = self._column_meta[index.column()][key]
-                    try:
-                        return m(o)
-                    except TypeError:
-                        return m
-                except (KeyError, TypeError):
-                    return None
+                    return m(o)
+                except TypeError:
+                    return m
+            except (KeyError, TypeError):
+                return None
 
         def constant_meta(key, self, index):
             "Partial function for constant metadata"
@@ -86,7 +87,7 @@ class AdapterReader(object):
         self._get_tool_tip_role = partial(callable_constant_meta, 'tooltip',
             self)
         self._get_status_tip_role = partial(callable_constant_meta,
-            'statustip',self)
+            'statustip', self)
         self._get_whats_this_role = partial(constant_meta, 'whatsthis', self)
         self._get_font_role = partial(callable_constant_meta, 'font', self)
         self._get_text_alignment_role = partial(constant_meta, 'alignment',
@@ -372,8 +373,10 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
     def _get_value(self, index):
         value = None
+        if index.row() != 0:
+            raise IndexError
+        propertyparts = self._properties[index.column()].split('.')
         try:
-            propertyparts = self._properties[index.column()].split('.')
             obj = self._model
             prop = propertyparts.pop(0)
 
@@ -381,9 +384,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 value = getattr(obj, prop)
                 obj = value
                 prop = propertyparts.pop(0)
-        # Caught in AdapterReader.data() if index is out of bounds
-        #except IndexError:
-        #    pass
+        except IndexError:
+            pass
         except AttributeError:
             pass
 
@@ -466,6 +468,8 @@ class ValueListAdapter(AdapterReader, QtCore.QAbstractListModel):
         return self.createIndex(row, column, self._model[row])
 
     def _get_value(self, index):
+        if index.column() != 0:
+            raise IndexError
         return self._model[index.row()]
 
     def data(self, index, role):
@@ -539,8 +543,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
     def _get_value(self, index):
         value = None
+        propertyparts = self._properties[index.column()].split('.')
         try:
-            propertyparts = self._properties[index.column()].split('.')
             obj = self._model[index.row()]
             prop = propertyparts.pop(0)
 
@@ -548,9 +552,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 value = getattr(obj, prop)
                 obj = value
                 prop = propertyparts.pop(0)
-        # Caught in AdapterReader.data() if index is out of bounds
-        #except IndexError:
-        #    pass
+        except IndexError:
+            pass
         except AttributeError:
             pass
 
@@ -691,7 +694,6 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return
 
         # FIXME: This look ugly, and probably is wrong
-        print "Warning: ObjectListAdapter.observe_item", list_index, attrs
         updated_prop = attrs[0]
         lu = len(updated_prop)
         for i, prop in enumerate(self._properties):
@@ -829,8 +831,8 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
 
     def _get_value(self, index):
         value = None
+        propertyparts = self._properties[index.column()].split('.')
         try:
-            propertyparts = self._properties[index.column()].split('.')
             obj = index.internalPointer()
             prop = propertyparts.pop(0)
 
@@ -838,9 +840,8 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
                 value = getattr(obj, prop)
                 obj = value
                 prop = propertyparts.pop(0)
-        # Caught in AdapterReader.data() if index is out of bounds
-        #except IndexError:
-        #    pass
+        except IndexError:
+            pass
         except AttributeError:
             pass
 
