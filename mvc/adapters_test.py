@@ -27,9 +27,9 @@ class TestObject(ObservableObject):
 
     _notifiables_ = ('x', 'y', 'z')
 
-    _qonda_column_meta = {
+    _qonda_column_meta_ = {
         'x': {
-            'displayFormatter': lambda x: x.upper()
+            'editFormatter': lambda x: x.upper()
             },
         'y': {
             'alignment': Qt.AlignCenter
@@ -110,12 +110,11 @@ class ObjectAdapterTestCase(unittest.TestCase):
         for adapter, rowcol, value in cases:
             index = adapter.index(*rowcol)
             adapter_value = adapter.data(index, Qt.EditRole)
-            if type(value) == str and rowcol[1] == 0:
+            if value is not None and rowcol[1] == 0:
                 value = value.upper()
             self.assertEqual(adapter_value, value,
                 'ObjectAdapter.data on index{0} failed'.format(rowcol))
 
-        # Bug here?
         for adapter, rowcol, value in cases:
             index = adapter.index(*rowcol)
             adapter_value = adapter.data(index, Qt.TextAlignmentRole)
@@ -235,16 +234,42 @@ class ObjectListAdapterTestCase(unittest.TestCase):
     def test_data(self):
         for row in range(-1, 11):
             for col in range(-1, 4):
-                for role in (Qt.EditRole, ):
-                    index = self.adapter.index(row, col)
-                    if row in (-1, 10) or col in (-1, 3):
-                        value = None
-                    else:
-                        value = ('x', 'y', 'z')[col] + str(row)
-                    adapter_value = self.adapter.data(index, role)
-                    self.assertEqual(adapter_value, value,
-                        'ObjectListAdapter.data on index({0}, {1}) failed'
-                            .format(row, col))
+                index = self.adapter.index(row, col)
+                if row in (-1, 10) or col in (-1, 3):
+                    value = None
+                else:
+                    value = ('x', 'y', 'z')[col] + str(row)
+                adapter_value = self.adapter.data(index)
+                self.assertEqual(adapter_value, value,
+                    'ObjectListAdapter.data on index({0}, {1}) failed'
+                        .format(row, col))
+
+        for row in range(-1, 11):
+            for col in range(-1, 4):
+                index = self.adapter.index(row, col)
+                if row in (-1, 10) or col in (-1, 3):
+                    value = None
+                else:
+                    value = ('x', 'y', 'z')[col] + str(row)
+                if col == 0 and value is not None:
+                    value = value.upper()
+                adapter_value = self.adapter.data(index, Qt.EditRole)
+                self.assertEqual(adapter_value, value,
+                    'ObjectListAdapter.data on index({0}, {1}) failed'
+                        .format(row, col))
+
+        for row in range(-1, 11):
+            for col in range(-1, 4):
+                index = self.adapter.index(row, col)
+                if row in (-1, 10) or col in (-1, 3):
+                    value = None
+                else:
+                    value = Qt.AlignCenter if col == 1 else None
+
+                adapter_value = self.adapter.data(index, Qt.TextAlignmentRole)
+                self.assertEqual(adapter_value, value,
+                    'ObjectListAdapter.data on index({0}, {1}) failed'
+                        .format(row, col))
 
     def test_setData(self):
 
