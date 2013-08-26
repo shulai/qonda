@@ -225,10 +225,18 @@ class AdapterReader(object):
             and returns ItemIsSelectable, ItemIsEditable and ItemIsEnabled
             if no flags info is available.
         """
+        i_r = index.row()
+        i_c = index.column()
+        i_p = index.parent()
+        if (not index.isValid()
+                or i_r < 0 or i_c < 0
+                or i_r >= self.rowCount(i_p) or i_c >= self.columnCount(i_p)):
+            return Qt.NoItemFlags
+
         o = index.internalPointer()
         flags = Qt.ItemFlags()
         try:
-            for flagbit, flagvalue in (self._column_meta[index.column()]
+            for flagbit, flagvalue in (self._column_meta[i_c]
                 ['flags'].iteritems()):
                 try:
                     if flagvalue(o):

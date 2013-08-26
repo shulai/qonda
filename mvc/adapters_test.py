@@ -29,7 +29,10 @@ class TestObject(ObservableObject):
 
     _qonda_column_meta_ = {
         'x': {
-            'editFormatter': lambda x: x.upper()
+            'editFormatter': lambda x: x.upper(),
+            'flags': {
+                    Qt.ItemIsEnabled: True
+                }
             },
         'y': {
             'alignment': Qt.AlignCenter
@@ -144,8 +147,22 @@ class ObjectAdapterTestCase(unittest.TestCase):
                 self.assertEqual(adapter_value, value,
                     'ObjectAdapter.setData on index{0} failed'.format(rowcol))
 
-    # Todo
-    # def test_flags(self):
+    def test_flags(self):
+        cases = (
+            ((-1, 0), Qt.NoItemFlags),
+            ((0, -1), Qt.NoItemFlags),
+            ((0, 2), Qt.NoItemFlags),
+            ((1, 0), Qt.NoItemFlags),
+            ((0, 0), Qt.ItemIsEnabled),
+            ((0, 1), Qt.ItemIsSelectable | Qt.ItemIsEditable
+                | Qt.ItemIsEnabled),
+            )
+        for rowcol, expected in cases:
+            index = self.adapter1.index(*rowcol)
+            flags = self.adapter1.flags(index)
+            self.assertEqual(flags, expected,
+                    'ObjectAdapter.flags() on index {0}'.format(rowcol))
+
     # def test_headerData(self):
     # def test_mimeData(self):
     # def test_mimeTypes(self):
