@@ -69,14 +69,14 @@ class AdapterReader(object):
                     return m(o)
                 except TypeError:
                     return m
-            except (KeyError, TypeError):
+            except (IndexError, KeyError, TypeError):
                 return None
 
         def constant_meta(key, self, index):
             "Partial function for constant metadata"
             try:
                 return self._column_meta[index.column()][key]
-            except (KeyError, TypeError):
+            except (IndexError, KeyError, TypeError):
                 return None
 
         self._get_display_role = partial(formatter, 'displayFormatter',
@@ -225,12 +225,10 @@ class AdapterReader(object):
             and returns ItemIsSelectable, ItemIsEditable and ItemIsEnabled
             if no flags info is available.
         """
-        i_r = index.row()
         i_c = index.column()
         i_p = index.parent()
         if (not index.isValid()
-                or i_r < 0 or i_c < 0
-                or i_r >= self.rowCount(i_p) or i_c >= self.columnCount(i_p)):
+                or index.row() >= self.rowCount(i_p) or i_c >= self.columnCount(i_p)):
             return Qt.NoItemFlags
 
         o = index.internalPointer()
