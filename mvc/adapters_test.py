@@ -36,7 +36,8 @@ class TestObject(ObservableObject):
             },
         'y': {
             'alignment': Qt.AlignCenter
-            }
+            },
+        'z': { }
         }
 
     def __init__(self):
@@ -95,76 +96,75 @@ class ObjectAdapterTestCase(unittest.TestCase):
     def test_data(self):
 
         cases = (
-            (self.adapter1, (0, 0), u'x1'),
-            (self.adapter1, (0, 1), u'y1'),
-            (self.adapter1, (0, 2), None),
-            (self.adapter1, (1, 0), None),
-            (self.adapter1, (-1, 0), None),
-            (self.adapter2, (0, 0), u'x2'),
-            (self.adapter2, (0, 1), u'y2'),
-            (self.adapter2, (0, 2), None))
+            (self.adapter1, 0, 0, u'x1'),
+            (self.adapter1, 0, 1, u'y1'),
+            (self.adapter1, 0, 2, None),
+            (self.adapter1, 1, 0, None),
+            (self.adapter1, -1, 0, None),
+            (self.adapter2, 0, 0, u'x2'),
+            (self.adapter2, 0, 1, u'y2'),
+            (self.adapter2, 0, 2, None))
 
-        for adapter, rowcol, value in cases:
-            index = adapter.index(*rowcol)
+        for adapter, row, col, value in cases:
+            index = adapter.index(row, col)
             adapter_value = adapter.data(index)
             self.assertEqual(adapter_value, value,
-                'ObjectAdapter.data on index{0} failed'.format(rowcol))
+                'ObjectAdapter.data on index({0},{1}) failed'.format(row, col))
 
-        for adapter, rowcol, value in cases:
-            index = adapter.index(*rowcol)
+        for adapter, row, col, value in cases:
+            index = adapter.index(row, col)
             adapter_value = adapter.data(index, Qt.EditRole)
-            if value is not None and rowcol[1] == 0:
+            if value is not None and col == 0:
                 value = value.upper()
             self.assertEqual(adapter_value, value,
-                'ObjectAdapter.data on index{0} failed'.format(rowcol))
+                'ObjectAdapter.data on index({0},{1}) failed'.format(row, col))
 
-        for adapter, rowcol, value in cases:
-            index = adapter.index(*rowcol)
+        for adapter, row, col, value in cases:
+            index = adapter.index(row, col)
             adapter_value = adapter.data(index, Qt.TextAlignmentRole)
             self.assertEqual(adapter_value,
-                Qt.AlignCenter if rowcol[1] == 1 else None,
-                'ObjectAdapter.data on index{0} failed'.format(rowcol))
+                Qt.AlignCenter if col == 1 else None,
+                'ObjectAdapter.data on index({0},{1}) failed'.format(row, col))
 
     def test_setData(self):
 
         cases = (
-            (self.adapter1, (0, 0), u'a1', True),
-            (self.adapter1, (0, 1), u'b1', True),
-            (self.adapter1, (0, 2), u'c1', False),
-            (self.adapter1, (1, 0), u'd1', False),
-            (self.adapter1, (-1, 0), u'e1', False),
-            (self.adapter2, (0, 0), u'a2', True),
-            (self.adapter2, (0, 1), u'b2', True),
+            (self.adapter1, 0, 0, u'a1', True),
+            (self.adapter1, 0, 1, u'b1', True),
+            (self.adapter1, 0, 2, u'c1', False),
+            (self.adapter1, 1, 0, u'd1', False),
+            (self.adapter1, -1, 0, u'e1', False),
+            (self.adapter2, 0, 0, u'a2', True),
+            (self.adapter2, 0, 1, u'b2', True),
             )
 
-        for adapter, rowcol, value, expected in cases:
-            index = adapter.index(*rowcol)
+        for adapter, row, col, value, expected in cases:
+            index = adapter.index(row, col)
             r = adapter.setData(index, value)
             self.assertEqual(r, expected,
-                'ObjectAdapter.setData on index{0} failed'.format(rowcol))
+                'ObjectAdapter.setData on index({0},{1}) failed'.format(row, col))
             if r:
                 adapter_value = adapter.data(index)
                 self.assertEqual(adapter_value, value,
-                    'ObjectAdapter.setData on index{0} failed'.format(rowcol))
+                    'ObjectAdapter.setData on index({0},{1}) failed'.format(row, col))
 
     def test_flags(self):
         cases = (
-            ((-1, 0), Qt.NoItemFlags),
-            ((0, -1), Qt.NoItemFlags),
-            ((0, 2), Qt.NoItemFlags),
-            ((1, 0), Qt.NoItemFlags),
-            ((0, 0), Qt.ItemIsEnabled),
-            ((0, 1), Qt.ItemIsSelectable | Qt.ItemIsEditable
+            (-1, 0, Qt.NoItemFlags),
+            (0, -1, Qt.NoItemFlags),
+            (0, 2, Qt.NoItemFlags),
+            (1, 0, Qt.NoItemFlags),
+            (0, 0, Qt.ItemIsEnabled),
+            (0, 1, Qt.ItemIsSelectable | Qt.ItemIsEditable
                 | Qt.ItemIsEnabled),
             )
-        for rowcol, expected in cases:
-            index = self.adapter1.index(*rowcol)
+        for row, col, expected in cases:
+            index = self.adapter1.index(row, col)
             flags = self.adapter1.flags(index)
             self.assertEqual(flags, expected,
-                    'ObjectAdapter.flags() on index {0}'.format(rowcol))
+                    'ObjectAdapter.flags() on index({0},{1})'.format(row, col))
 
     # def test_headerData(self):
-    # def test_mimeData(self):
     # def test_mimeTypes(self):
 
     def dataChangedSlot(self, topLeft, bottomRight):
@@ -217,7 +217,7 @@ class ObjectListAdapterTestCase(unittest.TestCase):
         self.adapter = ObjectListAdapter(
             ('x', 'y', 'z'),
             self.model,
-            TestObject, options={'edit'})
+            TestObject, options=set(['edit']))
 
     def test_simple(self):
         index = QtCore.QModelIndex()
@@ -306,13 +306,29 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                     'ObjectListAdapter.setData on index({0}, {1}) failed'
                     .format(row, col))
 
-# Todo: Test flags(), headerData(), mimeData(), mimeTypes(), dataChanged signal
+    def test_flags(self):
+
+        for row in range(-1, 11):
+            for col in range(-1, 4):            
+                index = self.adapter.index(row, col)
+                flags = self.adapter.flags(index)
+                if row < 0 or row > 9 or col < 0 or col > 2:
+                    expected = Qt.NoItemFlags
+                elif col == 0:
+                    expected = Qt.ItemIsEnabled
+                else:
+                    expected = (Qt.ItemIsSelectable | Qt.ItemIsEditable 
+                        | Qt.ItemIsEnabled)
+                self.assertEqual(flags, expected,
+                    'ObjectListAdapter.flags() on index {0},{1}'.format(row, col))
+
+
+# Todo: headerData(), mimeData(), dataChanged signal
 # insertRows, removeRows,
 # model chabeginInsertRows, insertRows
     # def test_model_flags(self):
     # def test_headerData(self):
     # def test_mimeData(self):
-    # def test_mimeTypes(self):
     # def test_headerData(self):
     # def test_model_insertion(self):
 
@@ -366,8 +382,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
         self.adapter = ObjectTreeAdapter(
             ('x', 'y', 'z'),
             self.model,
-            TestObject, options={'edit'})
-
+            TestObject, options=set(['edit']))
 
 if __name__ == '__main__':
     unittest.main()
