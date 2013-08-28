@@ -20,7 +20,8 @@ import unittest
 from PyQt4 import QtCore
 from PyQt4.QtCore import Qt
 from observable import ObservableObject, ObservableListProxy
-from adapters import ObjectAdapter, ObjectListAdapter, ObjectTreeAdapter
+from adapters import (ObjectAdapter, ObjectListAdapter, ObjectTreeAdapter,
+    PythonObjectRole)
 
 
 class TestObject(ObservableObject):
@@ -37,7 +38,7 @@ class TestObject(ObservableObject):
         'y': {
             'alignment': Qt.AlignCenter
             },
-        'z': { }
+        'z': {}
         }
 
     def __init__(self):
@@ -45,6 +46,12 @@ class TestObject(ObservableObject):
         self.x = None
         self.y = None
         self.z = None
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __repr__(self):
+        return "({0},{1},{2})".format(self.x, self.y, self.z)
 
 
 class ObjectAdapterTestCase(unittest.TestCase):
@@ -67,7 +74,7 @@ class ObjectAdapterTestCase(unittest.TestCase):
             self.model2,
             TestObject)
 
-    def test_simple(self):
+    def test_rows_columns(self):
         index = QtCore.QModelIndex()
         self.assertEqual(self.adapter1.rowCount(index), 1,
             'ObjectAdapter.rowCount must return 1')
@@ -222,7 +229,7 @@ class ObjectListAdapterTestCase(unittest.TestCase):
             self.model,
             TestObject, options=set(['edit']))
 
-    def test_simple(self):
+    def test_rows_columns(self):
         index = QtCore.QModelIndex()
         self.assertEqual(self.adapter.rowCount(index), 10,
             'ObjectListAdapter.rowCount must return 10')
@@ -304,15 +311,15 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                     'must return {2}')
                     .format(row, col, expected))
                 if r:
-                    adapter_value = self.adapter.data(index)
-                    self.assertEqual(adapter_value, value,
+                    model_value = getattr(self.model[row], ('x', 'y', 'z')[col])
+                    self.assertEqual(model_value, value,
                     'ObjectListAdapter.setData on index({0}, {1}) failed'
                     .format(row, col))
 
     def test_flags(self):
 
         for row in range(-1, 11):
-            for col in range(-1, 4):            
+            for col in range(-1, 4):
                 index = self.adapter.index(row, col)
                 flags = self.adapter.flags(index)
                 if row < 0 or row > 9 or col < 0 or col > 2:
@@ -320,19 +327,11 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                 elif col == 0:
                     expected = Qt.ItemIsEnabled
                 else:
-                    expected = (Qt.ItemIsSelectable | Qt.ItemIsEditable 
+                    expected = (Qt.ItemIsSelectable | Qt.ItemIsEditable
                         | Qt.ItemIsEnabled)
                 self.assertEqual(flags, expected,
-                    'ObjectListAdapter.flags() on index {0},{1}'.format(row, col))
-
-
-# Todo: headerData(), mimeData(), dataChanged signal
-# insertRows, removeRows,
-# model chabeginInsertRows, insertRows
-    # def test_model_flags(self):
-    # def test_headerData(self):
-    # def test_mimeData(self):
-    # def test_model_insertion(self):
+                    'ObjectListAdapter.flags() on index {0},{1}'
+                    .format(row, col))
 
     def dataChangedSlot(self, topLeft, bottomRight):
         self.dataChangedSignalEmitted = True
@@ -361,59 +360,114 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                     "ObjectListAdapter retrieved value after model change"
                     " doesn't match")
 
+    def test_insertRows(self):
 
-    def test_insertRows_deleteRows(self):
-        
-        values = [[o.x, o.y, o.z] for o in self.model]
-        parent = QtCore.QModelIndex()
-        self.adapter.insertRows(0, 2, parent)
+        # Should test on other parent indexes than the invalid index
+        model_copy = self.model[:]
+
+        self.adapter.insertRows(0, 2)
+        self.adapter.setData(self.adapter.index(0, 0), 31)
+        self.adapter.setData(self.adapter.index(1, 2), 37)
         self.assertEqual(len(self.model), 12)
-        values = [[None] * 3] * 2 + values
-        # Should check new rows are different objects?
-        for row in range(0, 12):
-            self.assertEqual(self.model[row].x, values[row][0])
-            self.assertEqual(self.model[row].y, values[row][1])
-            self.assertEqual(self.model[row].z, values[row][2])       
-        self.adapter.insertRows(12, 3, parent)
+        model_copy = [TestObject(), TestObject()] + model_copy
+        model_copy[0].x = 31
+        model_copy[1].z = 37
+        self.assertEqual(self.model, model_copy)
+
+        self.adapter.insertRows(12, 3)
         self.assertEqual(len(self.model), 15)
-        values = values + [[None] * 3] * 3
-        for row in range(0, 15):
-            self.assertEqual(self.model[row].x, values[row][0])
-            self.assertEqual(self.model[row].y, values[row][1])
-            self.assertEqual(self.model[row].z, values[row][2])       
+        model_copy = model_copy + [TestObject(), TestObject(), TestObject()]
+        self.assertEqual(self.model, model_copy)
 
-        self.adapter.insertRows(7, 1, parent)
+        self.adapter.insertRows(7, 1)
         self.assertEqual(len(self.model), 16)
-        values.insert(7, [None] * 3)
-        for row in range(0, 16):
-            self.assertEqual(self.model[row].x, values[row][0])
-            self.assertEqual(self.model[row].y, values[row][1])
-            self.assertEqual(self.model[row].z, values[row][2])       
+        model_copy[7:7] = [TestObject()]
+        self.assertEqual(self.model, model_copy)
 
-        #deletes
-        self.adapter.insertRows(0, 2, parent)
-        self.assertEqual(len(self.model), 12)
-        values = [[None] * 3] * 2 + values
-        # Should check new rows are different objects?
-        for row in range(0, 12):
-            self.assertEqual(self.model[row].x, values[row][0])
-            self.assertEqual(self.model[row].y, values[row][1])
-            self.assertEqual(self.model[row].z, values[row][2])       
-        self.adapter.insertRows(12, 3, parent)
-        self.assertEqual(len(self.model), 15)
-        values = values + [[None] * 3] * 3
-        for row in range(0, 15):
-            self.assertEqual(self.model[row].x, values[row][0])
-            self.assertEqual(self.model[row].y, values[row][1])
-            self.assertEqual(self.model[row].z, values[row][2])       
+    def test_deleteRows(self):
 
-        self.adapter.insertRows(7, 1, parent)
-        self.assertEqual(len(self.model), 16)
-        values.insert(7, [None] * 3)
-        for row in range(0, 16):
-            self.assertEqual(self.model[row].x, values[row][0])
-            self.assertEqual(self.model[row].y, values[row][1])
-            self.assertEqual(self.model[row].z, values[row][2])       
+        # Should test on other parent indexes than the invalid index
+        model_copy = self.model[:]
+
+        self.adapter.removeRows(4, 2)
+        self.assertEqual(len(self.model), 8)
+        del model_copy[4:6]
+        self.assertEqual(self.model, model_copy)
+
+        self.adapter.removeRows(6, 2)
+        self.assertEqual(len(self.model), 6)
+        del model_copy[6:8]
+        self.assertEqual(self.model, model_copy)
+
+        self.adapter.removeRows(0, 4)
+        self.assertEqual(len(self.model), 2)
+        del model_copy[0:4]
+        self.assertEqual(self.model, model_copy)
+
+    def test_insert(self):
+        self.model.insert(5, TestObject())
+        self.assertEqual(self.adapter.rowCount(), 11)
+        for row in range(4, 7):
+            for col in range(0, 3):
+                index = self.adapter.index(row, col)
+                value = getattr(self.model[row], ('x', 'y', 'z')[col])
+                adapter_value = self.adapter.data(index, PythonObjectRole)
+                self.assertEqual(adapter_value, value,
+                    'test_model_insert failed')
+
+    def test_append(self):
+        o = TestObject()
+        o.y = 4242
+        self.model.append(o)
+        self.assertEqual(self.adapter.rowCount(), 11)
+        for row in range(9, 11):
+            for col in range(0, 3):
+                index = self.adapter.index(row, col)
+                value = getattr(self.model[row], ('x', 'y', 'z')[col])
+                adapter_value = self.adapter.data(index, PythonObjectRole)
+                self.assertEqual(adapter_value, value,
+                    'test_model_append failed')
+
+    def test_extend(self):
+        l = [TestObject(), TestObject()]
+        l[0].x = 42
+        l[1].z = 21
+        self.model.extend(l)
+        self.assertEqual(self.adapter.rowCount(), 12)
+        for row in range(9, 12):
+            for col in range(0, 3):
+                index = self.adapter.index(row, col)
+                value = getattr(self.model[row], ('x', 'y', 'z')[col])
+                adapter_value = self.adapter.data(index, PythonObjectRole)
+                self.assertEqual(adapter_value, value,
+                    'test_model_extend failed')
+
+    def test_model_del(self):
+        del self.model[6]
+        self.assertEqual(self.adapter.rowCount(), 9)
+        for row in range(5, 7):
+            for col in range(0, 3):
+                index = self.adapter.index(row, col)
+                value = getattr(self.model[row], ('x', 'y', 'z')[col])
+                adapter_value = self.adapter.data(index, PythonObjectRole)
+                self.assertEqual(adapter_value, value,
+                    'test_model_insertion failed')
+        # Add more deletion cases
+
+    def test_model_setslice(self):
+        l = [TestObject(), TestObject()]
+        l[0].x = 63
+        l[1].z = 67
+        self.model[2:8] = l
+        self.assertEqual(self.adapter.rowCount(), 6)
+        for row in range(0, 6):
+            for col in range(0, 3):
+                index = self.adapter.index(row, col)
+                value = getattr(self.model[row], ('x', 'y', 'z')[col])
+                adapter_value = self.adapter.data(index, PythonObjectRole)
+                self.assertEqual(adapter_value, value,
+                    'test_model_insertion failed')
+
 
 class ObjectTreeAdapterTestCase(unittest.TestCase):
 
@@ -427,17 +481,116 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                 o.x = 'x{0}{1}'.format(prefix, i)
                 o.y = 'y{0}{1}'.format(prefix, i)
                 o.z = 'z{0}{1}'.format(prefix, i)
-                o.append(model)
+                model.append(o)
                 if level < 3:
-                    o.childs = build_level(level + 1, o, prefix + str(i))
-            return o
+                    o.children = build_level(level + 1, o, prefix + str(i))
+                elif i == 1:  # Test with and without attribute
+                    o.children = None
+            return model
 
         self.model = build_level(0, None, '')
 
         self.adapter = ObjectTreeAdapter(
             ('x', 'y', 'z'),
             self.model,
-            TestObject, options=set(['edit']))
+            TestObject, rootless=True,
+            options=set(['edit']))
+
+    def test_rows_columns(self):
+
+        def test_level(submodel, parent):
+            self.assertEqual(self.adapter.rowCount(parent), len(submodel))
+            self.assertEqual(self.adapter.columnCount(parent), 3,
+                'ObjectListAdapter.columnCount must return 3')
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_indexes(self):
+
+        def test_level(submodel, parent):
+            for row in range(-1, 4):
+                for col in range(-1, len(submodel) + 1):
+                    index = self.adapter.index(row, col, parent)
+                    if row in (-1, len(submodel)) or col in (-1, 3):
+                        self.assertFalse(index.isValid(),
+                            ('ObjectTreeAdapter.index({0},{1})) should be'
+                            ' invalid').format(row, col))
+                    else:
+                        self.assertEqual(index.row(), row,
+                            'ObjectTreeAdapter.index({0}, {1}) has wrong row'
+                            .format(row, col))
+                        self.assertEqual(index.column(), col,
+                            'ObjectTreeAdapter.index({0}, {1}) has wrong column'
+                            .format(row, col))
+
+            for row in range(0, len(submodel)):
+                try:
+                    test_level(submodel[row].children,
+                        self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_data(self):
+
+        def test_level(submodel, parent):
+            for row in range(-1, 4):
+                for col in range(-1, len(submodel) + 1):
+                    index = self.adapter.index(row, col, parent)
+                    if row in (-1, 3) or col in (-1, 3):
+                        value = None
+                    else:
+                        value = ('x', 'y', 'z')[col] + str(row)
+                    adapter_value = self.adapter.data(index)
+                    self.assertEqual(adapter_value, value,
+                        'ObjectTreeAdapter.data on index({0}, {1}) failed'
+                            .format(row, col))
+
+            for row in range(-1, 4):
+                for col in range(-1, len(submodel) + 1):
+                    index = self.adapter.index(row, col, parent)
+                    if row in (-1, 3) or col in (-1, 3):
+                        value = None
+                    else:
+                        value = ('x', 'y', 'z')[col] + str(row)
+                    if col == 0 and value is not None:
+                        value = value.upper()
+                    adapter_value = self.adapter.data(index, Qt.EditRole)
+                    self.assertEqual(adapter_value, value,
+                        'ObjectListAdapter.data on index({0}, {1}) failed'
+                            .format(row, col))
+
+            for row in range(-1, 4):
+                for col in range(-1, len(submodel) + 1):
+                    index = self.adapter.index(row, col, parent)
+                    if row in (-1, 3) or col in (-1, 3):
+                        value = None
+                    else:
+                        value = Qt.AlignCenter if col == 1 else None
+
+                    adapter_value = self.adapter.data(index, Qt.TextAlignmentRole)
+                    self.assertEqual(adapter_value, value,
+                        'ObjectListAdapter.data on index({0}, {1}) failed'
+                            .format(row, col))
+
+            for row in range(0, len(submodel)):
+                try:
+                    test_level(submodel[row].children,
+                        self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+
+        test_level(self.model, QtCore.QModelIndex())
+
 
 if __name__ == '__main__':
     unittest.main()

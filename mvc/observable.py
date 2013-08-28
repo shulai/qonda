@@ -192,3 +192,6 @@ class ObservableListProxy(ReadOnlyProxy, Observable, MutableSequence):
 
     def __repr__(self):
         return self._target.__repr__()
+
+    def __eq__(self, other):
+        return self._target == other[:]

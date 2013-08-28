@@ -745,7 +745,8 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         root_index = QtCore.QModelIndex()
 
         self._model.add_callback(self.observe_item, root_index)
-        self._observe(getattr(self._model, self.children_attr), root_index)
+        self._observe(getattr(self._model, self.children_attr, None),
+            root_index)
 
     def _observe(self, submodel, model_index):
         if submodel is None:
@@ -764,7 +765,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             except AttributeError:
                 print "Warning: " + str(type(submodel)) + " is not observable"
 
-            self._observe(getattr(row, self.children_attr), row_index)
+            self._observe(getattr(row, self.children_attr, None), row_index)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self._properties)
@@ -777,12 +778,12 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             parentItem = self._model
 
         try:
-            submodel = getattr(parentItem, self.children_attr)
-            #if row == len(submodel) and 'append' in self.options:
+            submodel = getattr(parentItem, self.children_attr, [])
+            if row == len(submodel) and 'append' in self.options:
                 ## Return index for placeholder append row
                 ## The row object will be appended in _set_value() if needed
                 #print "fantasma"
-                #return self.createIndex(row, column, None)
+                return self.createIndex(row, column, None)
 
             childItem = submodel[row]
             idx = self.createIndex(row, column, childItem)
@@ -810,29 +811,29 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
 
         childItem = index.internalPointer()
-        parentItem = getattr(childItem, self.parent_attr)  # childItem.parent
+        parentItem = getattr(childItem, self.parent_attr)
         if parentItem is None and self.rootless:
             parentItem = self._model
         return self.item_index(parentItem)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        if parent.column() > 0:
-            return 0
 
         if not parent.isValid():
             parentItem = self._model
         else:
+            if parent.column() > 0:
+                return 0
             parentItem = parent.internalPointer()
             if parentItem is None and self.rootless:
                 parentItem = self._model
 
         try:
             count = len(getattr(parentItem, self.children_attr))
-        except TypeError:
+        except (TypeError, AttributeError):
             count = 0
 
-        #if 'append' in self.options:
-            #count += 1
+        if count == 0 and 'append' in self.options:
+            count += 1
 
         return count
 
