@@ -713,16 +713,16 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
 class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
     class RootNode(ObservableObject):
-        def __init__(self, childs=[], parent_attr='parent',
-                child_attr='childs'):
+        def __init__(self, children=[], parent_attr='parent',
+                children_attr='children'):
             ObservableObject.__init__(self)
-            setattr(self, child_attr, childs)
+            setattr(self, children_attr, children)
             setattr(self, parent_attr, None)
 
     def __init__(self, properties, model=None, class_=None,
             column_meta=None, qparent=None,
             rootless=False, options=None, parent_attr='parent',
-            child_attr='childs'):
+            children_attr='children'):
 
         AdapterReader.__init__(self)
         QtCore.QAbstractItemModel.__init__(self, qparent)
@@ -732,19 +732,20 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
 
         self.rootless = rootless
         if rootless:
-            model = ObjectTreeAdapter.RootNode(model, parent_attr, child_attr)
+            model = ObjectTreeAdapter.RootNode(model, parent_attr,
+                children_attr)
 
         self._model = model
         self._column_meta = _combine_column_metas(class_, column_meta,
             properties)
         self.options = set(['edit', 'append']) if options is None else options
         self.parent_attr = parent_attr
-        self.child_attr = child_attr
+        self.children_attr = children_attr
 
         root_index = QtCore.QModelIndex()
 
         self._model.add_callback(self.observe_item, root_index)
-        self._observe(getattr(self._model, self.child_attr), root_index)
+        self._observe(getattr(self._model, self.children_attr), root_index)
 
     def _observe(self, submodel, model_index):
         if submodel is None:
@@ -763,7 +764,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             except AttributeError:
                 print "Warning: " + str(type(submodel)) + " is not observable"
 
-            self._observe(getattr(row, self.child_attr), row_index)
+            self._observe(getattr(row, self.children_attr), row_index)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self._properties)
@@ -776,7 +777,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             parentItem = self._model
 
         try:
-            submodel = getattr(parentItem, self.child_attr)
+            submodel = getattr(parentItem, self.children_attr)
             #if row == len(submodel) and 'append' in self.options:
                 ## Return index for placeholder append row
                 ## The row object will be appended in _set_value() if needed
@@ -800,8 +801,8 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         if parentItem is None and self.rootless:
             parentItem = self._model
 
-        parentChilds = getattr(parentItem, self.child_attr)
-        row = parentChilds.index(item)
+        parentChildren = getattr(parentItem, self.children_attr)
+        row = parentChildren.index(item)
         return self.createIndex(row, 0, item)
 
     def parent(self, index):
@@ -826,7 +827,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
                 parentItem = self._model
 
         try:
-            count = len(getattr(parentItem, self.child_attr))
+            count = len(getattr(parentItem, self.children_attr))
         except TypeError:
             count = 0
 
