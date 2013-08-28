@@ -227,8 +227,8 @@ class AdapterReader(object):
         """
         i_c = index.column()
         i_p = index.parent()
-        if (not index.isValid()
-                or index.row() >= self.rowCount(i_p) or i_c >= self.columnCount(i_p)):
+        if (not index.isValid() or index.row() >= self.rowCount(i_p)
+                or i_c >= self.columnCount(i_p)):
             return Qt.NoItemFlags
 
         o = index.internalPointer()
@@ -293,7 +293,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
             # If not observable (ok if the model doesn't change)
             "Notice: " + str(type(model)) + " is not observable"
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return 0
         return len(self._properties)
@@ -414,7 +414,7 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return False
         return True
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return 0
         return 1
@@ -449,10 +449,10 @@ class ValueListAdapter(AdapterReader, QtCore.QAbstractListModel):
         self._model = model
         self._column_meta = column_meta
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self._model)
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return 0
         return 1
@@ -524,7 +524,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 # If not observable (ok if the model doesn't change)
                 pass
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return 0
         count = len(self._model)
@@ -765,7 +765,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
 
             self._observe(getattr(row, self.child_attr), row_index)
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self._properties)
 
     def index(self, row, column, parent=None):
@@ -814,7 +814,7 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
             parentItem = self._model
         return self.item_index(parentItem)
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=QtCore.QModelIndex()):
         if parent.column() > 0:
             return 0
 
