@@ -42,6 +42,9 @@ class TestObject(ObservableObject):
 
     def __init__(self):
         super(TestObject, self).__init__()
+        self.x = None
+        self.y = None
+        self.z = None
 
 
 class ObjectAdapterTestCase(unittest.TestCase):
@@ -329,7 +332,6 @@ class ObjectListAdapterTestCase(unittest.TestCase):
     # def test_model_flags(self):
     # def test_headerData(self):
     # def test_mimeData(self):
-    # def test_headerData(self):
     # def test_model_insertion(self):
 
     def dataChangedSlot(self, topLeft, bottomRight):
@@ -359,6 +361,59 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                     "ObjectListAdapter retrieved value after model change"
                     " doesn't match")
 
+
+    def test_insertRows_deleteRows(self):
+        
+        values = [[o.x, o.y, o.z] for o in self.model]
+        parent = QtCore.QModelIndex()
+        self.adapter.insertRows(0, 2, parent)
+        self.assertEqual(len(self.model), 12)
+        values = [[None] * 3] * 2 + values
+        # Should check new rows are different objects?
+        for row in range(0, 12):
+            self.assertEqual(self.model[row].x, values[row][0])
+            self.assertEqual(self.model[row].y, values[row][1])
+            self.assertEqual(self.model[row].z, values[row][2])       
+        self.adapter.insertRows(12, 3, parent)
+        self.assertEqual(len(self.model), 15)
+        values = values + [[None] * 3] * 3
+        for row in range(0, 15):
+            self.assertEqual(self.model[row].x, values[row][0])
+            self.assertEqual(self.model[row].y, values[row][1])
+            self.assertEqual(self.model[row].z, values[row][2])       
+
+        self.adapter.insertRows(7, 1, parent)
+        self.assertEqual(len(self.model), 16)
+        values.insert(7, [None] * 3)
+        for row in range(0, 16):
+            self.assertEqual(self.model[row].x, values[row][0])
+            self.assertEqual(self.model[row].y, values[row][1])
+            self.assertEqual(self.model[row].z, values[row][2])       
+
+        #deletes
+        self.adapter.insertRows(0, 2, parent)
+        self.assertEqual(len(self.model), 12)
+        values = [[None] * 3] * 2 + values
+        # Should check new rows are different objects?
+        for row in range(0, 12):
+            self.assertEqual(self.model[row].x, values[row][0])
+            self.assertEqual(self.model[row].y, values[row][1])
+            self.assertEqual(self.model[row].z, values[row][2])       
+        self.adapter.insertRows(12, 3, parent)
+        self.assertEqual(len(self.model), 15)
+        values = values + [[None] * 3] * 3
+        for row in range(0, 15):
+            self.assertEqual(self.model[row].x, values[row][0])
+            self.assertEqual(self.model[row].y, values[row][1])
+            self.assertEqual(self.model[row].z, values[row][2])       
+
+        self.adapter.insertRows(7, 1, parent)
+        self.assertEqual(len(self.model), 16)
+        values.insert(7, [None] * 3)
+        for row in range(0, 16):
+            self.assertEqual(self.model[row].x, values[row][0])
+            self.assertEqual(self.model[row].y, values[row][1])
+            self.assertEqual(self.model[row].z, values[row][2])       
 
 class ObjectTreeAdapterTestCase(unittest.TestCase):
 
