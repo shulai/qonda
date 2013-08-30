@@ -717,7 +717,9 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 self.dataChanged.emit(index, index)
 
 
-class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
+class ObjectTreeAdapter(AdapterReader, AdapterWriter,
+        QtCore.QAbstractItemModel):
+
     class RootNode(ObservableObject):
         def __init__(self, children=[], parent_attr='parent',
                 children_attr='children'):
@@ -868,9 +870,13 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
 
     def _set_value(self, index, value):
         # TODO: Append
-        setattr(index.internalPointer(), self._properties[index.column()],
-                value)
-        return True
+        # TODO: handling compound properties
+        try:
+            setattr(index.internalPointer(), self._properties[index.column()],
+                    value)
+            return True
+        except IndexError:
+            return False
 
     def flags(self, index):
         """
