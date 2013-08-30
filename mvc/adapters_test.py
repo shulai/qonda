@@ -593,6 +593,65 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
 
         test_level(self.model, QtCore.QModelIndex())
 
+    def test_setData(self):
+
+        def test_level(submodel, parent):
+            print "before", submodel
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
+                    index = self.adapter.index(row, col, parent)
+                    value = chr(random.randint(65, 90)) + str(row)
+                    expected = (False if row in (-1, len(submodel))
+                        or col in (-1, 3) else True)
+                    r = self.adapter.setData(index, value)
+                    self.assertEqual(r, expected,
+                        ('ObjectListAdapter.setData on index({0}, {1}) failed'
+                        'must return {2}')
+                        .format(row, col, expected))
+                    if r:
+                        model_value = getattr(submodel, ('x', 'y', 'z')[col])
+                        self.assertEqual(model_value, value,
+                        'ObjectListAdapter.setData on index({0}, {1}) failed'
+                        .format(row, col))
+            print "after", submodel
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_flags(self):
+
+        def test_level(submodel, parent):
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
+                    index = self.adapter.index(row, col, parent)
+                    flags = self.adapter.flags(index)
+                    if row < 0 or row > len(submodel) - 1 or col < 0 or col > 2:
+                        expected = Qt.NoItemFlags
+                    elif col == 0:
+                        expected = Qt.ItemIsEnabled
+                    else:
+                        expected = (Qt.ItemIsSelectable | Qt.ItemIsEditable
+                            | Qt.ItemIsEnabled)
+                    self.assertEqual(flags, expected,
+                        'ObjectTreeAdapter.flags() on index {0},{1}'
+                        .format(row, col))
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
 
 if __name__ == '__main__':
     unittest.main()
