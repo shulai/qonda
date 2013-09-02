@@ -18,6 +18,7 @@
 
 import unittest
 from PyQt4 import QtCore
+import random
 from PyQt4.QtCore import Qt
 from observable import ObservableObject, ObservableListProxy
 from adapters import (ObjectAdapter, ObjectListAdapter, ObjectTreeAdapter,
@@ -219,9 +220,9 @@ class ObjectListAdapterTestCase(unittest.TestCase):
         self.model = ObservableListProxy()
         for i in range(0, 10):
             o = TestObject()
-            o.x = 'x{0}'.format(i)
-            o.y = 'y{0}'.format(i)
-            o.z = 'z{0}'.format(i)
+            o.x = u'x{0}'.format(i)
+            o.y = u'y{0}'.format(i)
+            o.z = u'z{0}'.format(i)
             self.model.append(o)
 
         self.adapter = ObjectListAdapter(
@@ -246,7 +247,7 @@ class ObjectListAdapterTestCase(unittest.TestCase):
         for row in range(-1, 11):
             for col in range(-1, 4):
                 index = self.adapter.index(row, col)
-                if row in (-1, 10) or col in (-1, 10):
+                if row in (-1, 10) or col in (-1, 3):
                     self.assertFalse(index.isValid(),
                         ('ObjectListAdapter.index({0},{1})) should be'
                         ' invalid').format(row, col))
@@ -265,7 +266,7 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                 if row in (-1, 10) or col in (-1, 3):
                     value = None
                 else:
-                    value = ('x', 'y', 'z')[col] + str(row)
+                    value = getattr(self.model[row], ('x', 'y', 'z')[col])
                 adapter_value = self.adapter.data(index)
                 self.assertEqual(adapter_value, value,
                     'ObjectListAdapter.data on index({0}, {1}) failed'
@@ -277,7 +278,7 @@ class ObjectListAdapterTestCase(unittest.TestCase):
                 if row in (-1, 10) or col in (-1, 3):
                     value = None
                 else:
-                    value = ('x', 'y', 'z')[col] + str(row)
+                    value = getattr(self.model[row], ('x', 'y', 'z')[col])
                 if col == 0 and value is not None:
                     value = value.upper()
                 adapter_value = self.adapter.data(index, Qt.EditRole)
@@ -475,12 +476,12 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
 
         def build_level(level, parent, prefix):
             model = ObservableListProxy()
-            for i in range(0, 3):
+            for i in range(0, random.randint(3, 7)):
                 o = TestObject()
                 o.parent = parent
-                o.x = 'x{0}{1}'.format(prefix, i)
-                o.y = 'y{0}{1}'.format(prefix, i)
-                o.z = 'z{0}{1}'.format(prefix, i)
+                o.x = u'x{0}{1}'.format(prefix, i)
+                o.y = u'y{0}{1}'.format(prefix, i)
+                o.z = u'z{0}{1}'.format(prefix, i)
                 model.append(o)
                 if level < 3:
                     o.children = build_level(level + 1, o, prefix + str(i))
@@ -515,8 +516,8 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
     def test_indexes(self):
 
         def test_level(submodel, parent):
-            for row in range(-1, 4):
-                for col in range(-1, len(submodel) + 1):
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
                     index = self.adapter.index(row, col, parent)
                     if row in (-1, len(submodel)) or col in (-1, 3):
                         self.assertFalse(index.isValid(),
@@ -532,8 +533,9 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
 
             for row in range(0, len(submodel)):
                 try:
-                    test_level(submodel[row].children,
-                        self.adapter.index(row, 0, parent))
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
                 except AttributeError:
                     pass
 
@@ -542,25 +544,25 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
     def test_data(self):
 
         def test_level(submodel, parent):
-            for row in range(-1, 4):
-                for col in range(-1, len(submodel) + 1):
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
                     index = self.adapter.index(row, col, parent)
-                    if row in (-1, 3) or col in (-1, 3):
+                    if row in (-1, len(submodel)) or col in (-1, 3):
                         value = None
                     else:
-                        value = ('x', 'y', 'z')[col] + str(row)
+                        value = getattr(submodel[row], ('x', 'y', 'z')[col])
                     adapter_value = self.adapter.data(index)
                     self.assertEqual(adapter_value, value,
                         'ObjectTreeAdapter.data on index({0}, {1}) failed'
                             .format(row, col))
 
-            for row in range(-1, 4):
-                for col in range(-1, len(submodel) + 1):
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
                     index = self.adapter.index(row, col, parent)
-                    if row in (-1, 3) or col in (-1, 3):
+                    if row in (-1, len(submodel)) or col in (-1, 3):
                         value = None
                     else:
-                        value = ('x', 'y', 'z')[col] + str(row)
+                        value = getattr(submodel[row], ('x', 'y', 'z')[col])
                     if col == 0 and value is not None:
                         value = value.upper()
                     adapter_value = self.adapter.data(index, Qt.EditRole)
@@ -568,10 +570,10 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         'ObjectListAdapter.data on index({0}, {1}) failed'
                             .format(row, col))
 
-            for row in range(-1, 4):
-                for col in range(-1, len(submodel) + 1):
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
                     index = self.adapter.index(row, col, parent)
-                    if row in (-1, 3) or col in (-1, 3):
+                    if row in (-1, len(submodel)) or col in (-1, 3):
                         value = None
                     else:
                         value = Qt.AlignCenter if col == 1 else None
@@ -583,11 +585,70 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
 
             for row in range(0, len(submodel)):
                 try:
-                    test_level(submodel[row].children,
-                        self.adapter.index(row, 0, parent))
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
                 except AttributeError:
                     pass
 
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_setData(self):
+
+        def test_level(submodel, parent):
+            print "before", submodel
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
+                    index = self.adapter.index(row, col, parent)
+                    value = chr(random.randint(65, 90)) + str(row)
+                    expected = (False if row in (-1, len(submodel))
+                        or col in (-1, 3) else True)
+                    r = self.adapter.setData(index, value)
+                    self.assertEqual(r, expected,
+                        ('ObjectListAdapter.setData on index({0}, {1}) failed'
+                        'must return {2}')
+                        .format(row, col, expected))
+                    if r:
+                        model_value = getattr(submodel, ('x', 'y', 'z')[col])
+                        self.assertEqual(model_value, value,
+                        'ObjectListAdapter.setData on index({0}, {1}) failed'
+                        .format(row, col))
+            print "after", submodel
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_flags(self):
+
+        def test_level(submodel, parent):
+            for row in range(-1, len(submodel) + 1):
+                for col in range(-1, 4):
+                    index = self.adapter.index(row, col, parent)
+                    flags = self.adapter.flags(index)
+                    if row < 0 or row > len(submodel) - 1 or col < 0 or col > 2:
+                        expected = Qt.NoItemFlags
+                    elif col == 0:
+                        expected = Qt.ItemIsEnabled
+                    else:
+                        expected = (Qt.ItemIsSelectable | Qt.ItemIsEditable
+                            | Qt.ItemIsEnabled)
+                    self.assertEqual(flags, expected,
+                        'ObjectTreeAdapter.flags() on index {0},{1}'
+                        .format(row, col))
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
 
         test_level(self.model, QtCore.QModelIndex())
 

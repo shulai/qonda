@@ -538,11 +538,17 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             # Non hierarchical item model has no valid parent
             return QtCore.QModelIndex()
 
+        if row < 0 or column < 0 or column >= len(self._properties):
+            return QtCore.QModelIndex()
+
         try:
-            if row == len(self._model) and 'append' in self.options:
-                # Return index for placeholder append row
-                # The row object will be appended in _set_value() if needed
-                return self.createIndex(row, column, None)
+            if row == len(self._model):
+                if 'append' in self.options:
+                    # Return index for placeholder append row
+                    # The row object will be appended in _set_value() if needed
+                    return self.createIndex(row, column, None)
+                else:
+                    return QtCore.QModelIndex()
             return self.createIndex(row, column, self._model[row])
         except IndexError:
             return QtCore.QModelIndex()
@@ -711,7 +717,9 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 self.dataChanged.emit(index, index)
 
 
-class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
+class ObjectTreeAdapter(AdapterReader, AdapterWriter,
+        QtCore.QAbstractItemModel):
+
     class RootNode(ObservableObject):
         def __init__(self, children=[], parent_attr='parent',
                 children_attr='children'):
@@ -777,14 +785,19 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
         else:
             parentItem = self._model
 
+        if row < 0 or column < 0 or column >= len(self._properties):
+            return QtCore.QModelIndex()
+
         try:
             submodel = getattr(parentItem, self.children_attr, [])
-            if row == len(submodel) and 'append' in self.options:
-                ## Return index for placeholder append row
-                ## The row object will be appended in _set_value() if needed
-                #print "fantasma"
-                return self.createIndex(row, column, None)
-
+            if row == len(submodel):
+                if 'append' in self.options:
+                    ## Return index for placeholder append row
+                    ## The row object will be appended in _set_value() if needed
+                    #print "fantasma"
+                    return self.createIndex(row, column, None)
+                else:
+                    return QtCore.QModelIndex()
             childItem = submodel[row]
             idx = self.createIndex(row, column, childItem)
         except IndexError:
@@ -857,9 +870,13 @@ class ObjectTreeAdapter(AdapterReader, QtCore.QAbstractItemModel):
 
     def _set_value(self, index, value):
         # TODO: Append
-        setattr(index.internalPointer(), self._properties[index.column()],
-                value)
-        return True
+        # TODO: handling compound properties
+        try:
+            setattr(index.internalPointer(), self._properties[index.column()],
+                    value)
+            return True
+        except IndexError:
+            return False
 
     def flags(self, index):
         """
