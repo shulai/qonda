@@ -49,6 +49,8 @@ class TestObject(ObservableObject):
         self.z = None
 
     def __eq__(self, other):
+        if not isinstance(other, TestObject):
+            return False
         return self.x == other.x and self.y == other.y and self.z == other.z
 
     def __repr__(self):
@@ -578,7 +580,8 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     else:
                         value = Qt.AlignCenter if col == 1 else None
 
-                    adapter_value = self.adapter.data(index, Qt.TextAlignmentRole)
+                    adapter_value = self.adapter.data(index,
+                        Qt.TextAlignmentRole)
                     self.assertEqual(adapter_value, value,
                         'ObjectListAdapter.data on index({0}, {1}) failed'
                             .format(row, col))
@@ -609,7 +612,8 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         'must return {2}')
                         .format(row, col, expected))
                     if r:
-                        model_value = getattr(submodel, ('x', 'y', 'z')[col])
+                        model_value = getattr(submodel[row],
+                            ('x', 'y', 'z')[col])
                         self.assertEqual(model_value, value,
                         'ObjectListAdapter.setData on index({0}, {1}) failed'
                         .format(row, col))
