@@ -478,7 +478,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
 
         def build_level(level, parent, prefix):
             model = ObservableListProxy()
-            for i in range(0, random.randint(3, 7)):
+            for i in range(0, random.randint(8, 14)):
                 o = TestObject()
                 o.parent = parent
                 o.x = u'x{0}{1}'.format(prefix, i)
@@ -599,7 +599,6 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
     def test_setData(self):
 
         def test_level(submodel, parent):
-            print "before", submodel
             for row in range(-1, len(submodel) + 1):
                 for col in range(-1, 4):
                     index = self.adapter.index(row, col, parent)
@@ -617,7 +616,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         self.assertEqual(model_value, value,
                         'ObjectListAdapter.setData on index({0}, {1}) failed'
                         .format(row, col))
-            print "after", submodel
+
             for row in range(0, len(submodel)):
                 try:
                     if submodel[row].children is not None:
@@ -655,6 +654,250 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     pass
 
         test_level(self.model, QtCore.QModelIndex())
+
+######
+
+    def dataChangedSlot(self, topLeft, bottomRight):
+        self.dataChangedSignalEmitted = True
+        self.dataChangedSlotTop = topLeft.row()
+        self.dataChangedSlotLeft = topLeft.column()
+        self.dataChangedSlotBottom = bottomRight.row()
+        self.dataChangedSlotRight = bottomRight.column()
+        self.dataChangedSlotParent = topLeft.parent()
+        self.dataChangedNewValue = topLeft.data()
+
+    def test_model_change(self):
+        self.adapter.dataChanged.connect(self.dataChangedSlot)
+
+        def test_level(submodel, parent):
+            for row in range(0, len(submodel) + 1):
+                for attr, col in (('x', 0), ('y', 1), ('z', 2)):
+                    self.dataChangedSignalEmitted = False
+                    new_value = '**' + getattr(submodel[row], attr) + '**'
+                    setattr(submodel[row], attr, new_value)
+                    self.assertTrue(self.dataChangedSignalEmitted,
+                        "ObjectListAdapter didn't emit dataChanged on model change")
+                    self.assertEqual(
+                        (self.dataChangedSlotTop, self.dataChangedSlotLeft,
+                            self.dataChangedSlotBottom, self.dataChangedSlotRight,
+                            self.dataChangedSlotParent),
+                        (row, col, row, col, parent),
+                        "ObjectListAdapter didn't set properly dataChanged"
+                        " indexes on model change")
+                    self.assertEqual(self.dataChangedNewValue, new_value,
+                        "ObjectListAdapter retrieved value after model change"
+                        " doesn't match")
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_insertRows(self):
+
+        def test_level(submodel, parent):
+            model_copy = submodel[:]
+            expected = len(submodel) + 2
+            self.adapter.insertRows(0, 2, parent)
+            v1, v2 = random.randint(0, 9999), random.randint(0, 9999)
+            self.adapter.setData(self.adapter.index(0, 0, parent), v1)
+            self.adapter.setData(self.adapter.index(1, 2, parent), v2)
+            self.assertEqual(len(submodel), expected)
+            model_copy = [TestObject(), TestObject()] + model_copy
+            model_copy[0].x = v1
+            model_copy[1].z = v2
+            self.assertEqual(submodel, model_copy)
+
+            expected += 3
+            self.adapter.insertRows(expected, 3, parent) # at end
+            self.assertEqual(len(submodel), expected)
+            model_copy = model_copy + [TestObject(), TestObject(), TestObject()]
+            self.assertEqual(submodel, model_copy)
+
+            expected += 1
+            self.adapter.insertRows(7, 1, parent)
+            self.assertEqual(len(submodel), expected)
+            model_copy[7:7] = [TestObject()]
+            self.assertEqual(submodel, model_copy)
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_deleteRows(self):
+
+        def test_level(submodel, parent):
+            model_copy = submodel[:]
+
+            expected = len(submodel) - 2
+            self.adapter.removeRows(4, 2, parent)
+            self.assertEqual(len(submodel), expected)
+            del model_copy[4:6]
+            self.assertEqual(submodel, model_copy)
+
+            expected -= 2
+            self.adapter.removeRows(6, 2, parent)
+            self.assertEqual(len(submodel), expected)
+            del model_copy[6:8]
+            self.assertEqual(submodel, model_copy)
+
+            removing = random.randint(1, 5)
+            expected -= removing
+            self.adapter.removeRows(0, removing, parent)
+            self.assertEqual(len(submodel), expected)
+            del model_copy[0:4]
+            self.assertEqual(submodel, model_copy)
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_insert(self):
+
+        def test_level(submodel, parent):
+            o = TestObject()
+            o.x = random.randint(0, 9999)
+            o.y = random.randint(0, 9999)
+            o.z = random.randint(0, 9999)
+            expected = len(submodel) + 1
+            submodel.insert(5, o)
+            self.assertEqual(self.adapter.rowCount(parent), expected)
+            for row in range(4, 7):
+                for col in range(0, 3):
+                    index = self.adapter.index(row, col, parent)
+                    value = getattr(submodel[row], ('x', 'y', 'z')[col])
+                    adapter_value = self.adapter.data(index, PythonObjectRole)
+                    self.assertEqual(adapter_value, value,
+                        'test_model_insert failed')
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_append(self):
+
+        def test_level(submodel, parent):
+            o = TestObject()
+            o.x = random.randint(0, 9999)
+            o.y = random.randint(0, 9999)
+            o.z = random.randint(0, 9999)
+            expected = len(submodel) + 1
+            submodel.append(o)
+            self.assertEqual(self.adapter.rowCount(parent), expected)
+            for row in range(expected - 2, expected):
+                for col in range(0, 3):
+                    index = self.adapter.index(row, col, parent)
+                    value = getattr(submodel[row], ('x', 'y', 'z')[col])
+                    adapter_value = self.adapter.data(index, PythonObjectRole)
+                    self.assertEqual(adapter_value, value,
+                        'test_model_append failed')
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_extend(self):
+
+        def test_level(submodel, parent):
+            l = [TestObject(), TestObject()]
+            l[0].x = random.randint(0, 9999)
+            l[1].z = random.randint(0, 9999)
+            expected = len(submodel) + 2
+            submodel.extend(l)
+            self.assertEqual(self.adapter.rowCount(parent), expected)
+            for row in range(expected - 3, expected):
+                for col in range(0, 3):
+                    index = self.adapter.index(row, col, parent)
+                    value = getattr(submodel[row], ('x', 'y', 'z')[col])
+                    adapter_value = self.adapter.data(index, PythonObjectRole)
+                    self.assertEqual(adapter_value, value,
+                        'test_model_extend failed')
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_model_del(self):
+
+        def test_level(submodel, parent):
+            expected = len(submodel) - 1
+            del submodel[6]
+            self.assertEqual(self.adapter.rowCount(parent), expected)
+            for row in range(5, 7):
+                for col in range(0, 3):
+                    index = self.adapter.index(row, col, parent)
+                    value = getattr(submodel[row], ('x', 'y', 'z')[col])
+                    adapter_value = self.adapter.data(index, PythonObjectRole)
+                    self.assertEqual(adapter_value, value)
+            # Add more deletion cases
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
+
+        test_level(self.model, QtCore.QModelIndex())
+
+    def test_model_setslice(self):
+
+        def test_level(submodel, parent):
+            expected = len(submodel) - 6 + 2
+            l = [TestObject(), TestObject()]
+            l[0].x = 63
+            l[1].z = 67
+            submodel[2:8] = l
+            self.assertEqual(self.adapter.rowCount(parent), expected)
+            for row in range(0, 6):
+                for col in range(0, 3):
+                    index = self.adapter.index(row, col, parent)
+                    value = getattr(submodel[row], ('x', 'y', 'z')[col])
+                    adapter_value = self.adapter.data(index, PythonObjectRole)
+                    self.assertEqual(adapter_value, value)
+
+            for row in range(0, len(submodel)):
+                try:
+                    if submodel[row].children is not None:
+                        test_level(submodel[row].children,
+                            self.adapter.index(row, 0, parent))
+                except AttributeError:
+                    pass
 
 
 if __name__ == '__main__':
