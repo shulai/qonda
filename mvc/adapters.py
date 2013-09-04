@@ -959,9 +959,6 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                     sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
-                except IndexError:
-                    print 'before_setitem', i,
-                    print start, stop, i
 
         def setitem(i):
             i, l = attrs
