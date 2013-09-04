@@ -1,1 +1,2 @@
 from queryresult import QueryResult
+from autosessionlist import AutoSessionList
