@@ -7,7 +7,7 @@ class QueryResult(ObservableListProxy):
     CHUNKSIZE = 20
 
     def __init__(self, query):
-        super(ObservableListProxy, self).__init__([])
+        super(QueryResult, self).__init__([])
         self.__query = query
         self.__len = query.count()
 
@@ -46,4 +46,5 @@ class QueryResult(ObservableListProxy):
             new_items = self.__query[first_index:last_index]
             self._target[first_index:last_index] = new_items
             items = self._target[i]
+
         return items
