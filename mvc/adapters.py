@@ -595,6 +595,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     def insertRows(self, row, count, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return False
+        if row > len(self._model):
+            return False
         self.beginInsertRows(parent, row, row + count - 1)
         newrows = [self._class() for x in range(0, count)]
         self._model[row:row] = newrows
@@ -603,6 +605,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
     def removeRows(self, row, count, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
+            return False
+        if count < 1 or row + count > len(self._model):
             return False
         self.beginRemoveRows(parent, row, row + count - 1)
         self._model[row:row + count] = []
@@ -905,12 +909,19 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
     def insertRows(self, row, count, parent=QtCore.QModelIndex()):
-        self.beginInsertRows(parent, row, row + count - 1)
-        newrows = [self._class() for x in range(0, count)]
+        if parent != QtCore.QModelIndex():
+            if not self.hasIndex(parent.row(), parent.column(),
+                    parent.parent()):
+                return False
         parentItem = parent.internalPointer()
         if parentItem is None:
             parentItem = self._model
-        getattr(parentItem, self.children_attr)[row:row] = newrows
+        item_list = getattr(parentItem, self.children_attr)
+        if row > len(item_list):
+            return False
+        self.beginInsertRows(parent, row, row + count - 1)
+        newrows = [self._class() for x in range(0, count)]
+        item_list[row:row] = newrows
         for item in newrows:
             setattr(item, self.parent_attr, parentItem)
         self.endInsertRows()
