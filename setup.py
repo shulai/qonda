@@ -20,7 +20,7 @@ from setuptools import setup
 
 setup(
     name='qonda',
-    version='0.1',
+    version='0.4',
     description="A Model-View framework based on Qt Interview",
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',
