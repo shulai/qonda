@@ -911,15 +911,24 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         if parentItem is None:
             parentItem = self._model
         getattr(parentItem, self.children_attr)[row:row] = newrows
+        for item in newrows:
+            setattr(item, self.parent_attr, parentItem)
         self.endInsertRows()
         return True
 
     def removeRows(self, row, count, parent=QtCore.QModelIndex()):
-        self.beginRemoveRows(parent, row, row + count - 1)
+        if count < 1:
+            return False
         parentItem = parent.internalPointer()
         if parentItem is None:
             parentItem = self._model
-        getattr(parentItem, self.children_attr)[row:row + count] = []
+        item_list = getattr(parentItem, self.children_attr)
+        if row + count > len(item_list):
+            return False
+        self.beginRemoveRows(parent, row, row + count - 1)
+        for item in item_list[row:row + count]:
+            setattr(item, self.parent_attr, None)
+        item_list[row:row + count] = []
         self.endRemoveRows()
         return True
 
@@ -931,12 +940,17 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         # varies depending each event) but sender
         # and list_index are directly available by scope
         def before_setitem(i):
+
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
+
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
+                except IndexError:
+                    print 'before_setitem', i,
+                    print start, stop, i
 
         def setitem(i):
             i, l = attrs
@@ -992,7 +1006,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 pass
             for j, row in enumerate(sender[i + 1:], i + 1):
                 try:
-                    row.set_callback_data(self.observe_item, j + i)
+                    row_index = self.index(j, 0, list_index)
+                    row.set_callback_data(self.observe_item, row_index)
                 except AttributeError:
                     pass
             self.endInsertRows()
@@ -1013,7 +1028,9 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 len(sender) + attrs - 1)
 
         def extend(n):
-            for i in range(-n):
+            stop = len(sender)
+            start = stop - n
+            for i in range(start, stop):
                 try:
                     row_index = self.index(i, 0, list_index)
                     sender[i].add_callback(self.observe_item,
@@ -1026,7 +1043,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         locals()[event_type](attrs)
 
     def observe_item(self, sender, event_type, item_index, attrs):
-        print "observe_item", str(attrs)
+
         if event_type != "update":
             return
 
@@ -1039,4 +1056,5 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 continue
             if updated_prop == prop[0:lu] and (lp == lu or prop[lu] == '.'):
                 #print "dataChanged", attrs[0], item_indexlist_index, i
-                self.dataChanged.emit(item_index, item_index)
+                index = self.index(item_index.row(), i, item_index.parent())
+                self.dataChanged.emit(index, index)

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
+
 import unittest
 from PyQt4 import QtCore
 import random
@@ -586,7 +587,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         'ObjectListAdapter.data on index({0}, {1}) failed'
                             .format(row, col))
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -617,7 +618,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         'ObjectListAdapter.setData on index({0}, {1}) failed'
                         .format(row, col))
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -645,7 +646,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         'ObjectTreeAdapter.flags() on index {0},{1}'
                         .format(row, col))
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -656,6 +657,13 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
         test_level(self.model, QtCore.QModelIndex())
 
 ######
+    def _check_tree_callback_data(self, submodel, start=0):
+        for row in range(start, len(submodel)):
+            try:
+                index = submodel[row].get_callback_data(self.adapter.observe_item)
+            except KeyError:
+                pass
+            self.assertEqual(index.row(), row)
 
     def dataChangedSlot(self, topLeft, bottomRight):
         self.dataChangedSignalEmitted = True
@@ -670,13 +678,18 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
         self.adapter.dataChanged.connect(self.dataChangedSlot)
 
         def test_level(submodel, parent):
-            for row in range(0, len(submodel) + 1):
+            for row in range(0, len(submodel)):
                 for attr, col in (('x', 0), ('y', 1), ('z', 2)):
                     self.dataChangedSignalEmitted = False
                     new_value = '**' + getattr(submodel[row], attr) + '**'
                     setattr(submodel[row], attr, new_value)
                     self.assertTrue(self.dataChangedSignalEmitted,
                         "ObjectListAdapter didn't emit dataChanged on model change")
+                    if ((self.dataChangedSlotTop, self.dataChangedSlotLeft,
+                            self.dataChangedSlotBottom, self.dataChangedSlotRight,
+                            self.dataChangedSlotParent) !=
+                        (row, col, row, col, parent)):
+                            pass
                     self.assertEqual(
                         (self.dataChangedSlotTop, self.dataChangedSlotLeft,
                             self.dataChangedSlotBottom, self.dataChangedSlotRight,
@@ -688,7 +701,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                         "ObjectListAdapter retrieved value after model change"
                         " doesn't match")
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -712,20 +725,23 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
             model_copy[0].x = v1
             model_copy[1].z = v2
             self.assertEqual(submodel, model_copy)
+            self._check_tree_callback_data(submodel)
 
-            expected += 3
             self.adapter.insertRows(expected, 3, parent) # at end
+            expected += 3
             self.assertEqual(len(submodel), expected)
             model_copy = model_copy + [TestObject(), TestObject(), TestObject()]
             self.assertEqual(submodel, model_copy)
+            self._check_tree_callback_data(submodel)
 
             expected += 1
             self.adapter.insertRows(7, 1, parent)
             self.assertEqual(len(submodel), expected)
             model_copy[7:7] = [TestObject()]
             self.assertEqual(submodel, model_copy)
+            self._check_tree_callback_data(submodel)
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -735,31 +751,37 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
 
         test_level(self.model, QtCore.QModelIndex())
 
-    def test_deleteRows(self):
+    def test_removeRows(self):
 
         def test_level(submodel, parent):
             model_copy = submodel[:]
 
+            # Remove from middle
             expected = len(submodel) - 2
             self.adapter.removeRows(4, 2, parent)
             self.assertEqual(len(submodel), expected)
             del model_copy[4:6]
             self.assertEqual(submodel, model_copy)
+            self._check_tree_callback_data(submodel)
 
+            # Remove from end
             expected -= 2
-            self.adapter.removeRows(6, 2, parent)
+            self.adapter.removeRows(expected, 2, parent)
             self.assertEqual(len(submodel), expected)
-            del model_copy[6:8]
+            del model_copy[expected:expected + 2]
             self.assertEqual(submodel, model_copy)
+            self._check_tree_callback_data(submodel)
 
-            removing = random.randint(1, 5)
+            # Remove from start
+            removing = min(random.randint(1, 5), len(submodel))
             expected -= removing
             self.adapter.removeRows(0, removing, parent)
             self.assertEqual(len(submodel), expected)
-            del model_copy[0:4]
+            del model_copy[0:removing]
             self.assertEqual(submodel, model_copy)
+            self._check_tree_callback_data(submodel)
 
-            for row in range(0, len(submodel)):
+            for row in range(0, min(len(submodel), 5)):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -786,8 +808,9 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     adapter_value = self.adapter.data(index, PythonObjectRole)
                     self.assertEqual(adapter_value, value,
                         'test_model_insert failed')
+            self._check_tree_callback_data(submodel, 4)
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -815,7 +838,7 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     self.assertEqual(adapter_value, value,
                         'test_model_append failed')
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -841,8 +864,9 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     adapter_value = self.adapter.data(index, PythonObjectRole)
                     self.assertEqual(adapter_value, value,
                         'test_model_extend failed')
+            self._check_tree_callback_data(submodel, expected - 3)
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -864,8 +888,10 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     value = getattr(submodel[row], ('x', 'y', 'z')[col])
                     adapter_value = self.adapter.data(index, PythonObjectRole)
                     self.assertEqual(adapter_value, value)
+            self._check_tree_callback_data(submodel, 4)
+
             # Add more deletion cases
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
@@ -890,8 +916,9 @@ class ObjectTreeAdapterTestCase(unittest.TestCase):
                     value = getattr(submodel[row], ('x', 'y', 'z')[col])
                     adapter_value = self.adapter.data(index, PythonObjectRole)
                     self.assertEqual(adapter_value, value)
+            self._check_tree_callback_data(submodel)
 
-            for row in range(0, len(submodel)):
+            for row in range(0, 5):
                 try:
                     if submodel[row].children is not None:
                         test_level(submodel[row].children,
