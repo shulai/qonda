@@ -72,7 +72,10 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
         except ValueError:
             v = index.data(role=PythonObjectRole)
             if v is None:  # Set first element if no value present
-                editor.setCurrentIndex(-1 if editor.allowEmpty else 0)
+                try:
+                    editor.setCurrentIndex(-1 if editor.allowEmpty else 0)
+                except AttributeError:  # if not qonda but regular QComboBox
+                    editor.setCurrentIndex(0)
             else:
                 raise ValueError('Value "{0}" not present in QComboBox model!'
                     .format(index.data(role=PythonObjectRole)))
