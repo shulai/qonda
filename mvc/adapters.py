@@ -55,7 +55,7 @@ class AdapterReader(object):
             try:
                 return self._column_meta[index.column()][key](v)
             except (IndexError, KeyError, TypeError):
-                return unicode(v)
+                return unicode(v) if v is not None else u''
 
         def callable_constant_meta(key, self, index):
             """Partial function for functional, object entity derived, or
