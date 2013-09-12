@@ -72,17 +72,25 @@ class ObservableObject(Observable):
             object.__setattr__(self, '_notifiables_', notifiables)
 
     def __setattr__(self, name, value):
-        if name in self._notifiables_:
-            try:
-                getattr(self, name).remove_callback(self._observe_attr)
-            except AttributeError:
-                pass
+        if name not in self._notifiables_:
+            object.__setattr__(self, name, value)
+            return
+        try:
+            # If new value == old, ignore, hence don't call callbacks
+            if getattr(self, name) == value:
+                return
+        except AttributeError:  # Attribute not assigned yet
+            pass
+
+        try:
+            getattr(self, name).remove_callback(self._observe_attr)
+        except AttributeError:
+            pass
 
         object.__setattr__(self, name, value)
         try:
-            if name in self._notifiables_:
-                self._notify('update', (name,))
-                getattr(self, name).add_callback(self._observe_attr, name)
+            self._notify('update', (name,))
+            getattr(self, name).add_callback(self._observe_attr, name)
         except AttributeError:
             pass  # If invoked in object construction
 
