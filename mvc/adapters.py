@@ -60,7 +60,7 @@ class AdapterReader(object):
         def callable_constant_meta(key, self, index):
             """Partial function for functional, object entity derived, or
             constant metadata"""
-            o = index.internalPointer()
+            o = self.getPyObject(index)
             if o is None:
                 return None
             try:
@@ -185,7 +185,7 @@ class AdapterReader(object):
     def mimeData(self, indexes):
 
         def mime_data(index):
-            o = index.internalPointer()
+            o = self.getPyObject(index)
             if o:
                 try:
                     m = self._column_meta[index.column()]['mime']
@@ -201,7 +201,7 @@ class AdapterReader(object):
             mime.setText(self.data(indexes[0], Qt.DisplayRole))
             data = mime_data(indexes[0])
             if data is None:
-                data = indexes[0].internalPointer()
+                data = self.getPyObject(indexes[0])
             mime.setData('application/qonda.pyobject', cPickle.dumps(data))
         else:
             text_list = []
@@ -210,7 +210,7 @@ class AdapterReader(object):
                 text_list.append(self.data(index, Qt.DisplayRole))
                 data = mime_data(index)
                 if not data:
-                    data = index.internalPointer()
+                    data = self.getPyObject(index)
                 object_list.append(cPickle.dumps(data))
             mime.setText('\n'.join(text_list))
             mime.setData('application/qonda.pyobject',
@@ -231,7 +231,8 @@ class AdapterReader(object):
                 or i_c >= self.columnCount(i_p)):
             return Qt.NoItemFlags
 
-        o = index.internalPointer()
+        o = self.getPyObject(index)
+
         flags = Qt.ItemFlags()
         try:
             for flagbit, flagvalue in (self._column_meta[i_c]
@@ -377,6 +378,9 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         return self.createIndex(row, column, self._model)
 
+    def getPyObject(self, index):
+        return self._model
+
     def _get_value(self, index):
         value = None
         if index.row() != 0:
@@ -473,12 +477,15 @@ class ValueListAdapter(AdapterReader, QtCore.QAbstractListModel):
 
         return self.createIndex(row, column, self._model[row])
 
+    def getPyObject(self, index):
+        return self._model[index.row()]
+
     def _get_value(self, index):
         if index.column() != 0:
             raise IndexError
         return self._model[index.row()]
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
 
         if not index.isValid():
             return None
@@ -552,6 +559,9 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return self.createIndex(row, column, self._model[row])
         except IndexError:
             return QtCore.QModelIndex()
+
+    def getPyObject(self, index):
+        return self._model[index.row()]
 
     def _get_value(self, index):
         value = None
@@ -808,6 +818,9 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             idx = QtCore.QModelIndex()
 
         return idx
+
+    def getPyObject(self, index):
+        return index.internalPointer()
 
     def item_index(self, item):
 
