@@ -18,7 +18,6 @@
 
 
 from collections import MutableSequence
-from weakref import WeakKeyDictionary
 
 
 try:
@@ -37,7 +36,7 @@ class Observable(object):
     try:
         @orm.reconstructor
         def __reconstructor(self):
-            self.__callbacks = WeakKeyDictionary()
+            self.__callbacks = dict()
     except NameError:
         pass
 
