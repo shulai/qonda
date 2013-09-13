@@ -60,7 +60,10 @@ class AdapterReader(object):
         def callable_constant_meta(key, self, index):
             """Partial function for functional, object entity derived, or
             constant metadata"""
-            o = self.getPyObject(index)
+            try:
+                o = self.getPyObject(index)
+            except:
+                return None
             if o is None:
                 return None
             try:
