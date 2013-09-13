@@ -234,7 +234,10 @@ class AdapterReader(object):
                 or i_c >= self.columnCount(i_p)):
             return Qt.NoItemFlags
 
-        o = self.getPyObject(index)
+        try:
+            o = self.getPyObject(index)
+        except:
+            return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
         flags = Qt.ItemFlags()
         try:
