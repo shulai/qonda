@@ -129,7 +129,7 @@ class AdapterReader(object):
         }
         try:
             return role_resolvers[role](index)
-        except KeyError:
+        except (KeyError, IndexError):
             return None
 
     def headerData(self, section, orientation, role):
@@ -513,7 +513,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     """
 
     def __init__(self, properties, model=None, class_=None, column_meta=None,
-        parent=None, options=None):
+        parent=None, options=None, item_factory=None):
         """
             Create a ObjectListAdapter.
             properties: list of properties of the elements to be shown in the
@@ -529,7 +529,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         # TODO: Check if edit_allowed is necessary (Can disable item editing
         # in the view)
         self.options = set(['edit', 'append']) if options is None else options
-
+        self.item_factory = item_factory if item_factory is not None else class_
         for i, row in enumerate(self._model):
             try:
                 row.add_callback(self.observe_item, i)
@@ -614,7 +614,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         if row > len(self._model):
             return False
         self.beginInsertRows(parent, row, row + count - 1)
-        newrows = [self._class() for x in range(0, count)]
+        newrows = [self.item_factory() for x in range(0, count)]
         self._model[row:row] = newrows
         self.endInsertRows()
         return True
