@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
+
 from collections import MutableSequence
+from weakref import WeakKeyDictionary
 
 
 try:
@@ -35,7 +37,7 @@ class Observable(object):
     try:
         @orm.reconstructor
         def __reconstructor(self):
-            self.__callbacks = dict()
+            self.__callbacks = WeakKeyDictionary()
     except NameError:
         pass
 
