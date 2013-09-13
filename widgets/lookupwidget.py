@@ -136,14 +136,15 @@ class LookupWidget(QtGui.QFrame):
         self.editor.setText('')
 
     def keyPressEvent(self, event):
-        if self.search_flag:
-            self.search_flag = False
-            return
+        #if self.search_flag:
+        #    self.search_flag = False
+        #    return
         if event.key() == Qt.Key_Escape:  # no anda!
             self.layout.setCurrentWidget(self.label)
             self.label.setFocus()
             return
         if event.text() == '':  # Avoid dead keys events erasing the text
+            event.ignore()
             return
         self.layout.setCurrentWidget(self.editor_widget)
         self.editor.setText(event.text().strip())
