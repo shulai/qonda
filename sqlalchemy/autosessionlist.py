@@ -6,8 +6,8 @@ class AutoSessionList(ObservableListProxy):
     """AutoSessionList manages automatic adding of deleting of items
        into the associated SQLAlchemy session
     """
-    def __init__(self, session):
-        super(AutoSessionList, self).__init__()
+    def __init__(self, session, target=None, parent=None, target_class=None):
+        super().__init__(target, parent, target_class)
         self.__session = session
         self.add_callback(self._observe)
 
