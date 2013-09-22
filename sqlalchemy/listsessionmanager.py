@@ -1,7 +1,5 @@
 # -*- coding: utf-8 *-*
 
-from qonda.mvc.observable import ObservableListProxy
-
 
 class ListSessionManager(object):
     """ListSessionManager manages automatic adding of deleting of items
