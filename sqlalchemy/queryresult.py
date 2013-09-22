@@ -35,7 +35,7 @@ class QueryResult(ObservableListProxy):
             self._target.extend([None] * additional)
             items = None
         if items is None:
-            # Read required files
+            # Read required rows
             if type(i) == int:
                 first_index = (i // self.CHUNKSIZE) * self.CHUNKSIZE
                 last_index = first_index + self.CHUNKSIZE

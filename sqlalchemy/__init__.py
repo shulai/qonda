@@ -1,2 +1,2 @@
-from queryresult import QueryResult
-from autosessionlist import AutoSessionList
+from .queryresult import QueryResult
+from .listsessionmanager import ListSessionManager

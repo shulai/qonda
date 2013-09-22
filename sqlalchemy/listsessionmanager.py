@@ -1,17 +1,18 @@
+# -*- coding: utf-8 *-*
 
 from qonda.mvc.observable import ObservableListProxy
 
 
-class AutoSessionList(ObservableListProxy):
-    """AutoSessionList manages automatic adding of deleting of items
-       into the associated SQLAlchemy session
+class ListSessionManager(object):
+    """ListSessionManager manages automatic adding of deleting of items
+       of an ObservableListProxy into the associated SQLAlchemy session
     """
-    def __init__(self, session, target=None, parent=None, target_class=None):
-        super().__init__(target, parent, target_class)
-        self.__session = session
-        self.add_callback(self._observe)
 
-    def _observe(self, sender, event_type, list_index, attrs):
+    def __init__(self, session, target):
+        self.__session = session
+        self._target = target
+
+    def __call__(self, sender, event_type, list_index, attrs):
 
         def before_setitem(i):
 
@@ -42,5 +43,7 @@ class AutoSessionList(ObservableListProxy):
             for i in range(-n, 0):
                 self.__session.add(self._target[-1])
 
-        # Llamo a la función asociada al event_type
-        locals()[event_type](attrs)
+        # Call the function named as event_type
+        f = locals().get(event_type, None)
+        if f is not None:
+            f(attrs)
