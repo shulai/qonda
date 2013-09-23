@@ -22,7 +22,7 @@ from functools import partial
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-from qonda.mvc.observable import ObservableObject
+from .observable import ObservableObject, ObservableListProxy
 
 PythonObjectRole = 32
 
@@ -608,15 +608,26 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return False
         return True
 
+    def _insert_placeholder(self):
+        self.beginInsertRows(QtCore.QModelIndex(), 0, 0)
+        self.endInsertRows()
+
+    def _remove_placeholder(self):
+        self.beginRemoveRows(QtCore.QModelIndex(), 0, 0)
+        self.endRemoveRows()
+
     def insertRows(self, row, count, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return False
         if row > len(self._model):
             return False
-        self.beginInsertRows(parent, row, row + count - 1)
+        # Observable models are managed in observe
+        if not isinstance(self._model, ObservableListProxy):
+            self.beginInsertRows(parent, row, row + count - 1)
         newrows = [self.item_factory() for x in range(0, count)]
-        self._model[row:row] = newrows
-        self.endInsertRows()
+        self._model.insert(row, newrows)
+        if not isinstance(self._model, ObservableListProxy):
+            self.endInsertRows()
         return True
 
     def removeRows(self, row, count, parent=QtCore.QModelIndex()):
@@ -624,27 +635,40 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return False
         if count < 1 or row + count > len(self._model):
             return False
-        self.beginRemoveRows(parent, row, row + count - 1)
+        # Observable models are managed in observe
+        if not isinstance(self._model, ObservableListProxy):
+            self.beginRemoveRows(parent, row, row + count - 1)
         self._model[row:row + count] = []
-        self.endRemoveRows()
+        if not isinstance(self._model, ObservableListProxy):
+            self.endRemoveRows()
         return True
 
     def observe(self, sender, event_type, list_row, attrs):
         if sender != self._model:
             return
 
-        def before_setitem(i):
+        def before_setitem(attrs):
+            i, inserting = attrs
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
+            removing = stop - start
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
+            # Insert/remove the difference of lines
+            if removing > inserting:
+                self.beginRemoveRows(QtCore.QModelIndex(), start,
+                    start + removing - inserting - 1)
+            else:
+                self.beginInsertRows(QtCore.QModelIndex(), start,
+                    start + inserting - removing - 1)
 
         def setitem(attrs):
-            i, l = attrs
-            start = i if type(i) == int else i.start
-            stop = start + l
+            i, inserting = attrs
+            start, removing = ((i, i + 1) if type(i) == int
+                else (i.start, i.stop))
+            stop = start + inserting
             for i in range(start, stop):
                 try:
                     sender[i].add_callback(self.observe_item, i)
@@ -656,9 +680,16 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                     row.set_callback_data(self.observe_item, stop + i)
                 except AttributeError:
                     pass
+            if removing > inserting:
+                self.endRemoveRows()
+            else:
+                self.endInsertRows()
+                self.dataChanged.emit(self.index(stop, 0),
+                    self.createIndex(start + inserting - 1,
+                    len(self._properties) - 1))
 
-            self.dataChanged.emit(self.createIndex(start, 0),
-                self.createIndex(stop - 1, len(self._properties) - 1))
+            if 'append' in self.options and len(sender) == 0:
+                self._insert_placeholder()
 
         def before_delitem(i):
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
@@ -678,8 +709,12 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 except AttributeError:  # Item is not observable
                     pass
             self.endRemoveRows()
+            if 'append' in self.options and len(sender) == 0:
+                self._insert_placeholder()
 
         def before_insert(i):
+            if 'append' in self.options and len(sender) == 0:
+                self._remove_placeholder()
             self.beginInsertRows(QtCore.QModelIndex(), i, i)
 
         def insert(i):
@@ -696,6 +731,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             self.endInsertRows()
 
         def before_append(dummy):
+            if 'append' in self.options and len(sender) == 0:
+                self._remove_placeholder()
             self.beginInsertRows(QtCore.QModelIndex(), len(sender),
                 len(sender))
 
@@ -707,6 +744,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             self.endInsertRows()
 
         def before_extend(n):
+            if 'append' in self.options and len(sender) == 0:
+                self._remove_placeholder()
             self.beginInsertRows(QtCore.QModelIndex(), len(sender),
                 len(sender) + attrs - 1)
 
@@ -718,7 +757,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                     pass
             self.endInsertRows()
 
-        # Llamo a la función asociada al event_type
+        # Call the function matching event_type
         locals()[event_type](attrs)
 
     def observe_item(self, sender, event_type, list_index, attrs):
@@ -814,7 +853,6 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 if 'append' in self.options:
                     ## Return index for placeholder append row
                     ## The row object will be appended in _set_value() if needed
-                    #print "fantasma"
                     return self.createIndex(row, column, None)
                 else:
                     return QtCore.QModelIndex()
@@ -927,6 +965,14 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         except (KeyError, TypeError):
             return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
+    def _insert_placeholder(self, parent):
+        self.beginInsertRows(parent, 0, 0)
+        self.endInsertRows()
+
+    def _remove_placeholder(self, parent):
+        self.beginRemoveRows(parent, 0, 0)
+        self.endRemoveRows()
+
     def insertRows(self, row, count, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             if not self.hasIndex(parent.row(), parent.column(),
@@ -938,12 +984,15 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         item_list = getattr(parentItem, self.children_attr)
         if row > len(item_list):
             return False
-        self.beginInsertRows(parent, row, row + count - 1)
+        # Observable models are managed in observe
+        if not isinstance(item_list, ObservableListProxy):
+            self.beginInsertRows(parent, row, row + count - 1)
         newrows = [self._class() for x in range(0, count)]
-        item_list[row:row] = newrows
+        item_list.insert(row, newrows)
         for item in newrows:
             setattr(item, self.parent_attr, parentItem)
-        self.endInsertRows()
+        if not isinstance(item_list, ObservableListProxy):
+            self.endInsertRows()
         return True
 
     def removeRows(self, row, count, parent=QtCore.QModelIndex()):
@@ -955,11 +1004,18 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         item_list = getattr(parentItem, self.children_attr)
         if row + count > len(item_list):
             return False
-        self.beginRemoveRows(parent, row, row + count - 1)
+        # Observable models are managed in observe
+        if not isinstance(item_list, ObservableListProxy):
+            self.beginRemoveRows(parent, row, row + count - 1)
         for item in item_list[row:row + count]:
             setattr(item, self.parent_attr, None)
         item_list[row:row + count] = []
-        self.endRemoveRows()
+        if not isinstance(item_list, ObservableListProxy):
+            self.endRemoveRows()
+        # Keep a dummy row
+        if 'append' in self.options and len(item_list) == 0:
+            self.beginInsertRows(parent, 0, 0)
+            self.endInsertRows()
         return True
 
     def observe(self, sender, event_type, list_index, attrs):
@@ -969,20 +1025,28 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         # arguments for legibility (semantics for attributes
         # varies depending each event) but sender
         # and list_index are directly available by scope
-        def before_setitem(i):
-
+        def before_setitem(attrs):
+            i, inserting = attrs
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
-
+            removing = stop - start
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
                 except AttributeError:
                     pass
+            # Insert/remove the difference of lines
+            if removing > inserting:
+                self.beginRemoveRows(list_index, start,
+                    start + removing - inserting - 1)
+            else:
+                self.beginInsertRows(list_index, start,
+                    start + inserting - removing - 1)
 
         def setitem(i):
-            i, l = attrs
-            start = i if type(i) == int else i.start
-            stop = start + l
+            i, inserting = attrs
+            start, removing = ((i, i + 1) if type(i) == int
+                else (i.start, i.stop))
+            stop = start + inserting
             for i in range(start, stop):
                 try:
                     row_index = self.index(i, 0, list_index)
@@ -998,8 +1062,16 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 except AttributeError:
                     pass
 
-            self.dataChanged.emit(self.createIndex(start, 0, list_index),
-                self.index(stop - 1, len(self._properties) - 1, list_index))
+            if removing > inserting:
+                self.endRemoveRows()
+            else:
+                self.endInsertRows()
+                self.dataChanged.emit(self.index(stop, 0, list_index),
+                    self.index(start + inserting - 1,
+                    len(self._properties) - 1), list_index)
+
+            if 'append' in self.options and len(sender) == 0:
+                self._insert_placeholder(list_index)
 
         def before_delitem(i):
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
@@ -1020,6 +1092,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 except AttributeError:  # Item is not observable
                     pass
             self.endRemoveRows()
+            if 'append' in self.options and len(sender) == 0:
+                self._insert_placeholder(list_index)
 
         def before_insert(i):
             self.beginInsertRows(list_index, i, i)
@@ -1040,7 +1114,12 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             self.endInsertRows()
 
         def before_append(dummy):
-            self.beginInsertRows(list_index, len(sender), len(sender))
+            if 'append' in self.options and len(sender) == 0:
+                self._remove_placeholder(list_index)
+            # The view must reflect the append if there is no placeholder row
+            if not('append' in self.options and len(sender) == 0):
+                self.beginInsertRows(list_index, len(sender),
+                    len(sender))
 
         def append(dummy):
             try:
@@ -1048,9 +1127,13 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 sender[-1].add_callback(self.observe_item, row_index)
             except AttributeError:
                 pass
-            self.endInsertRows()
+            # The view must reflect the append if there is no placeholder row
+            if not('append' in self.options and len(sender) == 1):
+                self.endInsertRows()
 
         def before_extend(n):
+            if 'append' in self.options and len(sender) == 0:
+                self._remove_placeholder(list_index)
             self.beginInsertRows(list_index, len(sender),
                 len(sender) + attrs - 1)
 
@@ -1066,7 +1149,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                     pass
             self.endInsertRows()
 
-        # Llamo a la función asociada al event_type
+        # Call the function matching event_type
         locals()[event_type](attrs)
 
     def observe_item(self, sender, event_type, item_index, attrs):
