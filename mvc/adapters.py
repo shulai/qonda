@@ -625,7 +625,7 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         if not isinstance(self._model, ObservableListProxy):
             self.beginInsertRows(parent, row, row + count - 1)
         newrows = [self.item_factory() for x in range(0, count)]
-        self._model.insert(row, newrows)
+        self._model[row:row] = newrows
         if not isinstance(self._model, ObservableListProxy):
             self.endInsertRows()
         return True
@@ -988,7 +988,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         if not isinstance(item_list, ObservableListProxy):
             self.beginInsertRows(parent, row, row + count - 1)
         newrows = [self._class() for x in range(0, count)]
-        item_list.insert(row, newrows)
+        item_list[row:row] = newrows
         for item in newrows:
             setattr(item, self.parent_attr, parentItem)
         if not isinstance(item_list, ObservableListProxy):
