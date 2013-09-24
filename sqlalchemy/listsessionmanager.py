@@ -12,14 +12,14 @@ class ListSessionManager(object):
 
     def __call__(self, sender, event_type, list_index, attrs):
 
-        def before_setitem(i):
-
+        def before_setitem(attrs):
+            i, l = attrs
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
 
             for i in range(start, stop):
                 self.__session.delete(self._target[i])
 
-        def setitem(i):
+        def setitem(attrs):
             i, l = attrs
             start = i if type(i) == int else i.start
             stop = start + l
