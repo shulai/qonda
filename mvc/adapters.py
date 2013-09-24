@@ -666,8 +666,8 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
         def setitem(attrs):
             i, inserting = attrs
-            start, removing = ((i, i + 1) if type(i) == int
-                else (i.start, i.stop))
+            start, removing = ((i, 1) if type(i) == int
+                else (i.start, i.stop - i.start))
             stop = start + inserting
             for i in range(start, stop):
                 try:
@@ -1044,8 +1044,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
 
         def setitem(i):
             i, inserting = attrs
-            start, removing = ((i, i + 1) if type(i) == int
-                else (i.start, i.stop))
+            start, removing = ((i, 1) if type(i) == int
+                else (i.start, i.stop - i.start))
             stop = start + inserting
             for i in range(start, stop):
                 try:
