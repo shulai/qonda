@@ -73,7 +73,6 @@ class LookupWidget(QtGui.QFrame):
         self.label = QtGui.QLabel('The label', self)
         self.setFocusPolicy(Qt.StrongFocus)
         self.label.setFocusPolicy(Qt.StrongFocus)
-        self.setFocusProxy(self.label)
 
         self.editor_widget = QtGui.QWidget(self)
         self.editor_widget.setFocusPolicy(Qt.NoFocus)
@@ -121,6 +120,9 @@ class LookupWidget(QtGui.QFrame):
         self.search_function = None
         self.search_window = None
         self.search_flag = False
+
+    def focusInEvent(self, event):
+        self.label.setFocus()
 
     def _show_value(self):
         if self._value:
