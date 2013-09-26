@@ -21,8 +21,8 @@ import unittest
 from PyQt4 import QtCore
 import random
 from PyQt4.QtCore import Qt
-from observable import ObservableObject, ObservableListProxy
-from adapters import (ObjectAdapter, ObjectListAdapter, ObjectTreeAdapter,
+from .observable import ObservableObject, ObservableListProxy
+from .adapters import (ObjectAdapter, ObjectListAdapter, ObjectTreeAdapter,
     PythonObjectRole)
 
 
