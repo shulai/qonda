@@ -62,7 +62,13 @@ class LookupWidgetDelegate(QtGui.QItemDelegate):
 
 
 class LookupWidget(QtGui.QFrame):
+    """
+        Widget to search object using an user provided search string
 
+        After creating the widget, must set the search_function attribute
+        with a callable that receives a string and returns a list of matching
+        objects
+    """
     _mappingDelegateClass = LookupWidgetDelegate
 
     def __init__(self, parent=None):

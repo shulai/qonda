@@ -22,7 +22,10 @@ from operator import attrgetter
 
 class Aggregator(object):
     """
-        source: object
+        Aggregators calculate sum of attributes and item count on lists of
+        objects.
+
+        source: list of object
         target: object
         attributes: dict:
             keys = attribute names or '*' for count

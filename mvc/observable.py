@@ -41,6 +41,16 @@ class Observable(object):
         pass
 
     def add_callback(self, callback, observer_data=None):
+        """
+            Connect a callable to this object.
+            The callable will be called when this object emits an event.
+            The callable will receive as arguments:
+                 The sender object
+                 The event type (string)
+                 The observer data provided with along the callable in
+                 add_callback() or with set_callback_data()
+                 The event specific data.
+        """
         self.__callbacks[callback] = observer_data
 
     def remove_callback(self, callback):
@@ -63,7 +73,13 @@ class ObservableObject(Observable):
         notification
 
         Inherit and put attribute names into _notifiables_ to trigger
-        notification for theses atributes
+        notification for theses atributes.
+
+        Events:
+        "update": Event data: attribute name
+
+            Changes in attributes of related Observables also will be
+            notified, with the chain of attribute names as a dot separated string
     """
     _notifiables_ = list()
 
@@ -152,8 +168,29 @@ class ObservableListProxy(ReadOnlyProxy, Observable, MutableSequence):
         target: target list. Default: None. If None, the proxy creates a new
                 target
         target_class: Class for target creation. Default: list
-    """
 
+        Events:
+        "before_setitem": Before doing l[i] = x or l[i:j] = new_items
+                Event data: index, and replace value length
+        "setitem": After doing l[i] = x or l[i:j] = new_items
+                Event data: index, and replace value length
+        "before_delitem": Before doing del l[i], l.remove(x) or l.pop()
+                Event data: index
+        "delitem": After doing del l[i], l.remove(x) or l.pop()
+                Event data: index
+        "before_insert": Before doing l.insert(i, x)
+                Event data: index
+        "insert": After doing l.insert(i, x)
+                Event data: index
+        "before_append": Before doing l.append(x)
+                Event data: None
+        "append": After doing l.append(x)
+                Event data: None
+        "before_extend": Before doing l.extend(items)
+                Event data: len(items)
+        "extend": After doing l.extend(items)
+                Event data: len(items)
+    """
     def __init__(self, target=None, parent=None, target_class=list):
         if target is None:
             target = target_class()

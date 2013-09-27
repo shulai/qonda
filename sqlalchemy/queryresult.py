@@ -20,7 +20,8 @@ from qonda.mvc.observable import ObservableListProxy
 
 
 class QueryResult(ObservableListProxy):
-
+    """QueryResult takes data from the provided SQLAlchey query and
+    presents them as a list like, retrieving items incrementally as required"""
     CHUNKSIZE = 20
 
     def __init__(self, query):

@@ -305,8 +305,6 @@ class BaseAdapter(QtCore.QAbstractTableModel):
             return 0
         return len(self._properties)
 
-# Ver donde ubicar esto después
-
 
 def _build_class_meta(class_, properties):
 
@@ -778,6 +776,11 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
 class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         QtCore.QAbstractItemModel):
+    """
+        Adapts a tree of Python objects into a PyQt
+        QAbstractTableModel.
+        The items should have all the same type.
+    """
 
     class RootNode(ObservableObject):
         def __init__(self, children=[], parent_attr='parent',
