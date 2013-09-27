@@ -61,7 +61,7 @@ class LookupWidgetDelegate(QtGui.QItemDelegate):
         painter.restore()
 
 
-class LookupWidget(QtGui.QFrame):
+class LookupWidget(QtGui.QLineEdit):
     """
         Widget to search object using an user provided search string
 
@@ -73,112 +73,102 @@ class LookupWidget(QtGui.QFrame):
 
     def __init__(self, parent=None):
 
-        QtGui.QWidget.__init__(self, parent)
-        self.setFrameShape(QtGui.QFrame.Panel)
-        self.setFrameStyle(QtGui.QFrame.Sunken)
-        self.label = QtGui.QLabel('The label', self)
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.label.setFocusPolicy(Qt.StrongFocus)
-
-        self.editor_widget = QtGui.QWidget(self)
-        self.editor_widget.setFocusPolicy(Qt.NoFocus)
-        self.editor = QtGui.QLineEdit(self.editor_widget)
-
-        self.button = QtGui.QToolButton(self.editor_widget)
-        # Should be able to get focus when the QLineEdit is empty
-        # but then when value is set it is grabbing focus when it shouldn't
+        QtGui.QLineEdit.__init__(self, parent)
+        #self.setFrame(False)
+        self.setStyleSheet(
+            'QLineEdit { border: 2px none} '
+            'QLineEdit[editing="no"] { background-color: palette(base)} '
+            'QLineEdit:focus[editing="no"] { border: 2px inset} ')
+        self.button = QtGui.QToolButton(self)
         self.button.setFocusPolicy(Qt.NoFocus)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(":/actions/icons/lookup.svg"),
             QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button.setIcon(icon1)
         self.button.clicked.connect(self.openSearchWindow)
-
-        self.editor.editingFinished.connect(self._search_value)
-
-        def focusInEvent(event):
-            self.setFrameShape(QtGui.QFrame.Panel)
-
-        def focusOutEvent(event):
-            self._search_value()
-            self.setFrameShape(QtGui.QFrame.NoFrame)
-
-        self.label.focusInEvent = focusInEvent
-        self.editor.focusOutEvent = focusOutEvent
-
-        hlayout = QtGui.QHBoxLayout(self.editor_widget)
-        hlayout.setContentsMargins(0, 0, 0, 0)
-        hlayout.addWidget(self.editor)
-        hlayout.addWidget(self.button)
-        self.editor_widget.setLayout(hlayout)
-
-        self.layout = QtGui.QStackedLayout()
-        self.layout.addWidget(self.label)
-
-        self.layout.addWidget(self.editor_widget)
-        self.setLayout(self.layout)
+        self.button.hide()
+        self.editingFinished.connect(self._search_value)
 
         self.menu = QtGui.QMenu(self)
         self.placeholder = None
         self._value = None
-        self._show_value()
 
         self.search_function = None
         self.search_window = None
-        self.search_flag = False
+        self._editing = False
+        self.setProperty('editing', 'no')
+
+        self._show_value()
 
     def focusInEvent(self, event):
-        self.label.setFocus()
+        self._focused()
 
-    def _show_value(self):
-        if self._value:
-            self.label.setText(unicode(self._value))
-        else:
-            if self.placeholder:
-                self.label.setText(self.placeholder)
-            else:
-                self.label.setText('')
+    def focusOutEvent(self, event):
+        if self._editing:
+            self._search_value()
+            self._editing = False
+            self.setProperty('editing', 'no')
+        self._blurred()
 
     def mousePressEvent(self, event):
-        self.layout.setCurrentWidget(self.editor_widget)
-        self.editor.setText('')
+        self._edit()
 
     def keyPressEvent(self, event):
-        #if self.search_flag:
-        #    self.search_flag = False
-        #    return
-        if event.key() == Qt.Key_Escape:  # no anda!
-            self.layout.setCurrentWidget(self.label)
-            self.label.setFocus()
+        if self._editing:
+            if event.key() == Qt.Key_Escape:
+                self._focused()
+                self._show_value()
+                self._editing = False
+                self.setProperty('editing', 'no')
+            else:
+                super(LookupWidget, self).keyPressEvent(event)
             return
         if event.text() == '':  # Avoid dead keys events erasing the text
-            event.ignore()
             return
-        self.layout.setCurrentWidget(self.editor_widget)
-        self.editor.setText(event.text().strip())
-        self.editor.setFocus()
+        self._edit()
+        super(LookupWidget, self).keyPressEvent(event)
 
     def value(self):
         return self._value
 
     def setValue(self, value):
-        self.search_flag = True
         self._value = value
+        if self._editing:
+            self._focused()
+            self._editing = False
+            self.setProperty('editing', 'no')
         self._show_value()
-        self.layout.setCurrentWidget(self.label)
 
-    def buttonVisible(self, v):
-        self.button.setVisible(v)
+    def _edit(self):
+        self.setFrame(True)
+        self.clear()
+        self._editing = True
+        self.setProperty('editing', 'yes')
+
+    def _focused(self):
+        #self.setFrame(False)
+        pass
+
+    def _blurred(self):
+        #self.setFrame(False)
+        pass
+
+    def _show_value(self):
+        if self._value is None:
+            self.clear()
+        else:
+            self.setText(unicode(self._value))
 
     def _search_value(self):
-        text = self.editor.text()
+        print "search"
+        text = self.text()
         if text == '':
             self.setValue(None)
             return
 
-        values = self.search_function(self.editor.text())
+        values = self.search_function(text)
         if len(values) == 0:
-            self.editor.setFocus()
+            self.setFocus()
             return  # Nothing found, back to editing
         elif len(values) == 1:
             self.setValue(values[0])
@@ -207,4 +197,4 @@ class LookupWidget(QtGui.QFrame):
             if value:
                 self.setValue(value)
             else:
-                self.editor.setFocus()  # Nothing found, back to editing
+                self.setFocus()  # Nothing found, back to editing
