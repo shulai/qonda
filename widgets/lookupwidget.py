@@ -18,6 +18,8 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
+from ..icons import icons_rc
+
 
 PythonObjectRole = 32
 
@@ -72,43 +74,38 @@ class LookupWidget(QtGui.QLineEdit):
     _mappingDelegateClass = LookupWidgetDelegate
 
     def __init__(self, parent=None):
-
         QtGui.QLineEdit.__init__(self, parent)
-        #self.setFrame(False)
-        self.setStyleSheet(
-            'QLineEdit { border: 2px none} '
-            'QLineEdit[editing="no"] { background-color: palette(base)} '
-            'QLineEdit:focus[editing="no"] { border: 2px inset} ')
+        self.editingFinished.connect(self._search_value)
+
         self.button = QtGui.QToolButton(self)
         self.button.setFocusPolicy(Qt.NoFocus)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/actions/icons/lookup.svg"),
-            QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.button.setCursor(QtCore.Qt.ArrowCursor)
+        icon1 = QtGui.QIcon(":/icons/lookup.png")
         self.button.setIcon(icon1)
+        self.button.setStyleSheet('border: 0px; padding: 0px;')
         self.button.clicked.connect(self.openSearchWindow)
+        self.button.resize(18, 18)
         self.button.hide()
-        self.editingFinished.connect(self._search_value)
 
         self.menu = QtGui.QMenu(self)
         self.placeholder = None
         self._value = None
 
-        self.search_function = None
+        self.search_function = True
         self.search_window = None
         self._editing = False
-        self.setProperty('editing', 'no')
-
         self._show_value()
 
-    def focusInEvent(self, event):
-        self._focused()
+    def resizeEvent(self, event):
+        self.button.move(self.rect().right() - 19, 
+            (self.height() - self.button.height()) / 2)
+        super(LookupWidget, self).resizeEvent(event)
 
     def focusOutEvent(self, event):
         if self._editing:
             self._search_value()
-            self._editing = False
-            self.setProperty('editing', 'no')
-        self._blurred()
+            self._edit_finished()
+        super(LookupWidget, self).focusOutEvent(event)
 
     def mousePressEvent(self, event):
         self._edit()
@@ -116,10 +113,8 @@ class LookupWidget(QtGui.QLineEdit):
     def keyPressEvent(self, event):
         if self._editing:
             if event.key() == Qt.Key_Escape:
-                self._focused()
                 self._show_value()
-                self._editing = False
-                self.setProperty('editing', 'no')
+                self._edit_finished()
             else:
                 super(LookupWidget, self).keyPressEvent(event)
             return
@@ -134,24 +129,24 @@ class LookupWidget(QtGui.QLineEdit):
     def setValue(self, value):
         self._value = value
         if self._editing:
-            self._focused()
-            self._editing = False
-            self.setProperty('editing', 'no')
+            self._edit_finished()
         self._show_value()
 
     def _edit(self):
-        self.setFrame(True)
-        self.clear()
+        self.setText('')
         self._editing = True
-        self.setProperty('editing', 'yes')
+        if self.search_window:
+            # Workaround: setting padding-right only seems to set other
+            # paddings to zero. Not sure if 2px works ok in every style
+            # and platform
+            self.setStyleSheet('padding: 2px 20px 2px 2px')
+            self.button.show()
 
-    def _focused(self):
-        #self.setFrame(False)
-        pass
-
-    def _blurred(self):
-        #self.setFrame(False)
-        pass
+    def _edit_finished(self):
+        self._editing = False
+        if self.search_window:
+            self.setStyleSheet('')
+            self.button.hide()
 
     def _show_value(self):
         if self._value is None:
@@ -160,7 +155,6 @@ class LookupWidget(QtGui.QLineEdit):
             self.setText(unicode(self._value))
 
     def _search_value(self):
-        print "search"
         text = self.text()
         if text == '':
             self.setValue(None)
@@ -185,16 +179,19 @@ class LookupWidget(QtGui.QLineEdit):
             if action:
                 self.setValue(values[actions[action]])
             else:
-                self.editor.setFocus()
+                self.setFocus()
             return  # Nothing found, back to editing
 
     @QtCore.pyqtSignature("")
     def openSearchWindow(self):
         if self.search_window:
-            self.search_window.setWindowModality(Qt.WindowModal)
+            self.search_window.setWindowModality(Qt.ApplicationModal)
+            self.search_window.closeEvent = self.searchWindowCloseEvent
+            print "open"
             self.search_window.show()
-            value = self.search_window.value()
-            if value:
-                self.setValue(value)
-            else:
-                self.setFocus()  # Nothing found, back to editing
+            
+    def searchWindowCloseEvent(self, event):
+        value = self.search_window.value()
+        if value:
+            self.setValue(value)
+
