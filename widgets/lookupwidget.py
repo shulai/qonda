@@ -24,7 +24,7 @@ from ..icons import icons_rc
 PythonObjectRole = 32
 
 
-class LookupWidgetDelegate(QtGui.QItemDelegate):
+class LookupWidgetDelegate(QtGui.QStyledItemDelegate):
 
     def __init__(self, parent=None, search_function=None, search_window=None):
         QtGui.QItemDelegate.__init__(self, parent)
@@ -48,19 +48,6 @@ class LookupWidgetDelegate(QtGui.QItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
-
-    def paint(self, painter, options, index):
-        try:
-            model = index.model().data(index, Qt.EditRole)
-            value = unicode(model)
-        except AttributeError:
-            value = ''
-
-        painter.save()
-        self.drawBackground(painter, options, index)
-        # if not options edicion
-        self.drawDisplay(painter, options, options.rect, value)
-        painter.restore()
 
 
 class LookupWidget(QtGui.QLineEdit):
@@ -97,7 +84,7 @@ class LookupWidget(QtGui.QLineEdit):
         self._show_value()
 
     def resizeEvent(self, event):
-        self.button.move(self.rect().right() - 19, 
+        self.button.move(self.rect().right() - 19,
             (self.height() - self.button.height()) / 2)
         super(LookupWidget, self).resizeEvent(event)
 
@@ -124,6 +111,8 @@ class LookupWidget(QtGui.QLineEdit):
         super(LookupWidget, self).keyPressEvent(event)
 
     def value(self):
+        if self._editing:
+            self._search_value()
         return self._value
 
     def setValue(self, value):
@@ -187,11 +176,9 @@ class LookupWidget(QtGui.QLineEdit):
         if self.search_window:
             self.search_window.setWindowModality(Qt.ApplicationModal)
             self.search_window.closeEvent = self.searchWindowCloseEvent
-            print "open"
             self.search_window.show()
-            
+
     def searchWindowCloseEvent(self, event):
         value = self.search_window.value()
         if value:
             self.setValue(value)
-
