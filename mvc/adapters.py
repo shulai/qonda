@@ -274,8 +274,12 @@ class AdapterWriter(object):
             except (IndexError, KeyError, TypeError):
                 if value == u'':
                     value = None
+            if self._get_value(index) == value:
+                return True
             return self._set_value(index, value)
         elif role == PythonObjectRole:
+            if self._get_value(index) == value:
+                return True
             return self._set_value(index, value)
 
         return False
