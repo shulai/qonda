@@ -21,7 +21,7 @@ import datetime
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 
-from qonda.widgets import widgets
+from ..widgets import widgets
 
 PythonObjectRole = 32
 
@@ -58,7 +58,7 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QComboBox(parent)
+        editor = widgets.ComboBox(parent)
         if self.model:
             editor.setModel(self.model)
         for prop_name, prop_value in self.__properties.iteritems():
