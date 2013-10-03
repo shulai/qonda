@@ -67,7 +67,7 @@ class LookupWidget(QtGui.QLineEdit):
         self.button = QtGui.QToolButton(self)
         self.button.setFocusPolicy(Qt.NoFocus)
         self.button.setCursor(QtCore.Qt.ArrowCursor)
-        icon1 = QtGui.QIcon(":/icons/lookup.png")
+        icon1 = QtGui.QIcon(":/qonda/lookup.png")
         self.button.setIcon(icon1)
         self.button.setStyleSheet('border: 0px; padding: 0px;')
         self.button.clicked.connect(self.openSearchWindow)
