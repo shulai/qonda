@@ -733,17 +733,17 @@ class ObjectListAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             self.endInsertRows()
 
         def before_append(dummy):
-            if 'append' in self.options and len(sender) == 0:
-                self._remove_placeholder()
-            self.beginInsertRows(QtCore.QModelIndex(), len(sender),
-                len(sender))
+            if not ('append' in self.options and len(sender) == 0):
+                self.beginInsertRows(QtCore.QModelIndex(), len(sender),
+                    len(sender))
 
         def append(dummy):
             try:
                 sender[-1].add_callback(self.observe_item, len(sender) - 1)
             except AttributeError:
                 pass
-            self.endInsertRows()
+            if not ('append' in self.options and len(sender) == 1):
+                self.endInsertRows()
 
         def before_extend(n):
             if 'append' in self.options and len(sender) == 0:
@@ -1121,9 +1121,6 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             self.endInsertRows()
 
         def before_append(dummy):
-            if 'append' in self.options and len(sender) == 0:
-                self._remove_placeholder(list_index)
-            # The view must reflect the append if there is no placeholder row
             if not('append' in self.options and len(sender) == 0):
                 self.beginInsertRows(list_index, len(sender),
                     len(sender))
