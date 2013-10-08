@@ -189,7 +189,14 @@ class CheckBoxDelegate(QtGui.QStyledItemDelegate):
         model.setData(index, bool(editor.isChecked()), PythonObjectRole)
 
     def updateEditorGeometry(self, editor, option, index):
-        editor.setGeometry(option.rect)
+        style = QtGui.QApplication.style()
+        checkbox_rect = style.subElementRect(QtGui.QStyle.SE_CheckBoxIndicator,
+            option)
+        rect = option.rect
+        x = option.rect.x() + (option.rect.width() - checkbox_rect.width()) / 2
+        rect.setLeft(x)
+        rect.setWidth(checkbox_rect.width())
+        editor.setGeometry(rect)
 
     def paint(self, painter, options, index):
         value = index.data(PythonObjectRole)
