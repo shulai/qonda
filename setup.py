@@ -19,15 +19,16 @@
 from __future__ import print_function
 from setuptools import setup
 
-try: # Python 3.x
+try:  # Python 3.x
     from setuptools.command.build_py import build_py_2to3 as build_py
-except ImportError: # Python 2.x
-    from setuptools.command.build_py import build_py
+except ImportError:  # Python 2.x
+    from setuptools.command.build_py import build_py  # lint:ok
 import sys
 import subprocess
 
+
 class build(build_py):
-           
+
     def _compile_ui(self):
         print("Compiling Qt resource file")
         self.pyrcc4 = 'pyrcc4'
@@ -36,7 +37,7 @@ class build(build_py):
             option = '-py2'
         else:
             option = '-py3'
-            
+
         try:
             subprocess.call([self.pyrcc4, option, 'icons/icons.qrc', '-o',
                              'icons/icons_rc.py'])
@@ -51,7 +52,7 @@ class build(build_py):
         self._compile_ui()
         build_py.run(self)
 
-cmdclass = {'build_py':  build}
+cmdclass = {'build_py': build}
 
 setup(
     name='qonda',
@@ -60,7 +61,8 @@ setup(
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',
     url='https://bitbucket.org/shulai/qonda',
-    packages=['qonda', 'qonda.mvc', 'qonda.widgets', 'qonda.mainwindow', 'qonda.util', 'qonda.sqlalchemy', 'qonda.icons'],
+    packages=['qonda', 'qonda.mvc', 'qonda.widgets',
+        'qonda.util', 'qonda.sqlalchemy', 'qonda.icons'],
     package_dir={'qonda': '.'},
     use_2to3=True,
     long_description="""
@@ -83,8 +85,8 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
-        ],
+    ],
     keywords='gui pyqt4',
     license='GPL',
     cmdclass=cmdclass
-        )
+)
