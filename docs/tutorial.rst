@@ -48,6 +48,9 @@ object.
 First steps
 ===========
 
+Please note this aren't complete, runnable examples. Separate 
+example source files are provided along this document.
+
 Let's start with a simple model for a contact list::
 
     class Contact(object):
@@ -63,6 +66,7 @@ Then, we can build a form to show and edit contacts::
     from qonda.mvc.adapters import ObjectAdapter
     from qonda.mvc.datawidgetmapper import DataWidgetMapper
 
+    ...
     
     class ContactEditor(QWidget):
 
@@ -127,6 +131,7 @@ The example code for this case is::
     from PyQt4.QtGui import QWidget
     from qonda.mvc.adapters import ObjectListAdapter
 
+    ...
     
     class ContactList(QWidget):
 

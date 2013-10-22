@@ -1,3 +1,13 @@
+
+
+# Required to enable PyQt do automatic type conversion
+import sip
+sip.setapi('QString', 2)
+sip.setapi('QDateTime', 2)
+sip.setapi('QDate', 2)
+sip.setapi('QTime', 2)
+sip.setapi('QVariant', 2)
+
 from PyQt4.QtGui import QWidget, QApplication
 from qonda.mvc.adapters import ObjectAdapter
 from qonda.mvc.datawidgetmapper import DataWidgetMapper
@@ -18,7 +28,7 @@ class ContactEditor(QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.model = Contact()
+        self.model = Contact("Bert", 554)
 
         adapter = ObjectAdapter(
             ('name', 'phone'), 

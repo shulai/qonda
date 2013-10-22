@@ -1,3 +1,12 @@
+
+# Required to enable PyQt do automatic type conversion
+import sip
+sip.setapi('QString', 2)
+sip.setapi('QDateTime', 2)
+sip.setapi('QDate', 2)
+sip.setapi('QTime', 2)
+sip.setapi('QVariant', 2)
+
 from PyQt4.QtGui import QWidget, QApplication
 from qonda.mvc.adapters import ObjectListAdapter
 
