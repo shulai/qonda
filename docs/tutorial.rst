@@ -59,20 +59,20 @@ Let's start with a simple model for a contact list::
 
 Then, we can build a form to show and edit contacts::
 
-    from PyQt4 import QtGui.QWidget
+    from PyQt4.QtGui import QWidget
     from qonda.mvc.adapters import ObjectAdapter
-    from qonda.mvc.mapper import DataWidgetMapper
+    from qonda.mvc.datawidgetmapper import DataWidgetMapper
 
     
     class ContactEditor(QWidget):
 
         def __init__(self):
-            super(Form, self).__init__()
-            from form_ui import Ui_Form
+            super(QWidget, self).__init__()
+            from editor_ui import Ui_Form
             self.ui = Ui_Form()
             self.ui.setupUi(self)
 
-            self.model = Contact()
+            self.model = Contact("Bert", 554)
 
             adapter = ObjectAdapter(
                 ('name', 'phone'), 
@@ -86,10 +86,9 @@ Then, we can build a form to show and edit contacts::
             mapper.setModel(adapter)
 
 
-In this example, after the standard PyQt boilerplate, a new blank contact 
-model is created in the editor window,
-but if a non-blank contact is used, it's attribute values should be properly
-shown in the editor fields.
+In this example, after the standard PyQt boilerplate, a new contact 
+model is created in the editor window, and the attribute values should be 
+properly shown in the editor fields.
 
 Also, an ``ObjectAdapter`` is created. ``ObjectAdapter`` is part of the core 
 Qonda functionality, presenting the attributes of a Python object a Qt 
@@ -125,19 +124,22 @@ Working with a list of entities and a ``QTableView`` is somewhat easier.
 
 The example code for this case is::
 
-    from PyQt4 import QtGui.QWidget
+    from PyQt4.QtGui import QWidget
     from qonda.mvc.adapters import ObjectListAdapter
 
     
-    class ContactList(QtGui.QWidget):
+    class ContactList(QWidget):
 
         def __init__(self):
-            super(Form, self).__init__()
-            from form_ui import Ui_Form
+            super(QWidget, self).__init__()
+            from contactlist_ui import Ui_Form
             self.ui = Ui_Form()
             self.ui.setupUi(self)
 
-            self.model = Contact()
+            self.model = [
+                Contact("Bert", 554), 
+                Contact("Ernie", 555)
+            ]
 
             adapter = ObjectListAdapter(
                 ('name', 'phone'), 
@@ -232,6 +234,11 @@ is optional. If you don't provide a target, a new empty list is used::
     self.model = ObservableListProxy(contacts)
     self.mapper.setModel(self.model)
 
+Observable lists track list operations like insertions or removals, but they
+don't observe changes on its items, to do so those must be observable (and 
+observed) as well. 
+
+    
 Qonda and metadata
 ==================
 
