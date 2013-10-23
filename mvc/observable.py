@@ -81,7 +81,7 @@ class ObservableObject(Observable):
             Changes in attributes of related Observables also will be
             notified, with the chain of attribute names as a dot separated string
     """
-    _notifiables_ = list()
+    _notifiables_ = None
 
     def __init__(self, notifiables=None):
         Observable.__init__(self)
@@ -89,9 +89,14 @@ class ObservableObject(Observable):
             object.__setattr__(self, '_notifiables_', notifiables)
 
     def __setattr__(self, name, value):
-        if name not in self._notifiables_:
-            object.__setattr__(self, name, value)
-            return
+        if self._notifiables_ is None:
+            if name[0] == '_':
+                object.__setattr__(self, name, value)
+                return
+        else:
+            if name not in self._notifiables_:
+                object.__setattr__(self, name, value)
+                return
         try:
             # If new value == old, ignore, hence don't call callbacks
             if getattr(self, name) == value:
