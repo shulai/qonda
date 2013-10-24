@@ -1,0 +1,35 @@
+Qonda is a framework consisting in a set of classes aiming to easing the use of Python models as Qt views.
+
+Qonda is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+any later version.
+
+Requirements
+============
+
+* Python 2.7 or 3.x is supported.
+* Qt4, 4.8 or higher recommended.
+* PyQt4, 4.9 or higher recommended.
+* Knowledge of Python
+* Knowledge of programming with Qt/PyQt. 
+
+Installation
+============
+You can install it easily using setuptools/distribute:
+
+# python setup.py install
+
+Python 3 installation requires 2to3 and distribute or setuptools version supporting 2to3
+
+Where to start
+==============
+
+Into docs you'll find a user guide (guide.rst), you can read it as is, or convert it to html, 
+pdf or the format of your preference.
+
+Along the guide, in docs/examples there are runnable versions of the sample code found in
+the guide.
+
+Also, in docs/contacts there is a more complete app, showcasing the main features.
+
