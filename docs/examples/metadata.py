@@ -13,6 +13,13 @@ from qonda.mvc.adapters import ObjectListAdapter
 
 class Contact(object):
 
+    _qonda_column_meta_ = {
+        'name': {
+            'title': "Full Name",
+            'width': 30
+            }
+        }
+
     def __init__(self, name=None, phone=None):
         self.name = name
         self.phone = phone
@@ -36,6 +43,8 @@ class ContactList(QWidget):
             self.model)
 
         self.ui.contacts.setModel(adapter)
+        # Honor size hints from metadata
+        self.ui.contacts.resizeColumnsToContents()
 
 
 app = QApplication([])
