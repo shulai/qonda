@@ -5,6 +5,8 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 any later version.
 
+At this time this is *alpha* code. It works, but further enhancements can broke the API.
+
 Requirements
 ============
 
@@ -33,3 +35,7 @@ the guide.
 
 Also, in docs/contacts there is a more complete app, showcasing the main features.
 
+Questions? Suggestions? Ideas? Patches?
+=======================================
+
+Send them to julio _at_ mebamutual _dot_ com _dot_ ar
