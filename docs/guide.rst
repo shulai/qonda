@@ -1,6 +1,6 @@
-==============
-Qonda tutorial
-==============
+===========
+Qonda guide
+===========
 
 Intro
 =====
@@ -59,7 +59,10 @@ Let's start with a simple model for a contact list::
             self.name = name
             self.phone = phone
 
+And the matching UI definition using Qt Designer:
 
+.. image:: images/editor.png    
+    
 Then, we can build a form to show and edit contacts::
 
     from PyQt4.QtGui import QWidget
@@ -126,6 +129,8 @@ List of entities and tables
 
 Working with a list of entities and a ``QTableView`` is somewhat easier.
 
+.. image:: images/contactlist.png
+
 The example code for this case is::
 
     from PyQt4.QtGui import QWidget
@@ -190,7 +195,7 @@ events when you set your object attributes::
         
 By default, update events occurs when any public attribute (not starting 
 with underscore) is set. If you want to restrict events to a subset of 
-attributes, use the ``_notifiables_`` class attribute:
+attributes, use the ``_notifiables_`` class attribute::
 
     class Contact(ObservableObject):
 
@@ -231,7 +236,7 @@ Observable lists
 ----------------
 
 Observable lists are always implemented as proxies, but the target argument 
-is optional. If you don't provide a target, a new empty list is used::
+is optional.::
     
     from qonda.mvc.observable import ObservableListProxy
     
@@ -239,6 +244,12 @@ is optional. If you don't provide a target, a new empty list is used::
     self.model = ObservableListProxy(contacts)
     self.mapper.setModel(self.model)
 
+If you don't provide a target, a new empty list is used, and could be used
+as a regular list::
+    
+    self.model = ObservableListProxy()
+    self.model.append(Contact("Bert", 554))
+    
 Observable lists track list operations like insertions or removals, but they
 don't observe changes on its items, to do so those must be observable (and 
 observed) as well. 
@@ -253,8 +264,8 @@ to Qt Interview roles.
 
 You can set metadata:
     
-* In the model class
-* In the adapter
+* In the model class.
+* In the adapter.
 
 Class level Metadata
 --------------------
@@ -383,8 +394,8 @@ The syntax for ``ObjectListAdapter`` is similar::
 
 * class\_: For metadata purposes, but also for row appending. See also ``item_factory``.
 * options: A set of options, by default assumes {'edit', 'append'}:
-    # edit: Allow item editing (currently not 
-    # append: Allows visual appending by showing a fake row at the bottom of the model.
+    + edit: Allow item editing (currently not used, see flags)
+    + append: Allows visual appending by showing a fake row at the bottom of the model. (Currently used only in empty models)
 * item_factory: Callable that return a new entity to be inserted into the model when ``insertRows()`` is called from the Qt side. If not set, ``class_`` constructor is used.
 
 Adapter API
