@@ -1,3 +1,7 @@
+.. image:: images/logo.png
+    :alt: Qonda Logo
+    :align: center
+    
 ===========
 Qonda guide
 ===========
@@ -62,7 +66,8 @@ Let's start with a simple model for a contact list::
 And the matching UI definition using Qt Designer:
 
 .. image:: images/editor.png    
-    
+   :align: center
+
 Then, we can build a form to show and edit contacts::
 
     from PyQt4.QtGui import QWidget
@@ -130,6 +135,7 @@ List of entities and tables
 Working with a list of entities and a ``QTableView`` is somewhat easier.
 
 .. image:: images/contactlist.png
+   :align: center
 
 The example code for this case is::
 
@@ -206,6 +212,9 @@ attributes, use the ``_notifiables_`` class attribute::
         self.name = name
         self.phone = phone
 
+Note that if you override ``__init__`` like in the example, **you must** call 
+the superclass ``__init__()``.
+        
 If you need to use ObservableObject along with other parent class, please
 note that ``__init__()`` in Observable objects don't call ``super()``, hence you 
 will need to write your own ``__init__()`` method and call either ``__init__()`` 
@@ -254,7 +263,53 @@ Observable lists track list operations like insertions or removals, but they
 don't observe changes on its items, to do so those must be observable (and 
 observed) as well. 
 
+Emitting arbitrary events
+-------------------------
+
+You can use the observable/observer infrastructure for your own purposes too.
+For this, in besides inheriting from one of the observable classes 
+(``Observable``, ``ObservableObject``, ``ObservableProxy`` and
+``ObservableListProxy``), you must use call the _notify method with the event 
+type and any event related data you want to pass to your observers::
     
+    my_event_related_data = 42
+    self._notify("my_event_type", my_event_related_data)
+    
+Writing observers
+-----------------
+
+Any callable can be an observer, so you can either use methods, standalone 
+functions, or any other callable object.
+
+The prototype for an observer is::
+    
+    observer_function(sender, event_type, observer_data, event_data)
+    
+Where sender is the object emitting the event, event_type is the event type
+from the ``_notify()`` method, observer_data is extra data provided when
+setting the observer,
+and event_data is the data from the ``_notify()`` method.
+
+Observing events
+----------------
+
+In order to observe events, you must call the ``add_callback()`` method of
+the observable object::
+    
+    observer_data = 123
+    model.add_callback(my_callback, observer_data)
+    
+Where observer_data is any additional data required by the observer to
+process the event.
+
+Any number of observers can observe an object, and an observer can observe
+any number of objects.
+
+You also can stopping observing an object::
+    
+    model.remove_callback(my_callback)
+
+
 Qonda and metadata
 ==================
 
@@ -280,6 +335,7 @@ the attribute class metadata is used for such attribute::
 
     _qonda_column_meta_ = {
         'name': {
+            'title': "Full Name",
             'width': 30
             }
         }
@@ -289,7 +345,7 @@ the attribute class metadata is used for such attribute::
         self.name = name
         self.phone = phone
 
-            
+
 Alternatively lack of coupling can be preserved assigning 
 ``_qonda_column_meta_`` outside the class definition::
     
@@ -561,27 +617,42 @@ list of entities, setting a attributes in a provided summary object.
 Entities must be observable to allow aggregators update the summary 
 values.::
 
-    import qonda.util.aggregator
+    from qonda.util.aggregator import Aggregator
     
     class GroceryItem(ObservableObject):
-        self __init__(self):
-            self.description = None
-            self.amount = 0
-        
-    class Summary(object):
-        self __init__(self):
+
+        def __init__(self, description=None, amount=0):
+            ObservableObject.__init__(self)
+            self.description = description
+            self.amount = amount
+
+
+    class Summary(ObservableObject):
+
+        def __init__(self):
+            ObservableObject.__init__(self)
             self.count = 0
             self.total = 0
-           
-    ...
-    summary = Summary()
-    aggregator = qonda.util.aggregator.Aggregator(
-        grocery_list,
-        summary,
-        {
-            '*': 'count',
-            'amount': 'total'
-        })
+
+    class GroceryListWindow(QWidget):
+
+        def __init__(self):
+
+            ...
+
+            summary = Summary()
+            self.aggregator = Aggregator(
+                grocery_list,
+                summary,
+                {
+                    '*': 'count',
+                    'amount': 'total'
+                })
+
+
+In this example, summary is updated on changes on amounts or quantity of 
+items. See the aggregator.py example for further details.
+
 
 ListSessionManager
 ------------------
