@@ -76,6 +76,7 @@ class ObservableObject(Observable):
         notification for theses atributes.
 
         Events:
+        "before_update": Event data: attribute name
         "update": Event data: attribute name
 
             Changes in attributes of related Observables also will be
@@ -109,6 +110,7 @@ class ObservableObject(Observable):
         except AttributeError:
             pass
 
+        self._notify('before_update', (name,))
         object.__setattr__(self, name, value)
         try:
             self._notify('update', (name,))

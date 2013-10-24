@@ -67,7 +67,7 @@ class Aggregator(object):
         def __before_delitem(i):
             self.__new_values = copy.copy(self.__values)
             item_range = (range(i, i + 1) if type(i) == int
-                else range(*i.indices(len(sender))))
+                else range(*(i[0]).indices(len(sender))))
             for attr in self.__attributes.keys():
                 if attr == '*':
                     continue
@@ -141,12 +141,13 @@ class Aggregator(object):
         except KeyError:
             pass
 
-    def observe_item(self, sender, event_type, _, attr):
-        if attr == self.__attribute:
+    def observe_item(self, sender, event_type, _, attrs):
+        attr = attrs[0]
+        if attr in self.__attributes.keys():
             if event_type == 'before_update':
-                self._notify('before_update', 'total')
-                self.total -= getattr(self.__source, self.__attribute)
+                # self._notify('before_update', 'total')
+                self.__values[attr] -= getattr(sender, attr)
             elif event_type == 'update':
-                self.total += getattr(self.__source, self.__attribute)
-                self._notify('update', 'total')
-                print('Total:', self.total)
+                self.__values[attr] += getattr(sender, attr)
+                # self._notify('update', 'total')
+                self.update_target()
