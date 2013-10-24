@@ -186,11 +186,11 @@ class ContactView(QtGui.QFrame):
     def on_tableView_clicked(self):
         # Debería implementar un método en los adapter para obtener
         # el item a partir del indice
-        model = self.ui.tableView.currentIndex().internalPointer()
+        model = self.list_adapter.getPyObject(self.ui.tableView.currentIndex())
         self.setEditorModel(model)
 
     def on_clear_clicked(self):
-        model = self.ui.tableView.currentIndex().internalPointer()
+        model = self.list_adapter.getPyObject(self.ui.tableView.currentIndex())
         model.loaned = 0
 
 
