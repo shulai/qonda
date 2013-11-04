@@ -62,7 +62,7 @@ class LookupWidget(QtGui.QLineEdit):
 
     def __init__(self, parent=None):
         QtGui.QLineEdit.__init__(self, parent)
-        self.editingFinished.connect(self._search_value)
+        self.editingFinished.connect(self._search_and_end)
 
         self.button = QtGui.QToolButton(self)
         self.button.setFocusPolicy(Qt.NoFocus)
@@ -88,11 +88,11 @@ class LookupWidget(QtGui.QLineEdit):
             (self.height() - self.button.height()) / 2)
         super(LookupWidget, self).resizeEvent(event)
 
-    def focusOutEvent(self, event):
-        if self._editing:
-            self._search_value()
-            self._edit_finished()
-        super(LookupWidget, self).focusOutEvent(event)
+    #def focusOutEvent(self, event):
+        #if self._editing:
+            #self._search_value()
+            #self._edit_finished()
+        #super(LookupWidget, self).focusOutEvent(event)
 
     def mousePressEvent(self, event):
         self._edit()
@@ -130,6 +130,11 @@ class LookupWidget(QtGui.QLineEdit):
             # and platform
             self.setStyleSheet('padding: 2px 20px 2px 2px')
             self.button.show()
+
+    def _search_and_end(self):
+        if self._editing:
+            self._search_value()
+        self._edit_finished()
 
     def _edit_finished(self):
         self._editing = False
