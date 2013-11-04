@@ -53,12 +53,13 @@ class ItemDelegate(QtGui.QItemDelegate):
         if delegate:
             delegate.setEditorData(editor, index)
         else:
-            super(ItemDelegate, self).setEditorData(editor, index)
-            #v = index.data(Qt.EditRole)
-            #n = editor.metaObject().userProperty().name()
-            #if n.isEmpty() and editor.inherits("QComboBox"):
-            #    n = d.editorFactory().valuePropertyName(v.userType());
-            #editor.setProperty(n, v)
+            #super(ItemDelegate, self).setEditorData(editor, index)
+            v = index.data(Qt.EditRole)
+            try:
+                n = editor._mappingPropertyName
+            except:
+                n = editor.metaObject().userProperty().name()
+            editor.setProperty(n, v)
 
     def setModelData(self, editor, model, index):
         delegate = self.parent()._delegates[editor]
@@ -95,12 +96,8 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
         self.setItemDelegate(self._delegate)
 
     def _addMapping(self, widget, section, delegate=None):
-        try:
-            propertyName = widget._mappingPropertyName
-            super(DataWidgetMapper, self).addMapping(widget, section,
-                propertyName)
-        except:
-            super(DataWidgetMapper, self).addMapping(widget, section)
+        # Don't use
+        super(DataWidgetMapper, self).addMapping(widget, section)
         if not delegate:
             try:
                 delegate = widget._mappingDelegateClass()
@@ -125,6 +122,5 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
 
 
 QtGui.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
-# QtGui.QComboBox._mappingPropertyName = "currentIndex"
 QtGui.QLabel._mappingPropertyName = "text"
 QtGui.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
