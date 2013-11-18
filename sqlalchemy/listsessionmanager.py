@@ -45,7 +45,13 @@ class ListSessionManager(object):
         def before_delitem(i):
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
             for i in range(start, stop):
-                self.__session.delete(self._target[i])
+                # See:
+                # http://stackoverflow.com/questions/8306506/deleting-an-object-from-an-sqlalchemy-session-before-its-been-persisted
+                x = self._target[i]
+                if x in self.__session.new:
+                    self._session.expunge(x)
+                else:
+                    self.__session.delete(x)
 
         def insert(i):
             self.__session.add(self._target[i])
