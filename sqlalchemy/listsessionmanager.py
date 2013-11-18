@@ -25,6 +25,7 @@ class ListSessionManager(object):
     def __init__(self, session, target):
         self.__session = session
         self._target = target
+        target.add_callback(self)
 
     def __call__(self, sender, event_type, list_index, attrs):
 
