@@ -49,7 +49,7 @@ class ListSessionManager(object):
                 # http://stackoverflow.com/questions/8306506/deleting-an-object-from-an-sqlalchemy-session-before-its-been-persisted
                 x = self._target[i]
                 if x in self.__session.new:
-                    self._session.expunge(x)
+                    self.__session.expunge(x)
                 else:
                     self.__session.delete(x)
 
