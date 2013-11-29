@@ -1,7 +1,7 @@
 .. image:: images/logo.png
     :alt: Qonda Logo
     :align: center
-    
+
 ===========
 Qonda guide
 ===========
@@ -32,27 +32,27 @@ make it work you are ready to go!
 Interview overview
 ==================
 
-All models in Interview inherits from ``QAbstractItemModel``, with a 
+All models in Interview inherits from ``QAbstractItemModel``, with a
 structure of a tree of nested tables, adequate to represent tables,
 trees and lists.
 
 Items in the model are usually referenced using ``QModelIndex`` objects.
-Indexes have the row and column of the item in its containing table, 
-and the index of the parent item of that table, with an "invalid index" 
+Indexes have the row and column of the item in its containing table,
+and the index of the parent item of that table, with an "invalid index"
 used to represent the parent of the top level table.
 
 While most of the time you do a light use of this concepts while using
 Qonda, sometimes you have to deal with them.
 
-Models are then used in views. Views in traditional Qt are either widgets 
-like tables (``QTableView``) and trees (``QTreeView``), or sets of widgets like 
-edits and combos that become part of a view using a ``QDataWidgetMapper`` 
+Models are then used in views. Views in traditional Qt are either widgets
+like tables (``QTableView``) and trees (``QTreeView``), or sets of widgets like
+edits and combos that become part of a view using a ``QDataWidgetMapper``
 object.
 
 First steps
 ===========
 
-Please note this aren't complete, runnable examples. Separate 
+Please note this aren't complete, runnable examples. Separate
 example source files are provided along this document.
 
 Let's start with a simple model for a contact list::
@@ -65,7 +65,7 @@ Let's start with a simple model for a contact list::
 
 And the matching UI definition using Qt Designer:
 
-.. image:: images/editor.png    
+.. image:: images/editor.png
    :align: center
 
 Then, we can build a form to show and edit contacts::
@@ -75,7 +75,7 @@ Then, we can build a form to show and edit contacts::
     from qonda.mvc.datawidgetmapper import DataWidgetMapper
 
     ...
-    
+
     class ContactEditor(QWidget):
 
         def __init__(self):
@@ -87,7 +87,7 @@ Then, we can build a form to show and edit contacts::
             self.model = Contact("Bert", 554)
 
             adapter = ObjectAdapter(
-                ('name', 'phone'), 
+                ('name', 'phone'),
                 self.model)
 
             mapper = DataWidgetMapper()
@@ -98,16 +98,16 @@ Then, we can build a form to show and edit contacts::
             mapper.setModel(adapter)
 
 
-In this example, after the standard PyQt boilerplate, a new contact 
-model is created in the editor window, and the attribute values should be 
+In this example, after the standard PyQt boilerplate, a new contact
+model is created in the editor window, and the attribute values should be
 properly shown in the editor fields.
 
-Also, an ``ObjectAdapter`` is created. ``ObjectAdapter`` is part of the core 
-Qonda functionality, presenting the attributes of a Python object a Qt 
+Also, an ``ObjectAdapter`` is created. ``ObjectAdapter`` is part of the core
+Qonda functionality, presenting the attributes of a Python object a Qt
 Interview model suitable to be used in a Qt view::
 
     adapter = ObjectAdapter(
-        ('name', 'phone'), 
+        ('name', 'phone'),
         model)
 
 The first argument is the list of attributes that will be presented as part
@@ -115,17 +115,32 @@ of the Interview Model. The second argument is the model itself. Additional
 arguments will be used in further chapters of this tutorial, and also could
 be found in the reference.
 
-In order to build a view from independend widgets, Qt provides the 
-``QDataWidgetMapper`` class. ``QDataWidgetMapper`` has the ``addMapping()`` 
-method, that maps a widget to a column of the Interview model. 
+Attributes can hold simple values like unicode strings or integers, or any
+object, if no formatter if available the adapter will use unicode() to get
+a proper value.
+
+Adapters support composition too. So, you could also do the following and the
+adapter will do the right thing::
+
+    adapter = ObjectAdapter(
+        (
+            'name',
+            'city',
+            'city.province'),
+        model)
+
+
+In order to build a view from independend widgets, Qt provides the
+``QDataWidgetMapper`` class. ``QDataWidgetMapper`` has the ``addMapping()``
+method, that maps a widget to a column of the Interview model.
 Qonda has an improved version, ``qonda.mvc.datawidgetmapper.DataWidgetMapper``.
-The example uses ``DataWidgetMapper`` and its ``addMappings()`` method, 
+The example uses ``DataWidgetMapper`` and its ``addMappings()`` method,
 less verbose than using regular ``QDataWidgetMapper``'s
 ``addMapping()`` method.
 
 Finally, ``mapper.setModel()`` connects the model to the view.
 
-Changes made in the fields propagate automatically to the model. 
+Changes made in the fields propagate automatically to the model.
 The inverse, changes in the model propagating to the view also can be achieved,
 but are described later in this tutorial.
 
@@ -143,7 +158,7 @@ The example code for this case is::
     from qonda.mvc.adapters import ObjectListAdapter
 
     ...
-    
+
     class ContactList(QWidget):
 
         def __init__(self):
@@ -153,12 +168,12 @@ The example code for this case is::
             self.ui.setupUi(self)
 
             self.model = [
-                Contact("Bert", 554), 
+                Contact("Bert", 554),
                 Contact("Ernie", 555)
             ]
 
             adapter = ObjectListAdapter(
-                ('name', 'phone'), 
+                ('name', 'phone'),
                 self.model)
 
             self.ui.contacts.setModel(adapter)
@@ -168,12 +183,12 @@ The adapter in this case is an ``ObjectListAdapter``, that adapts a list of
 entities of the same class::
 
     adapter = ObjectListAdapter(
-        ('name', 'phone'), 
+        ('name', 'phone'),
         self.model)
 
 Of course, you also could use ``ObjectListAdapter`` with ``DataWidgetMapper``,
-showing an entity at once (check ``QDataWidgetMapper`` documentation for 
-details), or ``ObjectAdapter`` with a ``QTableView``, although silly as 
+showing an entity at once (check ``QDataWidgetMapper`` documentation for
+details), or ``ObjectAdapter`` with a ``QTableView``, although silly as
 ``ObjectAdapter`` is a one row model.
 
 Observable models
@@ -187,9 +202,9 @@ or use proxy objects.
 To make your model observable, you need to make your class inherit from
 ``Observable``. You usually will use ``ObservableObject``, that emits update
 events when you set your object attributes::
-    
+
     from qonda.mvc.observable import ObservableObject
-    
+
 
     class Contact(ObservableObject):
 
@@ -198,26 +213,26 @@ events when you set your object attributes::
         self.name = name
         self.phone = phone
 
-        
-By default, update events occurs when any public attribute (not starting 
-with underscore) is set. If you want to restrict events to a subset of 
+
+By default, update events happen when any public attribute (not starting
+with underscore) is set. If you want to restrict events to a subset of
 attributes, use the ``_notifiables_`` class attribute::
 
     class Contact(ObservableObject):
 
     _notifiables_ = ('name', 'phone')
-    
+
     def __init__(self, name=None, phone=None):
         ObservableObject.__init__(self)
         self.name = name
         self.phone = phone
 
-Note that if you override ``__init__`` like in the example, **you must** call 
+Note that if you override ``__init__`` like in the example, **you must** call
 the superclass ``__init__()``.
-        
+
 If you need to use ObservableObject along with other parent class, please
-note that ``__init__()`` in Observable objects don't call ``super()``, hence you 
-will need to write your own ``__init__()`` method and call either ``__init__()`` 
+note that ``__init__()`` in Observable objects don't call ``super()``, hence you
+will need to write your own ``__init__()`` method and call either ``__init__()``
 individually there.
 
 Adapters observe observable objects automatically, no further action is
@@ -228,63 +243,63 @@ Observable proxies
 
 As an alternative, if you don't want to have your model coupled with Qonda,
 you can use ``ObservableProxy``::
-    
+
     from qonda.mvc.observable import ObservableProxy
-    
+
     ...
     self.model = ObservableProxy(model)
     self.mapper.setModel(self.model)
 
-    
-Of course, the catch is that any further changes to the model should be done 
+
+Of course, the catch is that any further changes to the model should be done
 through the proxy in order to get the views updated. Eventually you could wrap
-any methods of the model update the attributes in order to emit the update 
+any methods of the model update the attributes in order to emit the update
 events after the change.
 
 Observable lists
 ----------------
 
-Observable lists are always implemented as proxies, but the target argument 
+Observable lists are always implemented as proxies, but the target argument
 is optional.::
-    
+
     from qonda.mvc.observable import ObservableListProxy
-    
+
     ...
     self.model = ObservableListProxy(contacts)
     self.mapper.setModel(self.model)
 
 If you don't provide a target, a new empty list is used, and could be used
 as a regular list::
-    
+
     self.model = ObservableListProxy()
     self.model.append(Contact("Bert", 554))
-    
+
 Observable lists track list operations like insertions or removals, but they
-don't observe changes on its items, to do so those must be observable (and 
-observed) as well. 
+don't observe changes on its items, to do so those must be observable (and
+observed) as well.
 
 Emitting arbitrary events
 -------------------------
 
 You can use the observable/observer infrastructure for your own purposes too.
-For this, in besides inheriting from one of the observable classes 
+For this, in besides inheriting from one of the observable classes
 (``Observable``, ``ObservableObject``, ``ObservableProxy`` and
-``ObservableListProxy``), you must use call the _notify method with the event 
+``ObservableListProxy``), you must use call the _notify method with the event
 type and any event related data you want to pass to your observers::
-    
+
     my_event_related_data = 42
     self._notify("my_event_type", my_event_related_data)
-    
+
 Writing observers
 -----------------
 
-Any callable can be an observer, so you can either use methods, standalone 
+Any callable can be an observer, so you can either use methods, standalone
 functions, or any other callable object.
 
 The prototype for an observer is::
-    
+
     observer_function(sender, event_type, observer_data, event_data)
-    
+
 Where sender is the object emitting the event, event_type is the event type
 from the ``_notify()`` method, observer_data is extra data provided when
 setting the observer,
@@ -295,10 +310,10 @@ Observing events
 
 In order to observe events, you must call the ``add_callback()`` method of
 the observable object::
-    
+
     observer_data = 123
     model.add_callback(my_callback, observer_data)
-    
+
 Where observer_data is any additional data required by the observer to
 process the event.
 
@@ -306,31 +321,31 @@ Any number of observers can observe an object, and an observer can observe
 any number of objects.
 
 You also can stopping observing an object::
-    
+
     model.remove_callback(my_callback)
 
 
 Qonda and metadata
 ==================
 
-There are several customizations in the handling of the model available, 
+There are several customizations in the handling of the model available,
 those are done using model metadata. Most metadata properties are related
 to Qt Interview roles.
 
 You can set metadata:
-    
+
 * In the model class.
 * In the adapter.
 
 Class level Metadata
 --------------------
-    
-You can add metadata to your model classes, using the ``_qonda_column_meta_`` 
-class. Those are dicts, with keys being the name of the attributes the 
-metadata is being defined, and values are either dicts of attribute specific 
+
+You can add metadata to your model classes, using the ``_qonda_column_meta_``
+class. Those are dicts, with keys being the name of the attributes the
+metadata is being defined, and values are either dicts of attribute specific
 metadata, or the class of the attribute values. In that case, the key '.' in
 the attribute class metadata is used for such attribute::
-        
+
     class Contact(ObservableObject):
 
     _qonda_column_meta_ = {
@@ -346,19 +361,19 @@ the attribute class metadata is used for such attribute::
         self.phone = phone
 
 
-Alternatively lack of coupling can be preserved assigning 
+Alternatively lack of coupling can be preserved assigning
 ``_qonda_column_meta_`` outside the class definition::
-    
+
     Contact._qonda_column_meta_ = {
         'name': {
             'width': 30
             }
         }
 
-Using class level metadata only works when the class argument is set in the 
+Using class level metadata only works when the class argument is set in the
 adapter constructor. See next section for details.
-        
-        
+
+
 Adapter level metadata
 ----------------------
 
@@ -367,7 +382,7 @@ argument. The argument is a tuple of dicts, one as many columns
 have the adapter::
 
         adapter = ObjectListAdapter(
-            ('name', 'phone'), 
+            ('name', 'phone'),
             self.model, column_meta=
             (
                 {'width': 30},
@@ -388,44 +403,44 @@ Property            Property type           Value type                Qt Role   
 ==================  ======================  ========================  =============  ========================================
 title               Constant                unicode                   DisplayRole    Column title in QTableView and QTreeView
 size                Constant                int                       SizeHintRole   Column width in characters. Used in
-                                                                                     table and tree views along 
+                                                                                     table and tree views along
                                                                                      ``resizeColumnsToContents()``
 ==================  ======================  ========================  =============  ========================================
-    
+
 The next metadata properties are available, attribute value wise:
 
 ================== ====================== ======================== ============== ============================================
 Property           Property type          Value type               Qt Role        Description
 ================== ====================== ======================== ============== ============================================
 displayFormatter   Callable               unicode                  DisplayRole    A callable that receives the attribute value
-                                                                                  and returns the formatted for displaying in 
+                                                                                  and returns the formatted for displaying in
                                                                                   a view.
 editFormatter      Callable               unicode                  EditRole       A callable that receives the attribute value
-                                                                                  and returns the formatted for displaying in 
+                                                                                  and returns the formatted for displaying in
                                                                                   editors.
 decoration         Callable or constant   ``QIcon``, ``QColor``    DecorationRole Icon for the attribute. If it's a callable
                                           or ``QPixmap``                          it receives the entity as argument.
 tooltip            Callable or constant   unicode                  ToolTipRole    Tooltip for the attribute. If it's a callable
                                                                                   it receives the entity as argument.
-statustip          Callable or constant   unicode                  StatusTipRole  Statustip for the attribute. If it's a 
+statustip          Callable or constant   unicode                  StatusTipRole  Statustip for the attribute. If it's a
                                                                                   callable it receives the entity as argument.
-whatsthis          Callable or constant   unicode                  WhatsThisRole  What's this help text for the attribute. If 
-                                                                                  it's a callable it receives the entity as 
+whatsthis          Callable or constant   unicode                  WhatsThisRole  What's this help text for the attribute. If
+                                                                                  it's a callable it receives the entity as
                                                                                   argument.
-font               Callable or constant   ``QFont``                FontRole       Font family/size/style/weight used to show 
-                                                                                  the value. If it's a callable it receives 
+font               Callable or constant   ``QFont``                FontRole       Font family/size/style/weight used to show
+                                                                                  the value. If it's a callable it receives
                                                                                   the entity as argument.
 alignment          Constant               ``Qt.Alignment``         AlignmentRole  Field alignment.
-background         Callable or constant   ``QBrush`` or ``QColor`` BackgroundRole Color/brush used to paint the background of 
-                                                                                  the widget or field. If it's a callable it 
+background         Callable or constant   ``QBrush`` or ``QColor`` BackgroundRole Color/brush used to paint the background of
+                                                                                  the widget or field. If it's a callable it
                                                                                   receives the entity as argument.
-foreground         Callable or constant   ``QBrush`` or ``QColor`` ForegroundRole Color/brush used to paint the value on the 
-                                                                                  widget or field. If it's a callable it 
+foreground         Callable or constant   ``QBrush`` or ``QColor`` ForegroundRole Color/brush used to paint the value on the
+                                                                                  widget or field. If it's a callable it
                                                                                   receives the entity as argument.
-flags              dict, keys are 
-                   ``Qt.ItemFlags``,      bool                                    Flags of the Interview model item, such as 
-                   values are callables                                           the item being enabled, editable or 
-                   or constants                                                   selectable.  
+flags              dict, keys are
+                   ``Qt.ItemFlags``,      bool                                    Flags of the Interview model item, such as
+                   values are callables                                           the item being enabled, editable or
+                   or constants                                                   selectable.
 ================== ====================== ======================== ============== ============================================
 
 
@@ -436,7 +451,7 @@ The full syntax for ``ObjectAdapter`` creation is::
 
     ObjectAdapter(properties, model=None, class_=None,
             column_meta=None, parent=None)
-            
+
 * properties: A list (but usually a Python tuple) of attribute names
 * model: The model entity object
 * class\_: The class of the model, for metadata purposes, as model eventually could be None. See also ``ObjectListAdapter``.
@@ -444,7 +459,7 @@ The full syntax for ``ObjectAdapter`` creation is::
 * parent: As adapters are QObject inheritors, can have parents for memory management purposes. Usually not used.
 
 The syntax for ``ObjectListAdapter`` is similar::
-    
+
     ObjectListAdapter(properties, model=None, class_=None, column_meta=None,
         parent=None, options=None, item_factory=None)
 
@@ -457,16 +472,21 @@ The syntax for ``ObjectListAdapter`` is similar::
 Adapter API
 -----------
 
-Adapters inherits from ``QAbstractItemModel``, and as such implements all 
+Adapters inherits from ``QAbstractItemModel``, and as such implements all
 of its methods and properties. Also implements the next methods.
 
 * ``getPyObject(index)``: Gets the entity matching the given ``QModelIndex``.
+
+* ``getPropertyColumn(propertyname)``: Return the column number of the given
+    property.
+
+* ``getColumnProperty(col)``: Return the property name of the given column.
 
 Other adapters
 --------------
 
 ``ValueListAdapter`` wraps a list of objects to be interpreted as values,
-implementing a single column Interview model where each item matches one 
+implementing a single column Interview model where each item matches one
 value::
 
     ValueListAdapter(model, parent=None, class_=None, column_meta=None)
@@ -475,14 +495,14 @@ Note that no property argument is required, however ``column_meta`` is
 still a sequence, in order to be consistent with other adapters.
 
 Common use of ``ValueListAdapter`` is as the model for combo boxes::
-    
+
     choices = ["Apple", "Orange", "Banana"]  # Any kind of object allowed
     self.choices_adapter = ValueListAdapter(choices)
     self.ui.comboBox.setModel(self.choices_adapter)
 
 ``ObjectTreeAdapter`` is a more powerful version of ``ObjectListAdapter``,
 able to wrap a tree-like structure of objects of the same type::
-           
+
     ObjectTreeAdapter(properties, model=None, class_=None,
             column_meta=None, qparent=None,
             rootless=False, options=None, parent_attr='parent',
@@ -500,8 +520,8 @@ Mappers, widgets and delegates
 Delegates
 ---------
 
-Delegates are objects that copy values from the model to the view, and vice 
-versa. When used in views like ``QTableView``, also build alternate editors 
+Delegates are objects that copy values from the model to the view, and vice
+versa. When used in views like ``QTableView``, also build alternate editors
 and draw values in the view.
 
 Qonda provides several custom delegates, in order to use alternative editor
@@ -516,7 +536,7 @@ in views, and being able to customize the editor properties:
 
 Also delegates uses the customized widgets (see below).
 
-``ComboBoxDelegate`` is also special. Working with anilla ``QComboBox`` 
+``ComboBoxDelegate`` is also special. Working with anilla ``QComboBox``
 means working with the chosen value index. ``ComboBoxDelegate`` uses
 the model value directly, so setting a model attribute to the selected
 value transparent.
@@ -528,21 +548,21 @@ use the ``addMapping()`` method with the ``delegate`` argument::
     from qonda.mvc.delegates import LineEditDelegate
 
     ...
-    
+
     mapper.addMapping(self.ui.name, 0)
-    mapper.addMapping(self.ui.phone, 1, 
+    mapper.addMapping(self.ui.phone, 1,
         delegate=LineEditDelegate(self, inputMask="999-9999"))
 
 
-In views, you must use the ``setItemDelegateForColumn()`` method::        
-        
-    self.ui.contacts.setItemDelegateForColumn(1, 
+In views, you must use the ``setItemDelegateForColumn()`` method::
+
+    self.ui.contacts.setItemDelegateForColumn(1,
         LineEditDelegate(self, inputMask="999-9999"))
 
 DataWidgetMapper
 ----------------
 
-``DataWidgetMapper`` provides a more powerful and convenient alternative 
+``DataWidgetMapper`` provides a more powerful and convenient alternative
 to stock ``QDataWidgetMapper``:
 
 * Uses the appropiate, alternative delegate if registered in the ``_mappingDelegateClass`` attribute of the widget class, or via the delegate attribute in the ``addMapping()`` method
@@ -556,7 +576,7 @@ Widgets
 -------
 
 Qonda also provides a set of enhanced widgets:
-    
+
 * DateEdit: A ``QDateEdit`` allowing empty values
 * DateTimeEdit: A ``QDateTimeEdit`` allowing empty values
 * ComboBox: A ``QComboBox`` allowing empty values
@@ -564,10 +584,10 @@ Qonda also provides a set of enhanced widgets:
 LookupWidget
 ------------
 
-Besides enhancing standard widgets, Qonda provides ``LookupWidget`` and it's 
-very useful to set attributes when the number of allowable values is too 
-large for a combo box. At first sight, ``LookupWidget`` is a regular 
-``QLineEdit``, but input is not taken the value for the attribute but as 
+Besides enhancing standard widgets, Qonda provides ``LookupWidget`` and it's
+very useful to set attributes when the number of allowable values is too
+large for a combo box. At first sight, ``LookupWidget`` is a regular
+``QLineEdit``, but input is not taken the value for the attribute but as
 input for a search function that returns the real value::
 
     cities = (
@@ -575,7 +595,7 @@ input for a search function that returns the real value::
         u'Manchester', u'Liverpool', u'London', u'Lyon', u'New York',
         u'Paris', u'Zurich')
 
-        
+
     def lookup_city(s):
         result = []
         s = s.lower()
@@ -588,13 +608,13 @@ input for a search function that returns the real value::
     # Set the search function in the form setup:
     self.ui.city.search_function = lookup_city
 
-    
+
 TableView and TreeView
 ----------------------
 
-``QTableView`` and ``QTreeView`` also received some extra love, adding these 
+``QTableView`` and ``QTreeView`` also received some extra love, adding these
 key combinations:
-    
+
 * Delete: Erases the selected value
 * Down: If pressed while the current row is the last row, appends a new row.
 * Control + Insert: Inserts a new row.
@@ -614,11 +634,11 @@ Aggregator
 
 ``Aggregator`` calculates sum of attributes and/or count of elements in
 list of entities, setting a attributes in a provided summary object.
-Entities must be observable to allow aggregators update the summary 
+Entities must be observable to allow aggregators update the summary
 values.::
 
     from qonda.util.aggregator import Aggregator
-    
+
     class GroceryItem(ObservableObject):
 
         def __init__(self, description=None, amount=0):
@@ -650,7 +670,7 @@ values.::
                 })
 
 
-In this example, summary is updated on changes on amounts or quantity of 
+In this example, summary is updated on changes on amounts or quantity of
 items. See the aggregator.py example for further details.
 
 
@@ -672,9 +692,9 @@ of an ObservableListProxy into the associated SQLAlchemy session::
 QueryResult
 -----------
 
-``QueryResult`` is a list like object whose items comes from the provided 
+``QueryResult`` is a list like object whose items comes from the provided
 SQLAlchemy query, but retrieving the items incrementally as required.
 
 ``QueryResult`` is not meant for arbitrary item insertion or deletion,
-but mostly read only data display, as that would change item indexes 
+but mostly read only data display, as that would change item indexes
 and confuses incremental retrieving mechanism.
