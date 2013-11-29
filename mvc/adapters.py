@@ -309,6 +309,15 @@ class BaseAdapter(QtCore.QAbstractTableModel):
             return 0
         return len(self._properties)
 
+    def getPyModel(self):
+        return self._model
+
+    def getPropertyColumn(self, prop):
+        return self._properties.index(prop)
+
+    def getColumnProperty(self, col):
+        return self._properties[col]
+
 
 def _build_class_meta(class_, properties):
 
