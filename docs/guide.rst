@@ -550,7 +550,7 @@ in views, and being able to customize the editor properties:
 
 Also delegates uses the customized widgets (see below).
 
-``ComboBoxDelegate`` is also special. Working with anilla ``QComboBox``
+``ComboBoxDelegate`` is also special. Working with vanilla ``QComboBox``
 means working with the chosen value index. ``ComboBoxDelegate`` uses
 the model value directly, so setting a model attribute to the selected
 value transparent.
