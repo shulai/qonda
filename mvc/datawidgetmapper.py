@@ -123,4 +123,5 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
 
 QtGui.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
 QtGui.QLabel._mappingPropertyName = "text"
+QtGui.QAbstractButton._mappingPropertyName = "text"
 QtGui.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
