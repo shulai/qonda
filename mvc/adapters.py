@@ -285,40 +285,6 @@ class AdapterWriter(object):
         return False
 
 
-class BaseAdapter(QtCore.QAbstractTableModel):
-    """
-        Base class for adapting Python objects into a PyQt QAbstractTableModel
-        compatible wrapper.
-    """
-    def __init__(self, properties, model=None, class_=None, column_meta=None,
-            parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        self._model = model
-        self._properties = properties
-        self._class = class_
-        self._column_meta = column_meta
-
-        try:
-            model.add_callback(self.observe)
-        except AttributeError:
-            # If not observable (ok if the model doesn't change)
-            "Notice: " + str(type(model)) + " is not observable"
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        if parent != QtCore.QModelIndex():
-            return 0
-        return len(self._properties)
-
-    def getPyModel(self):
-        return self._model
-
-    def getPropertyColumn(self, prop):
-        return self._properties.index(prop)
-
-    def getColumnProperty(self, col):
-        return self._properties[col]
-
-
 def _build_class_meta(class_, properties):
 
     def resolve_meta(class_, p):
@@ -371,6 +337,51 @@ def _combine_column_metas(class_, adapter_meta, properties):
     return meta
 
 
+class BaseAdapter(QtCore.QAbstractTableModel):
+    """
+        Base class for adapting Python objects into a PyQt QAbstractTableModel
+        compatible wrapper.
+    """
+    def __init__(self, properties, model=None, class_=None, column_meta=None,
+            parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self._model = model
+        self._class = class_
+        if column_meta is not None:
+            # Up to 0.4.x behavior: Meta declarations separate
+            # from property list
+            self._properties = properties
+        else:
+            # 0.5 behavior:
+            self._properties = [x if isinstance(x, str) else x[0]
+                for x in properties]
+            column_meta = [if isinstance(x, str) else x[1]
+                for x in properties]
+
+        self._column_meta = _combine_column_metas(class_, column_meta,
+            self._properties)
+
+        try:
+            model.add_callback(self.observe)
+        except AttributeError:
+            # If not observable (ok if the model doesn't change)
+            "Notice: " + str(type(model)) + " is not observable"
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        if parent != QtCore.QModelIndex():
+            return 0
+        return len(self._properties)
+
+    def getPyModel(self):
+        return self._model
+
+    def getPropertyColumn(self, prop):
+        return self._properties.index(prop)
+
+    def getColumnProperty(self, col):
+        return self._properties[col]
+
+
 class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     """
         Adapts a Python object into a single row PyQt QAbstractTableModel.
@@ -380,7 +391,6 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             column_meta=None, parent=None):
         # super is *really* harmful
         AdapterReader.__init__(self)
-        column_meta = _combine_column_metas(class_, column_meta, properties)
         BaseAdapter.__init__(self, properties, model, class_, column_meta,
             parent)
 
@@ -675,7 +685,6 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                     the model.
         """
         AdapterReader.__init__(self)
-        column_meta = _combine_column_metas(class_, column_meta, properties)
         BaseAdapter.__init__(self, properties, model, class_, column_meta,
             parent)
         # TODO: Check if edit_allowed is necessary (Can disable item editing
@@ -828,8 +837,9 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 children_attr)
 
         self._model = model
-        self._column_meta = _combine_column_metas(class_, column_meta,
-            properties)
+        # Moved into BaseAdapter.__init__
+        #self._column_meta = _combine_column_metas(class_, column_meta,
+        #    properties)
         self.options = set(['edit', 'append']) if options is None else options
         self.parent_attr = parent_attr
         self.children_attr = children_attr
