@@ -355,7 +355,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
             # 0.5 behavior:
             self._properties = [x if isinstance(x, str) else x[0]
                 for x in properties]
-            column_meta = [if isinstance(x, str) else x[1]
+            column_meta = [{} if isinstance(x, str) else x[1]
                 for x in properties]
 
         self._column_meta = _combine_column_metas(class_, column_meta,
