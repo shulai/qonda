@@ -107,7 +107,11 @@ class ObservableObject(Observable):
 
         try:
             getattr(self, name).remove_callback(self._observe_attr)
-        except AttributeError:
+        except (AttributeError, KeyError):
+            # AttributeError: The attribute is new, hence there is no
+            # callback to remove
+            # KeyError: attributes in SQLAlchemy reconstructed objects
+            # don't have callbacks set
             pass
 
         self._notify('before_update', (name,))
