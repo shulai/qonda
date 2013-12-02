@@ -39,6 +39,10 @@ class DateEdit(QtGui.QDateEdit):
             self.clear()
             event.accept()
             return
+        elif self.__allowEmpty and self.date() == self.minimumDate():
+            # Make input possible when the edit is empty
+            self.setDate(datetime.date.today())
+            self.setSelectedSection(self.sectionAt(0))
         super(DateEdit, self).keyPressEvent(event)
 
     def getAllowEmpty(self):
@@ -66,12 +70,15 @@ class DateTimeEdit(QtGui.QDateTimeEdit):
             self.setDate(self.minimumDate())
 
     def keyPressEvent(self, event):
-        print "keyPressEvent"
         if event.key() == Qt.Key_Delete:
             self.clear()
             event.accept()
             return
-        super(DateEdit, self).keyPressEvent(event)
+        elif self.__allowEmpty and self.date() == self.minimumDate():
+            # Make input possible when the edit is empty
+            self.setDateTime(datetime.datetime.now())
+            self.setSelectedSection(self.sectionAt(0))
+        super(DateTimeEdit, self).keyPressEvent(event)
 
     def getAllowEmpty(self):
         return self.__allowEmpty
