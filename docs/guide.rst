@@ -6,6 +6,8 @@
 Qonda guide
 ===========
 
+Version 0.5.0, 2013-12-02
+
 Intro
 =====
 
@@ -377,8 +379,20 @@ adapter constructor. See next section for details.
 Adapter level metadata
 ----------------------
 
-You can add or override metadata in each adapter, using the ``column_meta``
-argument. The argument is a tuple of dicts, one as many columns
+You can add or override metadata in each adapter, setting the desired property
+as a tuple containing the attribute name and the dict metadata::
+
+        adapter = ObjectListAdapter(
+            (
+                ('name', {
+                    'width': 30
+                }),
+                'phone'
+            ),
+            self.model)
+
+For compatibility with older releases, Qonda also accepts the deprecated
+``column_meta`` argument. The argument is a tuple of dicts, one as many columns
 have the adapter::
 
         adapter = ObjectListAdapter(
@@ -693,8 +707,17 @@ QueryResult
 -----------
 
 ``QueryResult`` is a list like object whose items comes from the provided
-SQLAlchemy query, but retrieving the items incrementally as required.
+SQLAlchemy query, but retrieving the items incrementally as required,
+allowing a fast setup of views with a lot of items::
+
+
+    from.qonda.sqlalchemy import QueryResult
+
+    ...
+    result = QueryResult(session.query(Customer).order_by(Customer.name))
+    adapter = ObjectListAdapter(('name', 'city'), result)
 
 ``QueryResult`` is not meant for arbitrary item insertion or deletion,
 but mostly read only data display, as that would change item indexes
 and confuses incremental retrieving mechanism.
+
