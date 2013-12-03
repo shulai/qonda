@@ -77,18 +77,23 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
                 except AttributeError:  # if not qonda but regular QComboBox
                     editor.setCurrentIndex(0)
             else:
-                raise ValueError('Value "{0}" not present in QComboBox model!'
-                    .format(index.data(role=PythonObjectRole)))
+                raise ValueError(
+                    'Value "{0}" not present in {1} QComboBox model!'
+                    .format(index.data(role=PythonObjectRole),
+                        editor.objectName()))
         except AttributeError as e:
             if sys.version_info.major == 3:
-                new_e = TypeError('Invalid QComboBox model {0}. Did you assign'
-                    ' a Qonda Model?\nHint: Value {1}'.format(editor.model(),
-                    index.data(role=PythonObjectRole)))
+                new_e = TypeError('Invalid QComboBox model {0} for {1}. '
+                    'Did you assign a Qonda Model?\nHint: Value {2}'
+                    .format(editor.model(),
+                        editor.objectName(),
+                        index.data(role=PythonObjectRole)))
                 new_e.__cause__ = e
                 raise new_e
             else:
-                raise TypeError('Invalid QComboBox model {0}. Did you assign'
-                    ' a Qonda Model?'.format(editor.model()))
+                raise TypeError('Invalid QComboBox model {0} for {1}. '
+                    'Did you assign a Qonda Model?'
+                    .format(editor.model(), editor.objectName()))
 
     def setModelData(self, editor, model, index):
         try:
