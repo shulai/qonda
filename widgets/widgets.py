@@ -17,9 +17,9 @@
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-
+import locale
 from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, pyqtProperty
+from PyQt4.QtCore import Qt, QEvent, pyqtProperty
 
 
 class DateEdit(QtGui.QDateEdit):
@@ -117,14 +117,95 @@ class ComboBox(QtGui.QComboBox):
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
-class LineEdit(QtGui.QLineEdit):
+class MaskedLineEdit(QtGui.QLineEdit):
+
+    def __init__(self, *args):
+        super(MaskedLineEdit, self).__init__(*args)
+
+    def text(self):
+        text = super(MaskedLineEdit, self).text()
+        mask = self.inputMask()
+
+        def unmaskgen(s):
+            i = 0
+            for c in s:
+                try:
+                    if mask[i] in 'AaNnXx90Dd#HhBb><!':
+                        yield c
+                except IndexError:
+                    yield c
+                i += 1
+
+        return ''.join([x for x in unmaskgen(text)])
+
+
+class NumberEdit(QtGui.QLineEdit):
 
     def __init__(self, parent=None):
-        super(LineEdit, self).__init__(parent)
-        self.editableValue = ''
+        super(NumberEdit, self).__init__(parent)
+        self.setAlignment(Qt.AlignRight)
+        self._decimal_point = locale.localeconv()['decimal_point']
+        self._decimals = 0
+
+    def decimals(self):
+        return self._decimals
+
+    def setDecimals(self, decimals):
+        # TODO: Reformat text
+        self._decimals = decimals
+
+    def _addMask(self, s):
+        try:
+            n = locale.atof(s)
+        except ValueError:  # Invalid, value is None
+            print "NumberEdit: basura!"
+            self.clear()
+        return locale.format('%.*f', (self._decimals, n), grouping=True)
+
+    def _removeMask(self, s):
+        return ''.join([c for c in s if c != '.'])
+
+    def value(self):
+        s = self.text()
+        if not self.hasFocus():
+            s = self._removeMask(s)
+        try:
+            return locale.atof(s)
+        except ValueError:
+            return None
+
+    def setValue(self, value):
+        if self.hasFocus():
+            self.setText(str(value))
+        else:
+            self.setText(locale.format('%.*f', (self._decimals, value),
+                grouping=True))
 
     def focusInEvent(self, event):
-        super(LineEdit, self).focusInEvent(event)
+        self.setText(self._removeMask(self.text()))
+        super(NumberEdit, self).focusInEvent(event)
 
     def focusOutEvent(self, event):
-        super(LineEdit, self).focusInEvent(event)
+        self.setText(self._addMask(self.text()))
+        super(NumberEdit, self).focusOutEvent(event)
+
+    def keyPressEvent(self, event):
+        if (self._decimal_point == ',' and event.key() == Qt.Key_Period
+                and event.modifiers() == Qt.KeypadModifier):
+            event = QtGui.QKeyEvent(QEvent.KeyPress, Qt.Key_Comma,
+                event.modifiers(), ',')
+        before = self.text()
+        super(NumberEdit, self).keyPressEvent(event)
+        after = self.text()
+        if after == '':
+            print "empty"
+            return
+        try:
+            if self._decimals == 0:
+                n = int(after)
+            else:
+                n = locale.atof(after)
+            print "valid", n
+        except ValueError:
+            print "invalid"
+            self.setText(before)
