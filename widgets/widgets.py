@@ -164,6 +164,7 @@ class NumberEdit(QtGui.QLineEdit):
         except ValueError:  # Invalid, value is None
             print "NumberEdit: basura!"
             self.clear()
+            return
         return locale.format('%.*f', (self._decimals, n), grouping=True)
 
     def _removeMask(self, s):
@@ -174,7 +175,7 @@ class NumberEdit(QtGui.QLineEdit):
         if not self.hasFocus():
             s = self._removeMask(s)
         try:
-            return locale.atof(s)
+            return locale.atof(s) if self._decimals > 0 else int(s)
         except ValueError:
             return None
 
@@ -182,8 +183,11 @@ class NumberEdit(QtGui.QLineEdit):
         if self.hasFocus():
             self.setText(str(value))
         else:
-            self.setText(locale.format('%.*f', (self._decimals, value),
-                grouping=True))
+            if value is None:
+                self.clear()
+            else:
+                self.setText(locale.format('%.*f', (self._decimals,
+                    float(value)), grouping=True))
 
     value = pyqtProperty('float', getValue, setValue)
 
