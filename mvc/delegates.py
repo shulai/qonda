@@ -239,3 +239,20 @@ class NumberEditDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.getValue(), PythonObjectRole)
+
+
+class PixmapDelegate(QtGui.QStyledItemDelegate):
+
+    def __init__(self, parent=None, scale=False):
+        QtGui.QStyledItemDelegate.__init__(self, parent)
+        self.__scale = scale
+
+    def paint(self, painter, options, index):
+        pixmap = index.data()
+        if pixmap is not None:
+            painter.save()
+            if self.__scale:
+                painter.drawPixmap(options.rect, pixmap)
+            else:
+                painter.drawPixmap(options.rect.topLeft(), pixmap)
+            painter.restore()
