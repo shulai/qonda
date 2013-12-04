@@ -19,6 +19,7 @@
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 import delegates
+from .. import widgets
 
 
 class ItemDelegate(QtGui.QItemDelegate):
@@ -125,3 +126,4 @@ QtGui.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
 QtGui.QLabel._mappingPropertyName = "text"
 QtGui.QPushButton._mappingPropertyName = "text"
 QtGui.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
+widgets.NumberEdit._mappingDelegateClass = delegates.NumberEditDelegate

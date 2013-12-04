@@ -219,3 +219,23 @@ class CheckBoxDelegate(QtGui.QStyledItemDelegate):
             - checkbox_rect.width() / 2)
         style.drawControl(QtGui.QStyle.CE_CheckBox, opt, painter)
         painter.restore()
+
+
+class NumberEditDelegate(QtGui.QStyledItemDelegate):
+
+    def __init__(self, parent=None, **properties):
+        QtGui.QStyledItemDelegate.__init__(self, parent)
+        self.__properties = properties
+
+    def createEditor(self, parent, option, index):
+        editor = widgets.NumberEdit(parent)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(PythonObjectRole)
+        editor.setValue(value)
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.getValue(), PythonObjectRole)

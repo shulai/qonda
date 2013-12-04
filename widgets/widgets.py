@@ -147,12 +147,16 @@ class NumberEdit(QtGui.QLineEdit):
         self._decimal_point = locale.localeconv()['decimal_point']
         self._decimals = 0
 
-    def decimals(self):
+    def getDecimals(self):
         return self._decimals
 
     def setDecimals(self, decimals):
-        # TODO: Reformat text
-        self._decimals = decimals
+        if decimals != self._decimals:
+            self._decimals = decimals
+            # Reformat
+            self.setValue(self.getValue())
+
+    decimals = pyqtProperty('int', getDecimals, setDecimals)
 
     def _addMask(self, s):
         try:
@@ -165,7 +169,7 @@ class NumberEdit(QtGui.QLineEdit):
     def _removeMask(self, s):
         return ''.join([c for c in s if c != '.'])
 
-    def value(self):
+    def getValue(self):
         s = self.text()
         if not self.hasFocus():
             s = self._removeMask(s)
@@ -180,6 +184,8 @@ class NumberEdit(QtGui.QLineEdit):
         else:
             self.setText(locale.format('%.*f', (self._decimals, value),
                 grouping=True))
+
+    value = pyqtProperty('float', getValue, setValue)
 
     def focusInEvent(self, event):
         self.setText(self._removeMask(self.text()))
