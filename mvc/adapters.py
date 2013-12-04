@@ -645,6 +645,9 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
 
         return self.createIndex(row, column, self._model[row])
 
+    def getPyModel(self):
+        return self._model
+
     def getPyObject(self, index):
         return self._model[index.row()]
 

@@ -67,8 +67,8 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         try:
-            editor.setCurrentIndex(editor.model().
-                _model.index(index.data(role=PythonObjectRole)))
+            editor.setCurrentIndex(editor.model()
+                .getPyModel().index(index.data(role=PythonObjectRole)))
         except ValueError:
             v = index.data(role=PythonObjectRole)
             if v is None:  # Set first element if no value present
@@ -97,7 +97,7 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         try:
-            value = editor.model()._model[editor.currentIndex()]
+            value = editor.model().getPyModel()[editor.currentIndex()]
         except AttributeError as e:
             if sys.version_info.major == 3:
                 new_e = TypeError('Invalid QComboBox model {0}. Did you assign'
