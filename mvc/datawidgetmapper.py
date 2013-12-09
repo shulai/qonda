@@ -67,7 +67,18 @@ class ItemDelegate(QtGui.QItemDelegate):
         if delegate:
             delegate.setModelData(editor, model, index)
         else:
-            super(ItemDelegate, self).setModelData(editor, model, index)
+            try:
+                if editor._mappingReadOnly:
+                    return
+            except:
+                pass
+            #super(ItemDelegate, self).setModelData(editor, model, index)
+            try:
+                n = editor._mappingPropertyName
+            except:
+                n = editor.metaObject().userProperty().name()
+            v = editor.property(n)
+            model.setData(index, v, Qt.EditRole)
             # Set the editor again, with new, possibly formatted, model value.
             self.setEditorData(editor, index)
 
@@ -124,6 +135,8 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
 
 QtGui.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
 QtGui.QLabel._mappingPropertyName = "text"
+#QtGui.QLabel._mappingReadOnly = True
 QtGui.QPushButton._mappingPropertyName = "text"
+QtGui.QPushButton._mappingReadOnly = True
 QtGui.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
 widgets.NumberEdit._mappingDelegateClass = delegates.NumberEditDelegate
