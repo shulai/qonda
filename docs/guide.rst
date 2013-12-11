@@ -541,12 +541,13 @@ and draw values in the view.
 Qonda provides several custom delegates, in order to use alternative editor
 in views, and being able to customize the editor properties:
 
-* ComboBoxDelegate
-* SpinBoxDelegate
-* DateEditDelegate
-* LineEditDelegate
-* CheckBoxDelegate
-* LookupWidgetDelegate
+* ComboBoxDelegate: Use QComboBox in views.
+* SpinBoxDelegate: Use QSpinBox in views.
+* DateEditDelegate: Use QDateEdit in views.
+* LineEditDelegate: Use QLineEdit with alignment, inputMask, etc.
+* CheckBoxDelegate: Use QCheckBoxDelegate in views.
+* LookupWidgetDelegate: Use LookupWidgetDelegate in views.
+* PixmapDelegate: Show pixmap values in views.
 
 Also delegates uses the customized widgets (see below).
 
