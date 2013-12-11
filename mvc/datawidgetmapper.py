@@ -138,5 +138,6 @@ QtGui.QLabel._mappingPropertyName = "text"
 #QtGui.QLabel._mappingReadOnly = True
 QtGui.QPushButton._mappingPropertyName = "text"
 QtGui.QPushButton._mappingReadOnly = True
+QtGui.QCheckBox._mappingDelegateClass = delegates.CheckBoxDelegate
 QtGui.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
 widgets.NumberEdit._mappingDelegateClass = delegates.NumberEditDelegate
