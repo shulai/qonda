@@ -35,17 +35,28 @@ class EditableView(object):
             if key == Qt.Key_Delete:
                 self.model().setData(idx, u'', Qt.EditRole)
                 self.dataChanged(idx, idx)
+                event.accept()
             elif key == Qt.Key_Down and current_row + 1 == row_count:
+                idx = self.model().index(current_row + 1, 0, idx.parent())
                 self.model().insertRow(row_count, parent)
+                self.setCurrentIndex(idx)
+                event.accept()
         elif mod == Qt.ControlModifier:
             if key == Qt.Key_Insert:
+                idx = self.model().index(idx.row(), 0, idx.parent())
                 self.model().insertRow(current_row, parent)
+                # Selections get funny after insert
+                selection = QtGui.QItemSelectionModel(self.model())
+                selection.select(idx, QtGui.QItemSelectionModel.Select)
+                self.setSelectionModel(selection)
                 self.setCurrentIndex(idx)
+                event.accept()
             elif key == Qt.Key_Delete:
                 if current_row + 1 == row_count:
                     self.setCurrentIndex(self.model().index(current_row - 1,
                         idx.column(), parent))
                 self.model().removeRow(current_row, parent)
+                event.accept()
 
 
 class TableView(QtGui.QTableView, EditableView):
