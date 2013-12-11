@@ -133,8 +133,8 @@ class LookupWidget(QtGui.QLineEdit):
 
     def _search_and_end(self):
         if self._editing:
-            self._search_value()
-        self._edit_finished()
+            if self._search_value():
+                self._edit_finished()
 
     def _edit_finished(self):
         self._editing = False
@@ -152,14 +152,16 @@ class LookupWidget(QtGui.QLineEdit):
         text = self.text()
         if text == '':
             self.setValue(None)
-            return
+            return True
 
         values = self.search_function(text)
         if len(values) == 0:
             self.setFocus()
-            return  # Nothing found, back to editing
+            self.selectAll()
+            return False  # Nothing found, back to editing
         elif len(values) == 1:
             self.setValue(values[0])
+            return True
         else:
             actions = {}
             self.menu.clear()
@@ -172,9 +174,10 @@ class LookupWidget(QtGui.QLineEdit):
                 self.size().height())))
             if action:
                 self.setValue(values[actions[action]])
+                return True
             else:
                 self.setFocus()
-            return  # Nothing found, back to editing
+                return False # Nothing found, back to editing
 
     @QtCore.pyqtSignature("")
     def openSearchWindow(self):
