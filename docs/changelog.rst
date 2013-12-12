@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.5.1:
+------
+
+* Add new signal currentRowChanged to TableView and TreeView.
+* Add properties allowAppends, allowInserts and allowDeletes to TableView and
+  TreeView, in order to control editing capabilities.
+* Add currentRowChanged signal to TableView and TreeView.
+
 0.5.0:
 ------
 

@@ -638,8 +638,23 @@ key combinations:
 * Control + Insert: Inserts a new row.
 * Control + Delete: Deletes the current row.
 
-``TreeView`` also implements the handy ``resizeColumnsToContents()`` method,
+New Properties:
+
+* allowAppends (getAllowAppends/setAllowAppends), default=True: Allows row
+    appending.
+* allowInserts (getAllowInserts/setAllowInserts), default=True: Allows row
+    insertion.
+* allowDeletes (getAllowDeletes/setAllowDeletes), default=True: Allows row
+    deletion.
+
+New methods:
+
+* ``TreeView`` implements the handy ``resizeColumnsToContents()`` method,
 already present in ``QTreeView``.
+
+New signals:
+
+* currentRowChanged(int)
 
 Other goodies
 =============
