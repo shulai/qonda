@@ -13,8 +13,7 @@ Requirements
 * Python 2.7 or 3.x is supported.
 * Qt4, 4.8 or higher recommended.
 * PyQt4, 4.9 or higher recommended.
-* Knowledge of Python
-* Knowledge of programming with Qt/PyQt. 
+* Knowledge of Python and Qt/PyQt programming.
 
 Installation
 ============
