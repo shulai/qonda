@@ -188,7 +188,7 @@ class CheckBoxDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         value = index.data(PythonObjectRole)
-        editor.setChecked(value)
+        editor.setChecked(bool(value))
 
     def setModelData(self, editor, model, index):
         model.setData(index, bool(editor.isChecked()), PythonObjectRole)
