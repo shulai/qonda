@@ -16,13 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from .. import PYQT_VERSION
+
+if PYQT_VERSION == 5:
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import Qt
+else:
+    from PyQt4 import QtGui  # lint:ok
+    from PyQt4.QtCore import Qt  # lint:ok
+    QtWidgets = QtGui
+
 import delegates
 from .. import widgets
 
 
-class ItemDelegate(QtGui.QItemDelegate):
+class ItemDelegate(QtWidgets.QItemDelegate):
 
     def setEditorData(self, editor, index):
 
@@ -30,12 +38,12 @@ class ItemDelegate(QtGui.QItemDelegate):
 
         fgcolor = index.data(Qt.ForegroundRole)
         if not fgcolor:
-            fgcolor = QtGui.QApplication.palette().color(QtGui.QPalette.Text)
+            fgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Text)
         palette.setColor(QtGui.QPalette.Text, fgcolor)
 
         bgcolor = index.data(Qt.BackgroundRole)
         if not bgcolor:
-            bgcolor = QtGui.QApplication.palette().color(QtGui.QPalette.Base)
+            bgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Base)
         palette.setColor(QtGui.QPalette.Base, bgcolor)
 
         if fgcolor or bgcolor:
@@ -83,7 +91,7 @@ class ItemDelegate(QtGui.QItemDelegate):
             self.setEditorData(editor, index)
 
 
-class DataWidgetMapper(QtGui.QDataWidgetMapper):
+class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
     """
         An enhanced descendant of QDataWidgetMapper:
         * Uses the appropiate widget property if registered in the
@@ -101,7 +109,7 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
           setModel() imply toFirst()
     """
     def __init__(self, parent=None):
-        QtGui.QDataWidgetMapper.__init__(self, parent)
+        QtWidgets.QDataWidgetMapper.__init__(self, parent)
         self._delegates = {}
         self._delegate = ItemDelegate(self)
         self._mappings = {}
@@ -133,11 +141,11 @@ class DataWidgetMapper(QtGui.QDataWidgetMapper):
         self.toFirst()
 
 
-QtGui.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
-QtGui.QLabel._mappingPropertyName = "text"
-#QtGui.QLabel._mappingReadOnly = True
-QtGui.QPushButton._mappingPropertyName = "text"
-QtGui.QPushButton._mappingReadOnly = True
-QtGui.QCheckBox._mappingDelegateClass = delegates.CheckBoxDelegate
-QtGui.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
+QtWidgets.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
+QtWidgets.QLabel._mappingPropertyName = "text"
+#QtWidgets.QLabel._mappingReadOnly = True
+QtWidgets.QPushButton._mappingPropertyName = "text"
+QtWidgets.QPushButton._mappingReadOnly = True
+QtWidgets.QCheckBox._mappingDelegateClass = delegates.CheckBoxDelegate
+QtWidgets.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
 widgets.NumberEdit._mappingDelegateClass = delegates.NumberEditDelegate

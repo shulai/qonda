@@ -18,11 +18,17 @@
 
 import datetime
 import locale
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, QEvent, pyqtProperty
+from .. import PYQT_VERSION
+if PYQT_VERSION == 5:
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import Qt, QEvent, pyqtProperty
+else:
+    from PyQt4 import QtGui  # lint:ok
+    from PyQt4.QtCore import Qt, QEvent, pyqtProperty  # lint:ok
+    QtWidgets = QtGui
 
 
-class DateEdit(QtGui.QDateEdit):
+class DateEdit(QtWidgets.QDateEdit):
 
     def __init__(self, parent=None):
         super(DateEdit, self).__init__(parent)
@@ -57,7 +63,7 @@ class DateEdit(QtGui.QDateEdit):
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
-class DateTimeEdit(QtGui.QDateTimeEdit):
+class DateTimeEdit(QtWidgets.QDateTimeEdit):
 
     def __init__(self, parent=None):
         super(DateTimeEdit, self).__init__(parent)
@@ -92,7 +98,7 @@ class DateTimeEdit(QtGui.QDateTimeEdit):
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
-class ComboBox(QtGui.QComboBox):
+class ComboBox(QtWidgets.QComboBox):
 
     def __init__(self, parent=None):
         super(ComboBox, self).__init__(parent)
@@ -117,7 +123,7 @@ class ComboBox(QtGui.QComboBox):
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
-class MaskedLineEdit(QtGui.QLineEdit):
+class MaskedLineEdit(QtWidgets.QLineEdit):
 
     def __init__(self, *args):
         super(MaskedLineEdit, self).__init__(*args)
@@ -139,7 +145,7 @@ class MaskedLineEdit(QtGui.QLineEdit):
         return ''.join([x for x in unmaskgen(text)])
 
 
-class NumberEdit(QtGui.QLineEdit):
+class NumberEdit(QtWidgets.QLineEdit):
 
     def __init__(self, parent=None):
         super(NumberEdit, self).__init__(parent)

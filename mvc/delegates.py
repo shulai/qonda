@@ -18,22 +18,29 @@
 
 import sys
 import datetime
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+
+from .. import PYQT_VERSION
+if PYQT_VERSION == 5:
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import Qt
+else:
+    from PyQt4 import QtGui  # lint:ok
+    from PyQt4.QtCore import Qt  # lint:ok
+    QtWidgets = QtGui
 
 from ..widgets import widgets
 
 PythonObjectRole = 32
 
 
-class SpinBoxDelegate(QtGui.QStyledItemDelegate):
+class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, **properties):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QSpinBox(parent)
+        editor = QtWidgets.QSpinBox(parent)
         for prop_name, prop_value in self.__properties.iteritems():
             editor.setProperty(prop_name, prop_value)
         return editor
@@ -50,10 +57,10 @@ class SpinBoxDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
-class ComboBoxDelegate(QtGui.QStyledItemDelegate):
+class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, model=None, **properties):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.model = model
         self.__properties = properties
 
@@ -114,10 +121,10 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
-class DateEditDelegate(QtGui.QStyledItemDelegate):
+class DateEditDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, **properties):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
@@ -141,7 +148,7 @@ class DateEditDelegate(QtGui.QStyledItemDelegate):
             editor.clear()
 
 
-class LineEditDelegate(QtGui.QStyledItemDelegate):
+class LineEditDelegate(QtWidgets.QStyledItemDelegate):
     """
         Specialized delegate what brings a customizable LineEdit editor
         Allowed properties:
@@ -151,12 +158,12 @@ class LineEditDelegate(QtGui.QStyledItemDelegate):
             alignment
     """
     def __init__(self, parent=None, validator=None, **properties):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.validator = validator
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QLineEdit(parent)
+        editor = QtWidgets.QLineEdit(parent)
         if self.validator:
             editor.setValidator(self.validator)
         for prop_name, prop_value in self.__properties.iteritems():
@@ -174,14 +181,14 @@ class LineEditDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
-class CheckBoxDelegate(QtGui.QStyledItemDelegate):
+class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, **properties):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QCheckBox(parent)
+        editor = QtWidgets.QCheckBox(parent)
         for prop_name, prop_value in self.__properties.iteritems():
             editor.setProperty(prop_name, prop_value)
         return editor
@@ -194,9 +201,9 @@ class CheckBoxDelegate(QtGui.QStyledItemDelegate):
         model.setData(index, bool(editor.isChecked()), PythonObjectRole)
 
     def updateEditorGeometry(self, editor, option, index):
-        style = QtGui.QApplication.style()
-        checkbox_rect = style.subElementRect(QtGui.QStyle.SE_CheckBoxIndicator,
-            option)
+        style = QtWidgets.QApplication.style()
+        checkbox_rect = style.subElementRect(
+            QtWidgets.QStyle.SE_CheckBoxIndicator, option)
         rect = option.rect
         x = option.rect.x() + (option.rect.width() - checkbox_rect.width()) / 2
         rect.setLeft(x)
@@ -206,25 +213,26 @@ class CheckBoxDelegate(QtGui.QStyledItemDelegate):
     def paint(self, painter, options, index):
         value = index.data(PythonObjectRole)
         painter.save()
-        style = QtGui.QApplication.style()
+        style = QtWidgets.QApplication.style()
         #self.drawBackground(painter, options, index)
-        opt = QtGui.QStyleOptionButton()
-        opt.state |= QtGui.QStyle.State_On if value else QtGui.QStyle.State_Off
-        opt.state |= QtGui.QStyle.State_Enabled
+        opt = QtWidgets.QStyleOptionButton()
+        opt.state |= (QtWidgets.QStyle.State_On if value
+            else QtWidgets.QStyle.State_Off)
+        opt.state |= QtWidgets.QStyle.State_Enabled
         #opt.text = text
-        checkbox_rect = style.subElementRect(QtGui.QStyle.SE_CheckBoxIndicator,
-            opt)
+        checkbox_rect = style.subElementRect(
+            QtWidgets.QStyle.SE_CheckBoxIndicator, opt)
         opt.rect = options.rect
         opt.rect.setLeft(options.rect.x() + options.rect.width() / 2
             - checkbox_rect.width() / 2)
-        style.drawControl(QtGui.QStyle.CE_CheckBox, opt, painter)
+        style.drawControl(QtWidgets.QStyle.CE_CheckBox, opt, painter)
         painter.restore()
 
 
-class NumberEditDelegate(QtGui.QStyledItemDelegate):
+class NumberEditDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, **properties):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
@@ -241,10 +249,10 @@ class NumberEditDelegate(QtGui.QStyledItemDelegate):
         model.setData(index, editor.getValue(), PythonObjectRole)
 
 
-class PixmapDelegate(QtGui.QStyledItemDelegate):
+class PixmapDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, scale=False):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.__scale = scale
 
     def paint(self, painter, options, index):

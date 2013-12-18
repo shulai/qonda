@@ -16,8 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, pyqtSignal, pyqtProperty
+from .. import PYQT_VERSION
+if PYQT_VERSION == 5:
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import Qt, pyqtSignal, pyqtProperty
+else:
+    from PyQt4 import QtGui, QtCore
+    from PyQt4.QtCore import Qt, pyqtSignal, pyqtProperty
+    QtWidgets = QtGui
+    QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
 
 
 class EditableView(object):
@@ -53,8 +60,8 @@ class EditableView(object):
                     idx = self.model().index(idx.row(), 0, idx.parent())
                     self.model().insertRow(current_row, parent)
                     # Selections get funny after insert
-                    selection = QtGui.QItemSelectionModel(self.model())
-                    selection.select(idx, QtGui.QItemSelectionModel.Select)
+                    selection = QtCore.QItemSelectionModel(self.model())
+                    selection.select(idx, QtCore.QItemSelectionModel.Select)
                     self.setSelectionModel(selection)
                     self.setCurrentIndex(idx)
                     event.accept()
@@ -100,13 +107,13 @@ class EditableView(object):
     allowDeletes = pyqtProperty('bool', getAllowDeletes, setAllowDeletes)
 
 
-class TableView(QtGui.QTableView, EditableView):
+class TableView(QtWidgets.QTableView, EditableView):
 
     currentRowChanged = pyqtSignal(int)
 
     def __init__(self, parent=None):
         EditableView.__init__(self)
-        QtGui.QTableView.__init__(self, parent)
+        QtWidgets.QTableView.__init__(self, parent)
 
     def keyPressEvent(self, event):
         self._keyPressEvent(event)
@@ -119,13 +126,13 @@ class TableView(QtGui.QTableView, EditableView):
             self.currentRowChanged.emit(row)
 
 
-class TreeView(QtGui.QTreeView, EditableView):
+class TreeView(QtWidgets.QTreeView, EditableView):
 
     currentRowChanged = pyqtSignal(int)
 
     def __init__(self, parent=None):
         EditableView.__init__(self)
-        QtGui.QTreeView.__init__(self, parent)
+        QtWidgets.QTreeView.__init__(self, parent)
 
     def keyPressEvent(self, event):
         self._keyPressEvent(event)

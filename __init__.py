@@ -1,2 +1,1 @@
-from . import mvc
-from . import widgets
+PYQT_VERSION = 4

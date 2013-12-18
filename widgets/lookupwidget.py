@@ -16,18 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from .. import PYQT_VERSION
+if PYQT_VERSION == 5:
+    from PyQt5 import QtCore, QtGui
+    from PyQt5.QtCore import Qt
+else:
+    from PyQt4 import QtCore, QtGui  # lint:ok
+    from PyQt4.QtCore import Qt  # lint:ok
+    QtWidgets = QtGui
 from ..icons import icons_rc
 
 
 PythonObjectRole = 32
 
 
-class LookupWidgetDelegate(QtGui.QStyledItemDelegate):
+class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, search_function=None, search_window=None):
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
         self.search_function = search_function
         self.search_window = search_window
 
@@ -50,7 +56,7 @@ class LookupWidgetDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
-class LookupWidget(QtGui.QLineEdit):
+class LookupWidget(QtWidgets.QLineEdit):
     """
         Widget to search object using an user provided search string
 
@@ -61,10 +67,10 @@ class LookupWidget(QtGui.QLineEdit):
     _mappingDelegateClass = LookupWidgetDelegate
 
     def __init__(self, parent=None):
-        QtGui.QLineEdit.__init__(self, parent)
+        QtWidgets.QLineEdit.__init__(self, parent)
         self.editingFinished.connect(self._search_and_end)
 
-        self.button = QtGui.QToolButton(self)
+        self.button = QtWidgets.QToolButton(self)
         self.button.setFocusPolicy(Qt.NoFocus)
         self.button.setCursor(QtCore.Qt.ArrowCursor)
         icon1 = QtGui.QIcon(":/qonda/lookup.png")
@@ -74,7 +80,7 @@ class LookupWidget(QtGui.QLineEdit):
         self.button.resize(18, 18)
         self.button.hide()
 
-        self.menu = QtGui.QMenu(self)
+        self.menu = QtWidgets.QMenu(self)
         self.placeholder = None
         self._value = None
 

@@ -19,8 +19,14 @@
 import cPickle
 from functools import partial
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from .. import PYQT_VERSION
+
+if PYQT_VERSION == 5:
+    from PyQt5 import QtCore, QtGui
+    from PyQt5.QtCore import Qt
+else:
+    from PyQt4 import QtCore, QtGui  # lint:ok
+    from PyQt4.QtCore import Qt  # lint:ok
 
 from .observable import ObservableObject, ObservableListProxy
 
