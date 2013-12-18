@@ -594,7 +594,7 @@ Qonda also provides a set of enhanced widgets:
 
 * DateEdit: A ``QDateEdit`` allowing empty values
 * DateTimeEdit: A ``QDateTimeEdit`` allowing empty values
-* ComboBox: A ``QComboBox`` allowing empty values::
+* ComboBox: A ``QComboBox`` allowing empty values:
 * MaskedLineEdit: A ``QLineEdit`` that filters out the mask separators from
     the value.
 * NumberEdit: A ``QLineEdit`` for localized number editing.
@@ -650,7 +650,7 @@ New Properties:
 New methods:
 
 * ``TreeView`` implements the handy ``resizeColumnsToContents()`` method,
-already present in ``QTreeView``.
+    already present in ``QTreeView``.
 
 New signals:
 
