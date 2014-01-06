@@ -416,7 +416,7 @@ The next metadata properties are available, column wise:
 Property            Property type           Value type                Qt Role        Description
 ==================  ======================  ========================  =============  ========================================
 title               Constant                unicode                   DisplayRole    Column title in QTableView and QTreeView
-size                Constant                int                       SizeHintRole   Column width in characters. Used in
+width               Constant                int                       SizeHintRole   Column width in characters. Used in
                                                                                      table and tree views along
                                                                                      ``resizeColumnsToContents()``
 ==================  ======================  ========================  =============  ========================================
@@ -650,7 +650,7 @@ New Properties:
 New methods:
 
 * ``TreeView`` implements the handy ``resizeColumnsToContents()`` method,
-    already present in ``QTreeView``.
+    already present in ``QTableView``.
 
 New signals:
 
