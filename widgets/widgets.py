@@ -17,6 +17,7 @@
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+from decimal import Decimal
 import locale
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
@@ -147,11 +148,15 @@ class MaskedLineEdit(QtWidgets.QLineEdit):
 
 class NumberEdit(QtWidgets.QLineEdit):
 
+    returnFloat = 1
+    returnDecimal = 2
+
     def __init__(self, parent=None):
         super(NumberEdit, self).__init__(parent)
         self.setAlignment(Qt.AlignRight)
         self._decimal_point = locale.localeconv()['decimal_point']
         self._decimals = 0
+        self._return_format = NumberEdit.returnFloat
 
     def getDecimals(self):
         return self._decimals
@@ -163,6 +168,14 @@ class NumberEdit(QtWidgets.QLineEdit):
             self.setValue(self.getValue())
 
     decimals = pyqtProperty('int', getDecimals, setDecimals)
+
+    def getReturnFormat(self):
+        return self._return_format
+
+    def setReturnFormat(self, value):
+        self._return_format = value
+
+    returnFormat = pyqtProperty('int', getReturnFormat, setReturnFormat)
 
     def _addMask(self, s):
         try:
@@ -181,7 +194,9 @@ class NumberEdit(QtWidgets.QLineEdit):
         if not self.hasFocus():
             s = self._removeMask(s)
         try:
-            return locale.atof(s) if self._decimals > 0 else int(s)
+            v = locale.atof(s) if self._decimals > 0 else int(s)
+            return (Decimal(v)
+                if self._return_format == NumberEdit.returnDecimal else v)
         except ValueError:
             return None
 
@@ -214,14 +229,11 @@ class NumberEdit(QtWidgets.QLineEdit):
         super(NumberEdit, self).keyPressEvent(event)
         after = self.text()
         if after == '':
-            print "empty"
             return
         try:
             if self._decimals == 0:
                 n = int(after)
             else:
                 n = locale.atof(after)
-            print "valid", n
         except ValueError:
-            print "invalid"
             self.setText(before)
