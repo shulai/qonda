@@ -239,6 +239,7 @@ class NumberEditDelegate(QtWidgets.QStyledItemDelegate):
         editor = widgets.NumberEdit(parent)
         for prop_name, prop_value in self.__properties.iteritems():
             editor.setProperty(prop_name, prop_value)
+        editor.selectAll()
         return editor
 
     def setEditorData(self, editor, index):
