@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.2:
+------
+
+* PyQt5 compatibility
+* Add property returnFormat to NumberEdit, value() can return either float or Decimal
+
 0.5.1:
 ------
 
