@@ -466,7 +466,6 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             for i, prop in enumerate(self._properties):
                 lp = len(prop)
                 if lu > lp:
-                    print updated_prop, lu, ' > ', prop, lp
                     continue
                 if updated_prop == prop[0:lu] and (lp == lu or
                         prop[lu] == '.'):
@@ -1203,7 +1202,6 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         for i, prop in enumerate(self._properties):
             lp = len(prop)
             if lu > lp:
-                print updated_prop, lu, ' > ', prop, lp
                 continue
             if updated_prop == prop[0:lu] and (lp == lu or prop[lu] == '.'):
                 #print "dataChanged", attrs[0], item_indexlist_index, i
