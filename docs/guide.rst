@@ -326,6 +326,50 @@ You also can stopping observing an object::
 
     model.remove_callback(my_callback)
 
+ObservableObject events
+-----------------------
+
+Currently, ``ObservableObject``  and ``ObservableProxy`` emit the following
+events:
+
+* before_update: Immediately before assigning a new value to an attribute.
+  event_data is a tuple of length 1 containing the attribute name.
+* update: Immediately after assigning a new value to an attribute.
+  event_data is a tuple of length 1 containing the attribute name.
+
+Hence, an observer for an ObservableObject could be::
+
+    def observer(sender, event_type, _, attributes):
+        if event_type == "update":
+            if attributes[0] == "price":
+                sender.tax = sender.price * TAX_RATE
+                sender.total = sender.price + sender.tax
+
+ObservableListProxy events
+--------------------------
+
+``ObservableListProxy`` objects emit the following events:
+
+* before_setitem: Before doing l[i] = x or l[i:j] = new_items
+  Event data: index (or slice), and new value length
+* setitem: After doing l[i] = x or l[i:j] = new_items
+  Event data: index (or slice), and new value length
+* before_delitem: Before doing del l[i], l.remove(x) or l.pop()
+  Event data: index
+* delitem: After doing del l[i], l.remove(x) or l.pop()
+  Event data: index
+* before_insert: Before doing l.insert(i, x)
+  Event data: index
+* insert: After doing l.insert(i, x)
+  Event data: index
+* before_append: Before doing l.append(x)
+  Event data: None
+* append: After doing l.append(x)
+  Event data: None
+* before_extend: Before doing l.extend(items)
+  Event data: len(items)
+* extend: After doing l.extend(items)
+  Event data: len(items)
 
 Qonda and metadata
 ==================
