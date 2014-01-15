@@ -143,7 +143,7 @@ class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
 
 QtWidgets.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
 QtWidgets.QLabel._mappingPropertyName = "text"
-#QtWidgets.QLabel._mappingReadOnly = True
+QtWidgets.QLabel._mappingReadOnly = True
 QtWidgets.QPushButton._mappingPropertyName = "text"
 QtWidgets.QPushButton._mappingReadOnly = True
 QtWidgets.QCheckBox._mappingDelegateClass = delegates.CheckBoxDelegate
