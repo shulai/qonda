@@ -40,7 +40,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         self.__properties = properties
 
     def createEditor(self, parent, option, index):
-        editor = QtWidgets.QSpinBox(parent)
+        editor = widgets.SpinBox(parent)
         for prop_name, prop_value in self.__properties.iteritems():
             editor.setProperty(prop_name, prop_value)
         return editor
@@ -51,7 +51,13 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         editor.interpretText()
-        model.setData(index, editor.value(), Qt.EditRole)
+        value = editor.value()
+        try:
+            if editor.getAllowEmpty() and value == editor.minimum():
+                value = None
+        except AttributeError:  # Regular QSpinBox
+            pass
+        model.setData(index, value, Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)

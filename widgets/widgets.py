@@ -124,6 +124,36 @@ class ComboBox(QtWidgets.QComboBox):
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
+class SpinBox(QtWidgets.QSpinBox):
+
+    def __init__(self, parent=None):
+        super(SpinBox, self).__init__(parent)
+        self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
+        self.__allowEmpty = True
+
+    def clear(self):
+        if self.__allowEmpty:
+            self.setValue(self.minimum())
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            self.clear()
+            event.accept()
+            return
+        super(SpinBox, self).keyPressEvent(event)
+
+    def getAllowEmpty(self):
+        return self.__allowEmpty
+
+    def setAllowEmpty(self, value):
+        self.__allowEmpty = value
+
+    def resetAllowEmpty(self):
+        self.__allowEmpty = True
+
+    allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
+
+
 class MaskedLineEdit(QtWidgets.QLineEdit):
 
     def __init__(self, *args):
