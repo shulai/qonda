@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.3:
+------
+
+* Fix: Mapping of QLabel is read-only
+* Fix: Proper float-str conversion in NumberEdit
+
 0.5.2:
 ------
 
