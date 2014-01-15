@@ -154,7 +154,9 @@ class NumberEdit(QtWidgets.QLineEdit):
     def __init__(self, parent=None):
         super(NumberEdit, self).__init__(parent)
         self.setAlignment(Qt.AlignRight)
-        self._decimal_point = locale.localeconv()['decimal_point']
+        localeconv = locale.localeconv()
+        self._decimal_point = localeconv['decimal_point']
+        self._thousands_sep = localeconv['thousands_sep']
         self._decimals = 0
         self._return_format = NumberEdit.returnFloat
 
@@ -187,7 +189,7 @@ class NumberEdit(QtWidgets.QLineEdit):
         return locale.format('%.*f', (self._decimals, n), grouping=True)
 
     def _removeMask(self, s):
-        return ''.join([c for c in s if c != '.'])
+        return ''.join([c for c in s if c != self._thousands_sep])
 
     def getValue(self):
         s = self.text()
@@ -202,7 +204,8 @@ class NumberEdit(QtWidgets.QLineEdit):
 
     def setValue(self, value):
         if self.hasFocus():
-            self.setText(str(value))
+            self.setText(locale.format('%.*f', (self._decimals,
+                    float(value)), grouping=False))
         else:
             if value is None:
                 self.clear()
@@ -221,10 +224,10 @@ class NumberEdit(QtWidgets.QLineEdit):
         super(NumberEdit, self).focusOutEvent(event)
 
     def keyPressEvent(self, event):
-        if (self._decimal_point == ',' and event.key() == Qt.Key_Period
+        if (self._decimal_point != '.' and event.key() == Qt.Key_Period
                 and event.modifiers() == Qt.KeypadModifier):
             event = QtGui.QKeyEvent(QEvent.KeyPress, Qt.Key_Comma,
-                event.modifiers(), ',')
+                event.modifiers(), self._decimal_point)
         before = self.text()
         super(NumberEdit, self).keyPressEvent(event)
         after = self.text()
@@ -232,8 +235,8 @@ class NumberEdit(QtWidgets.QLineEdit):
             return
         try:
             if self._decimals == 0:
-                n = int(after)
+                int(after)
             else:
-                n = locale.atof(after)
+                locale.atof(after)
         except ValueError:
             self.setText(before)
