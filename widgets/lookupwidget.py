@@ -24,7 +24,7 @@ else:
     from PyQt4 import QtCore, QtGui  # lint:ok
     from PyQt4.QtCore import Qt  # lint:ok
     QtWidgets = QtGui
-from ..icons import icons_rc
+from ..icons import icons_rc  # lint:ok
 
 
 PythonObjectRole = 32
@@ -183,7 +183,7 @@ class LookupWidget(QtWidgets.QLineEdit):
                 return True
             else:
                 self.setFocus()
-                return False # Nothing found, back to editing
+                return False  # Nothing found, back to editing
 
     @QtCore.pyqtSignature("")
     def openSearchWindow(self):

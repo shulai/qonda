@@ -17,6 +17,6 @@
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
 from . widgets import (DateEdit, DateTimeEdit, ComboBox, SpinBox,
-    MaskedLineEdit, NumberEdit)
+    DecimalSpinBox, MaskedLineEdit, NumberEdit)
 from . lookupwidget import LookupWidget, LookupWidgetDelegate
 from . import views

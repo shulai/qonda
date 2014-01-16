@@ -131,6 +131,60 @@ class SpinBox(QtWidgets.QSpinBox):
         self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
         self.__allowEmpty = True
 
+    def value(self):
+        v = super().value()
+        if self.__allowEmpty and v == self.minimum():
+            return None
+        return v
+
+    def setValue(self, value):
+        if value is None:
+            self.setValue(self.minimum())
+        else:
+            self.setValue(value)
+
+    def clear(self):
+        if self.__allowEmpty:
+            self.setValue(self.minimum())
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            self.clear()
+            event.accept()
+            return
+        super(SpinBox, self).keyPressEvent(event)
+
+    def getAllowEmpty(self):
+        return self.__allowEmpty
+
+    def setAllowEmpty(self, value):
+        self.__allowEmpty = value
+
+    def resetAllowEmpty(self):
+        self.__allowEmpty = True
+
+    allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
+
+
+class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
+
+    def __init__(self, parent=None):
+        super(DecimalSpinBox, self).__init__(parent)
+        self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
+        self.__allowEmpty = True
+
+    def value(self):
+        v = super().value()
+        if self.__allowEmpty and v == self.minimum():
+            return None
+        return Decimal(v)
+
+    def setValue(self, value):
+        if value is None:
+            self.setValue(self.minimum())
+        else:
+            self.setValue(value)
+
     def clear(self):
         if self.__allowEmpty:
             self.setValue(self.minimum())
@@ -178,9 +232,6 @@ class MaskedLineEdit(QtWidgets.QLineEdit):
 
 class NumberEdit(QtWidgets.QLineEdit):
 
-    returnFloat = 1
-    returnDecimal = 2
-
     def __init__(self, parent=None):
         super(NumberEdit, self).__init__(parent)
         self.setAlignment(Qt.AlignRight)
@@ -188,7 +239,7 @@ class NumberEdit(QtWidgets.QLineEdit):
         self._decimal_point = localeconv['decimal_point']
         self._thousands_sep = localeconv['thousands_sep']
         self._decimals = 0
-        self._return_format = NumberEdit.returnFloat
+        self._returnDecimal = False
 
     def getDecimals(self):
         return self._decimals
@@ -201,13 +252,13 @@ class NumberEdit(QtWidgets.QLineEdit):
 
     decimals = pyqtProperty('int', getDecimals, setDecimals)
 
-    def getReturnFormat(self):
-        return self._return_format
+    def getReturnDecimal(self):
+        return self._returnDecimal
 
-    def setReturnFormat(self, value):
-        self._return_format = value
+    def setReturnDecimal(self, value):
+        self._returnDecimal = value
 
-    returnFormat = pyqtProperty('int', getReturnFormat, setReturnFormat)
+    returnDecimal = pyqtProperty('bool', getReturnDecimal, setReturnDecimal)
 
     def _addMask(self, s):
         try:
@@ -228,7 +279,7 @@ class NumberEdit(QtWidgets.QLineEdit):
         try:
             v = locale.atof(s) if self._decimals > 0 else int(s)
             return (Decimal(v)
-                if self._return_format == NumberEdit.returnDecimal else v)
+                if self._returnDecimal else v)
         except ValueError:
             return None
 

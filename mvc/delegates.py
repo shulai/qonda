@@ -52,11 +52,6 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         editor.interpretText()
         value = editor.value()
-        try:
-            if editor.getAllowEmpty() and value == editor.minimum():
-                value = None
-        except AttributeError:  # Regular QSpinBox
-            pass
         model.setData(index, value, Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
