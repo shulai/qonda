@@ -78,8 +78,11 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
             editor.setCurrentIndex(editor.model()
                 .getPyModel().index(index.data(role=PythonObjectRole)))
         except ValueError:
+            if editor.isEditable():
+                editor.setEditText(index.data())
+                return
             v = index.data(role=PythonObjectRole)
-            if v is None:  # Set first element if no value present
+            if v is None:  # Clear if no value present
                 try:
                     editor.setCurrentIndex(-1 if editor.allowEmpty else 0)
                 except AttributeError:  # if not qonda but regular QComboBox
@@ -104,6 +107,9 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
                     .format(editor.model(), editor.objectName()))
 
     def setModelData(self, editor, model, index):
+        if editor.isEditable():  # if editable, item index are strings
+            model.setData(index, editor.currentText(), role=PythonObjectRole)
+            return
         try:
             value = editor.model().getPyModel()[editor.currentIndex()]
         except AttributeError as e:
