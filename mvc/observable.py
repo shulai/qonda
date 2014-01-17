@@ -54,7 +54,12 @@ class Observable(object):
         self.__callbacks[callback] = observer_data
 
     def remove_callback(self, callback):
-        del self.__callbacks[callback]
+        try:
+            del self.__callbacks[callback]
+        except KeyError:
+            print ("Notice: Call to Observable.remove_callback for no "
+                "registered callback")
+            pass
 
     def get_callback_data(self, callback):
         return self.__callbacks[callback]
