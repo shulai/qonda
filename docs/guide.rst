@@ -34,7 +34,7 @@ make it work you are ready to go!
 Interview overview
 ==================
 
-All models in Interview inherits from ``QAbstractItemModel``, with a
+All models in Interview inherit from ``QAbstractItemModel``, with a
 structure of a tree of nested tables, adequate to represent tables,
 trees and lists.
 
@@ -54,7 +54,7 @@ object.
 First steps
 ===========
 
-Please note this aren't complete, runnable examples. Separate
+Please note these aren't complete, runnable examples. Separate
 example source files are provided along this document.
 
 Let's start with a simple model for a contact list::
