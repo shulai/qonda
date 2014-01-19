@@ -210,10 +210,10 @@ events when you set your object attributes::
 
     class Contact(ObservableObject):
 
-    def __init__(self, name=None, phone=None):
-        ObservableObject.__init__(self)
-        self.name = name
-        self.phone = phone
+        def __init__(self, name=None, phone=None):
+            ObservableObject.__init__(self)
+            self.name = name
+            self.phone = phone
 
 
 By default, update events happen when any public attribute (not starting
@@ -222,12 +222,13 @@ attributes, use the ``_notifiables_`` class attribute::
 
     class Contact(ObservableObject):
 
-    _notifiables_ = ('name', 'phone')
+        _notifiables_ = ('name', 'phone')
 
-    def __init__(self, name=None, phone=None):
-        ObservableObject.__init__(self)
-        self.name = name
-        self.phone = phone
+        def __init__(self, name=None, phone=None, city=None):
+            ObservableObject.__init__(self)
+            self.name = name
+            self.phone = phone
+            self.city = city  # Changes in this attribute won't trigger events
 
 Note that if you override ``__init__`` like in the example, **you must** call
 the superclass ``__init__()``.
@@ -250,7 +251,10 @@ you can use ``ObservableProxy``::
 
     ...
     self.model = ObservableProxy(model)
-    self.mapper.setModel(self.model)
+    adapter = ObjectAdapter(
+        ('name', 'phone'),
+        self.model)
+    self.mapper.setModel(adapter)
 
 
 Of course, the catch is that any further changes to the model should be done
@@ -268,7 +272,10 @@ is optional.::
 
     ...
     self.model = ObservableListProxy(contacts)
-    self.mapper.setModel(self.model)
+    adapter = ObjectListAdapter(
+        ('name', 'phone'),
+        self.model)
+    self.mapper.setModel(adapter)
 
 If you don't provide a target, a new empty list is used, and could be used
 as a regular list::
@@ -284,13 +291,17 @@ Emitting arbitrary events
 -------------------------
 
 You can use the observable/observer infrastructure for your own purposes too.
-For this, in besides inheriting from one of the observable classes
+For this, besides inheriting from one of the observable classes
 (``Observable``, ``ObservableObject``, ``ObservableProxy`` and
-``ObservableListProxy``), you must use call the _notify method with the event
-type and any event related data you want to pass to your observers::
+``ObservableListProxy``), you must use the ``Observable._notify`` method with 
+the event type and any event related data you want to pass to your observers::
 
-    my_event_related_data = 42
-    self._notify("my_event_type", my_event_related_data)
+    class MyObservableObject(Observable):
+    ...
+        def my_event(self):
+            ...
+            my_event_related_data = 42
+            self._notify("my_event_type", my_event_related_data)
 
 Writing observers
 -----------------
@@ -320,9 +331,10 @@ Where observer_data is any additional data required by the observer to
 process the event.
 
 Any number of observers can observe an object, and an observer can observe
-any number of objects.
+any number of objects. There is no warranty on the order of callback 
+invocation.
 
-You also can stopping observing an object::
+You also can stop observing an object::
 
     model.remove_callback(my_callback)
 
@@ -341,9 +353,15 @@ Hence, an observer for an ObservableObject could be::
 
     def observer(sender, event_type, _, attributes):
         if event_type == "update":
-            if attributes[0] == "price":
+            if "price" in attributes:
                 sender.tax = sender.price * TAX_RATE
                 sender.total = sender.price + sender.tax
+
+While ``attributes`` is a tuple of length 1 as a generalization.
+Your observers should be written, a best practice, for an arbitrary number 
+of attributes,  and use ``for`` and ``in``, so they will work correctly if 
+you use them with other Observable objects that could emit events with 
+several attributes at once.
 
 ObservableListProxy events
 --------------------------
