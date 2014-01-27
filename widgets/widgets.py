@@ -174,7 +174,7 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
         self.__allowEmpty = True
 
     def value(self):
-        v = super().value()
+        v = super(DecimalSpinBox, self).value()
         if self.__allowEmpty and v == self.minimum():
             return None
         return Decimal(v)
@@ -194,7 +194,7 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
             self.clear()
             event.accept()
             return
-        super(SpinBox, self).keyPressEvent(event)
+        super(DecimalSpinBox, self).keyPressEvent(event)
 
     def getAllowEmpty(self):
         return self.__allowEmpty
