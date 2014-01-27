@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.5.4:
+
+* Add SpinBox and DecimalSpinBox widgets and delegates
+* ComboBoxDelegate supports empty combo models and editable combos.
+
 0.5.3:
 ------
 
