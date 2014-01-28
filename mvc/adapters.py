@@ -461,16 +461,16 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             print "Error: Received spurious event"
             return
         if event_type == "update":
-            updated_prop = attrs[0]
-            lu = len(updated_prop)
-            for i, prop in enumerate(self._properties):
-                lp = len(prop)
-                if lu > lp:
-                    continue
-                if updated_prop == prop[0:lu] and (lp == lu or
-                        prop[lu] == '.'):
-                    index = self.createIndex(0, i)
-                    self.dataChanged.emit(index, index)
+            for updated_prop in attrs:
+                lu = len(updated_prop)
+                for i, prop in enumerate(self._properties):
+                    lp = len(prop)
+                    if lu > lp:
+                        continue
+                    if updated_prop == prop[0:lu] and (lp == lu or
+                            prop[lu] == '.'):
+                        index = self.createIndex(0, i)
+                        self.dataChanged.emit(index, index)
 
 
 class BaseListAdapter(AdapterReader):
@@ -596,16 +596,16 @@ class BaseListAdapter(AdapterReader):
         if event_type != "update":
             return
 
-        # FIXME: This look ugly, and probably is wrong
-        updated_prop = attrs[0]
-        lu = len(updated_prop)
-        for i, prop in enumerate(self._properties):
-            lp = len(prop)
-            if lu > lp:
-                continue
-            if updated_prop == prop[0:lu] and (lp == lu or prop[lu] == '.'):
-                index = self.createIndex(list_index, i)
-                self.dataChanged.emit(index, index)
+        for updated_prop in attrs:
+            # FIXME: This look ugly, and probably is wrong
+            lu = len(updated_prop)
+            for i, prop in enumerate(self._properties):
+                lp = len(prop)
+                if lu > lp:
+                    continue
+                if updated_prop == prop[0:lu] and (lp == lu or prop[lu] == '.'):
+                    index = self.createIndex(list_index, i)
+                    self.dataChanged.emit(index, index)
 
 
 class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
@@ -1197,13 +1197,13 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         if event_type != "update":
             return
 
-        updated_prop = attrs[0]
-        lu = len(updated_prop)
-        for i, prop in enumerate(self._properties):
-            lp = len(prop)
-            if lu > lp:
-                continue
-            if updated_prop == prop[0:lu] and (lp == lu or prop[lu] == '.'):
-                #print "dataChanged", attrs[0], item_indexlist_index, i
-                index = self.index(item_index.row(), i, item_index.parent())
-                self.dataChanged.emit(index, index)
+        for updated_prop in attrs:
+            lu = len(updated_prop)
+            for i, prop in enumerate(self._properties):
+                lp = len(prop)
+                if lu > lp:
+                    continue
+                if updated_prop == prop[0:lu] and (lp == lu or prop[lu] == '.'):
+                    #print "dataChanged", attrs[0], item_indexlist_index, i
+                    index = self.index(item_index.row(), i, item_index.parent())
+                    self.dataChanged.emit(index, index)
