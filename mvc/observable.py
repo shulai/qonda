@@ -123,7 +123,8 @@ class ObservableObject(Observable):
         object.__setattr__(self, name, value)
         try:
             self._notify('update', (name,))
-            getattr(self, name).add_callback(self._observe_attr, name)
+            if value != self:  # Avoid circular references
+                value.add_callback(self._observe_attr, name)
         except AttributeError:
             pass  # If invoked in object construction
 
