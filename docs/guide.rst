@@ -434,6 +434,23 @@ Alternatively lack of coupling can be preserved assigning
             }
         }
 
+Besides the special '.' key, also the '*' key is allowed, in order to
+set metadata properties affecting the presentation of all the attributes,
+(e.g. a full row in a view)::
+    
+    _qonda_column_meta_ = {
+        '.': {  # Metadata for this class when used as a value
+            'width': 30
+        },
+        '*' {  # Common metadata for all attributes of this class instances
+        },
+        'name': {
+            'title': "Full Name",
+            'width': 30
+            }
+        }
+
+
 Using class level metadata only works when the class argument is set in the
 adapter constructor. See next section for details.
 

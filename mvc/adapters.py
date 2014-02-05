@@ -307,6 +307,12 @@ def _build_class_meta(class_, properties):
                     v = resolve_meta(v, tail)
             except KeyError:
                 v = {}
+        try:
+            star_v = class_._qonda_column_meta_['*'].copy()
+            star_v.update(v)
+            v = star_v
+        except KeyError:
+            pass
         return v
 
     meta = []
