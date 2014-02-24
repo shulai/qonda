@@ -114,7 +114,10 @@ class Aggregator(object):
             for attr in self.__attributes.keys():
                 if attr == '*':
                     continue
-                self.__values[attr] += getattr(sender[i], attr)
+                try:
+                    self.__values[attr] += getattr(sender[i], attr)
+                except TypeError:
+                    pass  # Probably no value set in the column yet
             self.__values['*'] += 1
             self.update_target()
 
