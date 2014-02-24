@@ -21,10 +21,14 @@ if PYQT_VERSION == 5:
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt, pyqtSignal, pyqtProperty
 else:
+    #lint:disable
     from PyQt4 import QtGui, QtCore
     from PyQt4.QtCore import Qt, pyqtSignal, pyqtProperty
     QtWidgets = QtGui
     QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
+    #lint:enable
+
+QondaResizeRole = 64
 
 
 class EditableView(object):
@@ -106,6 +110,16 @@ class EditableView(object):
 
     allowDeletes = pyqtProperty('bool', getAllowDeletes, setAllowDeletes)
 
+    def _adjustColumnsToModel(self, header, model):
+        for i in range(0, model.columnCount()):
+            size = model.headerData(i, Qt.Horizontal, Qt.SizeHintRole)
+            if size is not None:
+                header.resizeSection(i, size.width())
+            mode = model.headerData(i, Qt.Horizontal, QondaResizeRole)
+            if mode is None:
+                mode = header.Interactive
+            header.setResizeMode(i, mode)
+
 
 class TableView(QtWidgets.QTableView, EditableView):
 
@@ -124,6 +138,11 @@ class TableView(QtWidgets.QTableView, EditableView):
         row = current.row()
         if row != previous.row():
             self.currentRowChanged.emit(row)
+
+    def setModel(self, model):
+        QtWidgets.QTableView.setModel(self, model)
+        if model is not None:
+            self._adjustColumnsToModel(self.horizontalHeader(), model)
 
 
 class TreeView(QtWidgets.QTreeView, EditableView):
@@ -147,3 +166,8 @@ class TreeView(QtWidgets.QTreeView, EditableView):
         row = current.row()
         if row != previous.row():
             self.currentRowChanged.emit(row)
+
+    def setModel(self, model):
+        QtWidgets.QTreeView.setModel(self, model)
+        if model is not None:
+            self._adjustColumnsToModel(self.header(), model)

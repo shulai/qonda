@@ -31,6 +31,7 @@ else:
 from .observable import ObservableObject, ObservableListProxy
 
 PythonObjectRole = 32
+QondaResizeRole = 64
 
 
 class AdapterReader(object):
@@ -155,6 +156,13 @@ class AdapterReader(object):
             except (KeyError, TypeError):
                 return None
 
+        # Qonda extension: Handle QHeaderView resizemodes using roles
+        def get_resize_role(section):
+            try:
+                return self._column_meta[section]['columnResizeMode']
+            except (KeyError, TypeError):
+                return None
+
         if orientation == Qt.Horizontal:
             role_resolvers = {
                 Qt.DisplayRole: get_title,
@@ -168,6 +176,7 @@ class AdapterReader(object):
 #                Qt.TextAlignmentRole: self._get_text_alignment_role,
 #                Qt.BackgroundRole: self._get_background_role,
 #                Qt.ForegroundRole: self._get_foreground_role,
+                 QondaResizeRole: get_resize_role
             }
             try:
                 return role_resolvers[role](section)
@@ -305,6 +314,11 @@ def _build_class_meta(class_, properties):
                 v = class_._qonda_column_meta_[head]
                 if isinstance(v, type):
                     v = resolve_meta(v, tail)
+                else:
+                    print ("Warning: Composite attribute found metadata "
+                        "doesn't point to a class. "
+                        "The attribute won't use class metadata")
+                    v = {}
             except KeyError:
                 v = {}
         try:

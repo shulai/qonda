@@ -293,7 +293,7 @@ Emitting arbitrary events
 You can use the observable/observer infrastructure for your own purposes too.
 For this, besides inheriting from one of the observable classes
 (``Observable``, ``ObservableObject``, ``ObservableProxy`` and
-``ObservableListProxy``), you must use the ``Observable._notify`` method with 
+``ObservableListProxy``), you must use the ``Observable._notify`` method with
 the event type and any event related data you want to pass to your observers::
 
     class MyObservableObject(Observable):
@@ -331,7 +331,7 @@ Where observer_data is any additional data required by the observer to
 process the event.
 
 Any number of observers can observe an object, and an observer can observe
-any number of objects. There is no warranty on the order of callback 
+any number of objects. There is no warranty on the order of callback
 invocation.
 
 You also can stop observing an object::
@@ -358,9 +358,9 @@ Hence, an observer for an ObservableObject could be::
                 sender.total = sender.price + sender.tax
 
 While ``attributes`` is a tuple of length 1 as a generalization.
-Your observers should be written, a best practice, for an arbitrary number 
-of attributes,  and use ``for`` and ``in``, so they will work correctly if 
-you use them with other Observable objects that could emit events with 
+Your observers should be written, a best practice, for an arbitrary number
+of attributes,  and use ``for`` and ``in``, so they will work correctly if
+you use them with other Observable objects that could emit events with
 several attributes at once.
 
 ObservableListProxy events
@@ -437,7 +437,7 @@ Alternatively lack of coupling can be preserved assigning
 Besides the special '.' key, also the '*' key is allowed, in order to
 set metadata properties affecting the presentation of all the attributes,
 (e.g. a full row in a view)::
-    
+
     _qonda_column_meta_ = {
         '.': {  # Metadata for this class when used as a value
             'width': 30
@@ -498,6 +498,8 @@ title               Constant                unicode                   DisplayRol
 width               Constant                int                       SizeHintRole   Column width in characters. Used in
                                                                                      table and tree views along
                                                                                      ``resizeColumnsToContents()``
+columnResizeMode    Constant                ``QHeaderView.ResizeMode``               ResizeMode for the column (Qonda
+                                                                                     extension)
 ==================  ======================  ========================  =============  ========================================
 
 The next metadata properties are available, attribute value wise:
