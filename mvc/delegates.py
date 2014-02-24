@@ -46,8 +46,11 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        value = int(index.model().data(index, Qt.EditRole))
-        editor.setValue(value)
+        try:
+            value = int(index.model().data(index, Qt.EditRole))
+            editor.setValue(value)
+        except ValueError:
+            editor.setValue(editor.minimum())
 
     def setModelData(self, editor, model, index):
         editor.interpretText()
