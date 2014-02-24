@@ -139,9 +139,9 @@ class SpinBox(QtWidgets.QSpinBox):
 
     def setValue(self, value):
         if value is None:
-            self.setValue(self.minimum())
+            super(SpinBox, self).setValue(self.minimum())
         else:
-            self.setValue(value)
+            super(SpinBox, self).setValue(value)
 
     def clear(self):
         if self.__allowEmpty:
@@ -181,9 +181,9 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
 
     def setValue(self, value):
         if value is None:
-            self.setValue(self.minimum())
+            super(DecimalSpinBox, self).setValue(self.minimum())
         else:
-            self.setValue(value)
+            super(DecimalSpinBox, self).setValue(value)
 
     def clear(self):
         if self.__allowEmpty:
@@ -298,6 +298,7 @@ class NumberEdit(QtWidgets.QLineEdit):
 
     def focusInEvent(self, event):
         self.setText(self._removeMask(self.text()))
+        self.selectAll()
         super(NumberEdit, self).focusInEvent(event)
 
     def focusOutEvent(self, event):
