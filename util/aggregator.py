@@ -149,7 +149,10 @@ class Aggregator(object):
         if attr in self.__attributes.keys():
             if event_type == 'before_update':
                 # self._notify('before_update', 'total')
-                self.__values[attr] -= getattr(sender, attr)
+                try:
+                    self.__values[attr] -= getattr(sender, attr)
+                except TypeError:
+                    pass  # Probably no value set in the column yet
             elif event_type == 'update':
                 self.__values[attr] += getattr(sender, attr)
                 # self._notify('update', 'total')
