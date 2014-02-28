@@ -407,23 +407,21 @@ Class level Metadata
 You can add metadata to your model classes, using the ``_qonda_column_meta_``
 class. Those are dicts, with keys being the name of the attributes the
 metadata is being defined, and values are either dicts of attribute specific
-metadata, or the class of the attribute values. In that case, the key '.' in
-the attribute class metadata is used for such attribute::
+metadata::
 
     class Contact(ObservableObject):
 
-    _qonda_column_meta_ = {
-        'name': {
-            'title': "Full Name",
-            'width': 30
+        _qonda_column_meta_ = {
+            'name': {
+                'title': "Full Name",
+                'width': 30
+                }
             }
-        }
 
-    def __init__(self, name=None, phone=None):
-        ObservableObject.__init__(self)
-        self.name = name
-        self.phone = phone
-
+        def __init__(self, name=None, phone=None):
+            ObservableObject.__init__(self)
+            self.name = name
+            self.phone = phone
 
 Alternatively lack of coupling can be preserved assigning
 ``_qonda_column_meta_`` outside the class definition::
@@ -434,22 +432,39 @@ Alternatively lack of coupling can be preserved assigning
             }
         }
 
-Besides the special '.' key, also the '*' key is allowed, in order to
+Instead of a dict you can use the type (class) of an attribute.
+In that case, the key '.' in the attribute class metadata is used for such
+attribute. Besides the special '.' key, also the '*' key is allowed, in order to
 set metadata properties affecting the presentation of all the attributes,
 (e.g. a full row in a view)::
 
-    _qonda_column_meta_ = {
-        '.': {  # Metadata for this class when used as a value
-            'width': 30
-        },
-        '*' {  # Common metadata for all attributes of this class instances
-        },
-        'name': {
-            'title': "Full Name",
-            'width': 30
-            }
-        }
+    class Contact(ObservableObject):
 
+        _qonda_column_meta_ = {
+            '.': {  # Metadata for this class when used as a value
+                'width': 30
+            },
+            '*' {  # Common metadata for all attributes of this class instances
+                'foreground': QColor("blue")  # All attributes displayed in blue
+                                              # unless foreground is set in
+                                              # an attribute key
+            },
+            'name': {
+                'title': "Full Name",
+                'width': 30
+                }
+            }
+
+    class Call(ObservableObject):
+
+        _qonda_column_meta_ = {
+            'contact': Contact  # Use metadata from '.' key from Contact
+            }
+
+
+If you plan to use composited attributes in your adapters (like 'contact.phone',
+make sure to use types as metadata, this way Qonda will be able to find the
+proper metadata following the chain of metadata definitions.
 
 Using class level metadata only works when the class argument is set in the
 adapter constructor. See next section for details.
@@ -499,7 +514,12 @@ width               Constant                int                       SizeHintRo
                                                                                      table and tree views along
                                                                                      ``resizeColumnsToContents()``
 columnResizeMode    Constant                ``QHeaderView.ResizeMode``               ResizeMode for the column (Qonda
-                                                                                     extension)
+                                                                                     extension, works with Qonda's TableView
+                                                                                     and TreeView widgets).
+                                                                                     Usually set to ``QHeaderView.Stretch``
+                                                                                     (use any extra available space) or
+                                                                                     ``QHeaderView.ResizeToContents`` (use
+                                                                                     available space according to contents)
 ==================  ======================  ========================  =============  ========================================
 
 The next metadata properties are available, attribute value wise:
