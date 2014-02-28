@@ -1,8 +1,17 @@
 Changelog
 =========
 
-0.5.4:
+0.5.5:
+------
 
+* Add use of '*' metadata key for properties common to all the attributes
+* Add columnResizeMode metadata property
+* Fix: Circular references in ObservableObject
+* Fix: Make adapters work with updates on multiple attributes at once
+* Fix: Ignore null/invalid values in Aggregator
+
+0.5.4:
+------
 * Add SpinBox and DecimalSpinBox widgets and delegates
 * ComboBoxDelegate supports empty combo models and editable combos.
 
