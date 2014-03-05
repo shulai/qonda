@@ -68,7 +68,8 @@ class AdapterReader(object):
             """Partial function for functional, object entity derived, or
             constant metadata"""
             try:
-                o = self.getPyObject(index)
+                #o = self.getPyObject(index)
+                o = self._get_value_object(index)
             except:
                 return None
             if o is None:
@@ -473,6 +474,29 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             return False
         return True
 
+    def _get_value_object(self, index):
+        """
+        Return the object currently holding the value
+        """
+        value = None
+        if index.row() != 0:
+            raise IndexError
+        propertyparts = self._properties[index.column()].split('.')
+        try:
+            obj = self._model
+            prop = propertyparts.pop(0)
+
+            while True:
+                value = getattr(obj, prop)
+                prop = propertyparts.pop(0)
+                obj = value
+        except IndexError:
+            pass
+        except AttributeError:
+            pass
+
+        return obj
+
     def rowCount(self, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
             return 0
@@ -686,6 +710,11 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
             raise IndexError
         return self._model[index.row()]
 
+    def _get_value_object(self, index):
+        if index.column() != 0:
+            raise IndexError
+        return self._model[index.row()]
+
     def data(self, index, role=Qt.DisplayRole):
 
         if not index.isValid():
@@ -804,6 +833,24 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
         except AttributeError:
             return False
         return True
+
+    def _get_value_object(self, index):
+        value = None
+        propertyparts = self._properties[index.column()].split('.')
+        try:
+            obj = self._model[index.row()]
+            prop = propertyparts.pop(0)
+
+            while True:
+                value = getattr(obj, prop)
+                prop = propertyparts.pop(0)
+                obj = value
+        except IndexError:
+            pass
+        except AttributeError:
+            pass
+
+        return obj
 
     def _insert_placeholder(self):
         self.beginInsertRows(QtCore.QModelIndex(), 0, 0)
@@ -1009,6 +1056,24 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             return True
         except IndexError:
             return False
+
+    def _get_value_object(self, index):
+        value = None
+        propertyparts = self._properties[index.column()].split('.')
+        try:
+            obj = index.internalPointer()
+            prop = propertyparts.pop(0)
+
+            while True:
+                value = getattr(obj, prop)
+                prop = propertyparts.pop(0)
+                obj = value
+        except IndexError:
+            pass
+        except AttributeError:
+            pass
+
+        return obj
 
     def flags(self, index):
         """
