@@ -432,6 +432,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         return self.createIndex(row, column, self._model)
 
     def getPyObject(self, index):
+        if index.row() != 0:
+            return None
         return self._model
 
     def _get_value(self, index):
@@ -674,7 +676,10 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         return self._model
 
     def getPyObject(self, index):
-        return self._model[index.row()]
+        try:
+            return self._model[index.row()]
+        except IndexError:
+            return None
 
     def _get_value(self, index):
         if index.column() != 0:
@@ -756,7 +761,10 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
             return QtCore.QModelIndex()
 
     def getPyObject(self, index):
-        return self._model[index.row()]
+        try:
+            return self._model[index.row()]
+        except IndexError:
+            return None
 
     def _get_value(self, index):
         value = None
