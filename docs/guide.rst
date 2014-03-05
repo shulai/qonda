@@ -590,12 +590,14 @@ Adapter API
 Adapters inherits from ``QAbstractItemModel``, and as such implements all
 of its methods and properties. Also implements the next methods.
 
-* ``getPyObject(index)``: Gets the entity matching the given ``QModelIndex``.
+* ``getPyModel()``: Returns the Python model of the adapter.
 
-* ``getPropertyColumn(propertyname)``: Return the column number of the given
+* ``getPyObject(index)``: Returns the entity matching the given ``QModelIndex``.
+
+* ``getPropertyColumn(propertyname)``: Returns the column number of the given
     property.
 
-* ``getColumnProperty(col)``: Return the property name of the given column.
+* ``getColumnProperty(col)``: Returns the property name of the given column.
 
 Other adapters
 --------------
