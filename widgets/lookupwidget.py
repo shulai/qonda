@@ -32,15 +32,18 @@ PythonObjectRole = 32
 
 class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
 
-    def __init__(self, parent=None, search_function=None, search_window=None):
+    def __init__(self, parent=None, search_function=None, search_window=None,
+            display_formatter=unicode):
         QtWidgets.QItemDelegate.__init__(self, parent)
         self.search_function = search_function
         self.search_window = search_window
+        self.display_formatter = display_formatter
 
     def createEditor(self, parent, option, index):
         editor = LookupWidget(parent)
         editor.search_function = self.search_function
         editor.search_window = self.search_window
+        editor.display_formatter = self.display_formatter
         return editor
 
     def setSearchWindow(self, window):
@@ -87,6 +90,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         self.search_function = True
         self.search_window = None
         self._editing = False
+        self.display_formatter = unicode
         self._show_value()
 
     def resizeEvent(self, event):
@@ -152,7 +156,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         if self._value is None:
             self.clear()
         else:
-            self.setText(unicode(self._value))
+            self.setText(self.display_formatter(self._value))
 
     def _search_value(self):
         text = self.text()
@@ -172,7 +176,7 @@ class LookupWidget(QtWidgets.QLineEdit):
             actions = {}
             self.menu.clear()
             for i, value in enumerate(values):
-                action = self.menu.addAction(unicode(value))
+                action = self.menu.addAction(self.display_formatter(value))
                 actions[action] = i
                 if i == 0:
                     self.menu.setActiveAction(action)
