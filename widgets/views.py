@@ -120,6 +120,11 @@ class EditableView(object):
                 mode = header.Interactive
             header.setResizeMode(i, mode)
 
+    def setItemDelegatesForColumns(self, *delegates):
+        for column, delegate in enumerate(delegates):
+            if delegate:
+                self.setItemDelegateForColumn(column, delegate)
+
 
 class TableView(QtWidgets.QTableView, EditableView):
 
