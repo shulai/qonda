@@ -35,7 +35,7 @@ class Observable(object):
 
     try:
         @orm.reconstructor
-        def __reconstructor(self):
+        def reconstructor(self):
             self.__callbacks = dict()
     except NameError:
         pass
