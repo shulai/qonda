@@ -6,7 +6,7 @@
 Qonda guide
 ===========
 
-Version 0.5.0, 2013-12-02
+Version 0.6.0, 2014-03-07
 
 Intro
 =====
@@ -237,6 +237,10 @@ If you need to use ObservableObject along with other parent class, please
 note that ``__init__()`` in Observable objects don't call ``super()``, hence you
 will need to write your own ``__init__()`` method and call either ``__init__()``
 individually there.
+
+Also, Observable (and hence ObservableObject) has support for objects persisted
+using SQLAlchemy implementing a _reconstructor_ method. Therefore Observable
+descendants implementing a reconstructor must call ``super().reconstructor()``.
 
 Adapters observe observable objects automatically, no further action is
 required.
@@ -506,21 +510,21 @@ Metadata properties
 
 The next metadata properties are available, column wise:
 
-==================  ======================  ========================  =============  ========================================
-Property            Property type           Value type                Qt Role        Description
-==================  ======================  ========================  =============  ========================================
-title               Constant                unicode                   DisplayRole    Column title in QTableView and QTreeView
-width               Constant                int                       SizeHintRole   Column width in characters. Used in
-                                                                                     table and tree views along
-                                                                                     ``resizeColumnsToContents()``
-columnResizeMode    Constant                ``QHeaderView.ResizeMode``               ResizeMode for the column (Qonda
-                                                                                     extension, works with Qonda's TableView
-                                                                                     and TreeView widgets).
-                                                                                     Usually set to ``QHeaderView.Stretch``
-                                                                                     (use any extra available space) or
-                                                                                     ``QHeaderView.ResizeToContents`` (use
-                                                                                     available space according to contents)
-==================  ======================  ========================  =============  ========================================
+==================  ======================  ==========================  =============  ========================================
+Property            Property type           Value type                  Qt Role        Description
+==================  ======================  ==========================  =============  ========================================
+title               Constant                unicode                     DisplayRole    Column title in QTableView and QTreeView
+width               Constant                int                         SizeHintRole   Column width in characters. Used in
+                                                                                       table and tree views along
+                                                                                       ``resizeColumnsToContents()``
+columnResizeMode    Constant                ``QHeaderView.ResizeMode``                 ResizeMode for the column (Qonda
+                                                                                       extension, works with Qonda's TableView
+                                                                                       and TreeView widgets).
+                                                                                       Usually set to ``QHeaderView.Stretch``
+                                                                                       (use any extra available space) or
+                                                                                       ``QHeaderView.ResizeToContents`` (use
+                                                                                       available space according to contents)
+==================  ======================  ==========================  =============  ========================================
 
 The next metadata properties are available, attribute value wise:
 
@@ -703,13 +707,35 @@ Qonda also provides a set of enhanced widgets:
     the value.
 * NumberEdit: A ``QLineEdit`` for localized number editing.
 
+DateEdit, DateTimeEdit, SpinBox and ComboBox
+--------------------------------------------
+
+New properties:
+
+* allowEmpty(getAllowEmpty/setAllowEmpty), default=True: if True, the widget
+  can be empty.
+
+NumberEdit
+----------
+
+New properties:
+
+* value(getValue/setValue): Get/Set the value of the widget.
+
+* decimals(getDecimals/setDecimals), default=0
+
+* returnDecimal(getReturnDecimal/setReturnDecimal), default=False: If False,
+    returned values are of type ``float``, if True are of type
+    ``decimal.Decimal``.
+
+
 LookupWidget
 ------------
 
 Besides enhancing standard widgets, Qonda provides ``LookupWidget`` and it's
 very useful to set attributes when the number of allowable values is too
 large for a combo box. At first sight, ``LookupWidget`` is a regular
-``QLineEdit``, but input is not taken the value for the attribute but as
+``QLineEdit``, but input is not taken as the value for the attribute but as
 input for a search function that returns the real value::
 
     cities = (
@@ -745,14 +771,17 @@ key combinations:
 New Properties:
 
 * allowAppends (getAllowAppends/setAllowAppends), default=True: Allows row
-    appending.
+  appending.
 * allowInserts (getAllowInserts/setAllowInserts), default=True: Allows row
-    insertion.
+  insertion.
 * allowDeletes (getAllowDeletes/setAllowDeletes), default=True: Allows row
-    deletion.
+  deletion.
 
 New methods:
 
+* ``setItemDelegatesForColumns(delegate, ...])``: a shorthand for a sequence
+    of ``setItemDelegateForColumn()```calls, and avoid counting columns by
+    hand. To skip a column, use ``None``.
 * ``TreeView`` implements the handy ``resizeColumnsToContents()`` method,
     already present in ``QTableView``.
 
@@ -770,9 +799,9 @@ Aggregator
 ----------
 
 ``Aggregator`` calculates sum of attributes and/or count of elements in
-list of entities, setting a attributes in a provided summary object.
-Entities must be observable to allow aggregators update the summary
-values.::
+list of entities, setting attributes in a provided summary object.
+Both entities and the list itself must be observable to allow aggregators
+update the summary values::
 
     from qonda.util.aggregator import Aggregator
 
@@ -796,7 +825,8 @@ values.::
         def __init__(self):
 
             ...
-
+            grocery_list = ObservableListProxy()
+            ...
             summary = Summary()
             self.aggregator = Aggregator(
                 grocery_list,
