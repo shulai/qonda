@@ -921,8 +921,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
 
         self._model = model
         # Moved into BaseAdapter.__init__
-        #self._column_meta = _combine_column_metas(class_, column_meta,
-        #    properties)
+        self._column_meta = _combine_column_metas(class_, column_meta,
+            properties)
         self.options = set(['edit', 'append']) if options is None else options
         self.parent_attr = parent_attr
         self.children_attr = children_attr
