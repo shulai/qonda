@@ -597,6 +597,9 @@ of its methods and properties. Also implements the next methods.
 * ``getPyModel()``: Returns the Python model of the adapter.
 
 * ``getPyObject(index)``: Returns the entity matching the given ``QModelIndex``.
+        In ObjectAdapter returns the model for any index, in ObjectListAdapter
+        returns the row of the list for the matching row of the index, and
+        so on.
 
 * ``getPropertyColumn(propertyname)``: Returns the column number of the given
     property.
