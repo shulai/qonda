@@ -71,23 +71,38 @@ class AdapterReader(object):
                 #o = self.getPyObject(index)
                 o = self._get_value_object(index)
             except:
+                print "Error!!!"
                 return None
-            if o is None:
-                return None
+            #if o is None:
+            #    return None
             try:
                 m = self._column_meta[index.column()][key]
                 try:
                     return m(o)
                 except TypeError:
                     return m
-            except (IndexError, KeyError, TypeError):
+            except KeyError:  # No key in the column meta
+                try:
+                    m = self._star_meta[key]
+                    try:
+                        return m(o)
+                    except TypeError:  # Object not callable
+                        return m
+                except (KeyError, TypeError):  # No key in the row meta, dont remember when raises TypeError
+                    return None
+            except (IndexError, TypeError):  # TODO: Verify when this happens
                 return None
 
         def constant_meta(key, self, index):
             "Partial function for constant metadata"
             try:
                 return self._column_meta[index.column()][key]
-            except (IndexError, KeyError, TypeError):
+            except KeyError:  # No key in the column meta
+                try:
+                    return self._star_meta[key]
+                except (KeyError, TypeError):  # No key in the row meta, don't remember when raises TypeError
+                    return None
+            except (IndexError, TypeError):  # TODO: Verify when this happens
                 return None
 
         self._get_display_role = partial(formatter, 'displayFormatter',
@@ -322,13 +337,6 @@ def _build_class_meta(class_, properties):
                     v = {}
             except KeyError:
                 v = {}
-        try:
-            star_v = class_._qonda_column_meta_['*'].copy()
-            star_v.update(v)
-            v = star_v
-        except KeyError:
-            pass
-        return v
 
     meta = []
     for p in properties:
@@ -364,13 +372,28 @@ def _combine_column_metas(class_, adapter_meta, properties):
     return meta
 
 
+def _combine_star_metas(class_, adapter_meta, properties):
+
+    try:
+        class_meta = class_._qonda_column_meta_['*']
+    except KeyError:
+        class_meta = {}
+
+    if adapter_meta is None:
+        return class_meta
+
+    meta = class_meta.copy()
+    meta.update(adapter_meta)
+    return meta
+
+
 class BaseAdapter(QtCore.QAbstractTableModel):
     """
         Base class for adapting Python objects into a PyQt QAbstractTableModel
         compatible wrapper.
     """
     def __init__(self, properties, model=None, class_=None, column_meta=None,
-            parent=None):
+            star_meta=None, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._model = model
         self._class = class_
@@ -387,6 +410,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
 
         self._column_meta = _combine_column_metas(class_, column_meta,
             self._properties)
+        self._star_meta = _combine_star_metas(class_, star_meta)
 
         try:
             model.add_callback(self.observe)
@@ -415,11 +439,11 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     """
 
     def __init__(self, properties, model=None, class_=None,
-            column_meta=None, parent=None):
+            column_meta=None, star_meta=None, parent=None):
         # super is *really* harmful
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, class_, column_meta,
-            parent)
+            star_meta, parent)
 
     def index(self, row, column, parent=None):
 
@@ -659,12 +683,13 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         Adapts a list of Python values into a single column
         PyQt QAbstractTableModel.
     """
-    def __init__(self, model, parent=None, class_=None, column_meta=None):
+    def __init__(self, model, parent=None, class_=None, star_meta=None):
         # super is *really* harmful
         BaseListAdapter.__init__(self)
         QtCore.QAbstractListModel.__init__(self, parent)
         self._model = model
-        self._column_meta = column_meta
+        self._column_meta = {}
+        self._star_meta = _combine_star_metas(class_, star_meta)
         self.options = set()
         try:
             model.add_callback(self.observe)
@@ -737,7 +762,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
     """
 
     def __init__(self, properties, model=None, class_=None, column_meta=None,
-        parent=None, options=None, item_factory=None):
+        star_meta=None, parent=None, options=None, item_factory=None):
         """
             Create a ObjectListAdapter.
             properties: list of properties of the elements to be shown in the
@@ -748,7 +773,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
         """
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, class_, column_meta,
-            parent)
+            star_meta, parent)
         # TODO: Check if edit_allowed is necessary (Can disable item editing
         # in the view)
         self.options = set(['edit', 'append']) if options is None else options
@@ -904,7 +929,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             setattr(self, parent_attr, None)
 
     def __init__(self, properties, model=None, class_=None,
-            column_meta=None, qparent=None,
+            column_meta=None, star_meta=None, qparent=None,
             rootless=False, options=None, parent_attr='parent',
             children_attr='children'):
 
@@ -920,9 +945,9 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 children_attr)
 
         self._model = model
-        # Moved into BaseAdapter.__init__
         self._column_meta = _combine_column_metas(class_, column_meta,
             properties)
+        self._star_meta = _combine_star_metas(class_, row_meta)
         self.options = set(['edit', 'append']) if options is None else options
         self.parent_attr = parent_attr
         self.children_attr = children_attr

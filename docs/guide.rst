@@ -569,18 +569,19 @@ Adapters, in detail
 The full syntax for ``ObjectAdapter`` creation is::
 
     ObjectAdapter(properties, model=None, class_=None,
-            column_meta=None, parent=None)
+            column_meta=None, row_meta=None, parent=None)
 
 * properties: A list (but usually a Python tuple) of attribute names
 * model: The model entity object
 * class\_: The class of the model, for metadata purposes, as model eventually could be None. See also ``ObjectListAdapter``.
-* column_meta: The adapter level metadata, a list or tuple.
+* column_meta: The adapter level metadata, a list or tuple of dict. * DEPRECATED *
+* row_meta: Adapter level row wide metadata, a dict.
 * parent: As adapters are QObject inheritors, can have parents for memory management purposes. Usually not used.
 
 The syntax for ``ObjectListAdapter`` is similar::
 
     ObjectListAdapter(properties, model=None, class_=None, column_meta=None,
-        parent=None, options=None, item_factory=None)
+        row_meta=None, parent=None, options=None, item_factory=None)
 
 * class\_: For metadata purposes, but also for row appending. See also ``item_factory``.
 * options: A set of options, by default assumes {'edit', 'append'}:
@@ -613,7 +614,7 @@ Other adapters
 implementing a single column Interview model where each item matches one
 value::
 
-    ValueListAdapter(model, parent=None, class_=None, column_meta=None)
+    ValueListAdapter(model, parent=None, class_=None, row_meta=None)
 
 Note that no property argument is required, however ``column_meta`` is
 still a sequence, in order to be consistent with other adapters.
@@ -628,7 +629,7 @@ Common use of ``ValueListAdapter`` is as the model for combo boxes::
 able to wrap a tree-like structure of objects of the same type::
 
     ObjectTreeAdapter(properties, model=None, class_=None,
-            column_meta=None, qparent=None,
+            column_meta=None, row_meta=None, qparent=None,
             rootless=False, options=None, parent_attr='parent',
             children_attr='children'):
 
