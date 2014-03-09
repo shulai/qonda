@@ -82,8 +82,9 @@ class AdapterReader(object):
                 except TypeError:
                     return m
             except KeyError:  # No key in the column meta
+                o = self.getPyObject(index)
                 try:
-                    m = self._star_meta[key]
+                    m = self._row_meta[key]
                     try:
                         return m(o)
                     except TypeError:  # Object not callable
@@ -99,7 +100,7 @@ class AdapterReader(object):
                 return self._column_meta[index.column()][key]
             except KeyError:  # No key in the column meta
                 try:
-                    return self._star_meta[key]
+                    return self._row_meta[key]
                 except (KeyError, TypeError):  # No key in the row meta, don't remember when raises TypeError
                     return None
             except (IndexError, TypeError):  # TODO: Verify when this happens
@@ -337,6 +338,7 @@ def _build_class_meta(class_, properties):
                     v = {}
             except KeyError:
                 v = {}
+        return v
 
     meta = []
     for p in properties:
@@ -372,8 +374,10 @@ def _combine_column_metas(class_, adapter_meta, properties):
     return meta
 
 
-def _combine_star_metas(class_, adapter_meta, properties):
+def _combine_row_metas(class_, adapter_meta):
 
+    if class_ is None:
+        return adapter_meta
     try:
         class_meta = class_._qonda_column_meta_['*']
     except KeyError:
@@ -393,7 +397,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         compatible wrapper.
     """
     def __init__(self, properties, model=None, class_=None, column_meta=None,
-            star_meta=None, parent=None):
+            row_meta=None, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._model = model
         self._class = class_
@@ -410,7 +414,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
 
         self._column_meta = _combine_column_metas(class_, column_meta,
             self._properties)
-        self._star_meta = _combine_star_metas(class_, star_meta)
+        self._row_meta = _combine_row_metas(class_, row_meta)
 
         try:
             model.add_callback(self.observe)
@@ -439,11 +443,11 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     """
 
     def __init__(self, properties, model=None, class_=None,
-            column_meta=None, star_meta=None, parent=None):
+            column_meta=None, row_meta=None, parent=None):
         # super is *really* harmful
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, class_, column_meta,
-            star_meta, parent)
+            row_meta, parent)
 
     def index(self, row, column, parent=None):
 
@@ -683,13 +687,14 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         Adapts a list of Python values into a single column
         PyQt QAbstractTableModel.
     """
-    def __init__(self, model, parent=None, class_=None, star_meta=None):
+    def __init__(self, model, parent=None, class_=None, column_meta=None,
+            row_meta=None):
         # super is *really* harmful
         BaseListAdapter.__init__(self)
         QtCore.QAbstractListModel.__init__(self, parent)
         self._model = model
-        self._column_meta = {}
-        self._star_meta = _combine_star_metas(class_, star_meta)
+        self._column_meta = column_meta
+        self._row_meta = _combine_row_metas(class_, row_meta)
         self.options = set()
         try:
             model.add_callback(self.observe)
@@ -762,7 +767,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
     """
 
     def __init__(self, properties, model=None, class_=None, column_meta=None,
-        star_meta=None, parent=None, options=None, item_factory=None):
+        row_meta=None, parent=None, options=None, item_factory=None):
         """
             Create a ObjectListAdapter.
             properties: list of properties of the elements to be shown in the
@@ -773,7 +778,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
         """
         AdapterReader.__init__(self)
         BaseAdapter.__init__(self, properties, model, class_, column_meta,
-            star_meta, parent)
+            row_meta, parent)
         # TODO: Check if edit_allowed is necessary (Can disable item editing
         # in the view)
         self.options = set(['edit', 'append']) if options is None else options
@@ -929,7 +934,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             setattr(self, parent_attr, None)
 
     def __init__(self, properties, model=None, class_=None,
-            column_meta=None, star_meta=None, qparent=None,
+            column_meta=None, row_meta=None, qparent=None,
             rootless=False, options=None, parent_attr='parent',
             children_attr='children'):
 
@@ -947,7 +952,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         self._model = model
         self._column_meta = _combine_column_metas(class_, column_meta,
             properties)
-        self._star_meta = _combine_star_metas(class_, row_meta)
+        self._row_meta = _combine_row_metas(class_, row_meta)
         self.options = set(['edit', 'append']) if options is None else options
         self.parent_attr = parent_attr
         self.children_attr = children_attr
