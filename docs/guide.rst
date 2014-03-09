@@ -614,7 +614,8 @@ Other adapters
 implementing a single column Interview model where each item matches one
 value::
 
-    ValueListAdapter(model, parent=None, class_=None, row_meta=None)
+    ValueListAdapter(model, parent=None, class_=None,
+        column_meta=None, row_meta=None)
 
 Note that no property argument is required, however ``column_meta`` is
 still a sequence, in order to be consistent with other adapters.
