@@ -380,7 +380,7 @@ def _combine_row_metas(class_, adapter_meta):
         return adapter_meta
     try:
         class_meta = class_._qonda_column_meta_['*']
-    except KeyError:
+    except (AttributeError, KeyError):
         class_meta = {}
 
     if adapter_meta is None:
