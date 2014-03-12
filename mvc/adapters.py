@@ -20,6 +20,7 @@ import cPickle
 from functools import partial
 
 from .. import PYQT_VERSION
+import collections
 
 if PYQT_VERSION == 5:
     from PyQt5 import QtCore, QtGui
@@ -70,8 +71,8 @@ class AdapterReader(object):
             try:
                 #o = self.getPyObject(index)
                 o = self._get_value_object(index)
-            except:
-                print "Error!!!"
+            except Exception as e:
+                print "Error!!!", str(e)
                 return None
             #if o is None:
             #    return None
@@ -317,6 +318,43 @@ class AdapterWriter(object):
         return False
 
 
+class MetaPropertyWrapper(object):
+    """
+    A metadata property wrapper that pass the proper object to callables
+    """
+    def __init__(self, property_name, meta_property):
+        self._property_name = property_name
+        self._meta_property = meta_property
+
+    def __call__(self, *a, **kw):
+        o = a[0]
+        print  "Wrapper", o, self._property_name, self._meta_property
+        return self._meta_property(getattr(o, self._property_name))
+
+
+class PropertyMetadataWrapper(collections.UserDict):
+    """
+    A wrapper for attribute metadata that wraps individual metadata properties
+    in MetaPropertyWrapper.
+    Used to pass the right object to the callables present when the metadata
+    is a reference to metadata in the attribute class (marked with '.')
+    """
+    def __init__(self, property_name, meta):
+        super(PropertyMetadataWrapper, self).__init__()
+        self.data.update(meta)
+        self._property_name = property_name
+
+    def __getitem__(self, key):
+        meta_property = self.data[key]
+        if callable(meta_property):
+            return MetaPropertyWrapper(self._property_name, meta_property)
+        else:
+            return meta_property
+
+    def copy(self):
+        return PropertyMetadataWrapper(self._property_name, self.data)
+
+
 def _build_class_meta(class_, properties):
 
     def resolve_meta(class_, p):
@@ -324,7 +362,7 @@ def _build_class_meta(class_, properties):
             v = class_._qonda_column_meta_[p]
             # Property can be a reference and meta a link to expected class
             if isinstance(v, type):
-                v = v._qonda_column_meta_['.']
+                v = PropertyMetadataWrapper(p, v._qonda_column_meta_['.'])
         except KeyError:
             head, tail = p.split('.', 1)
             try:
@@ -869,6 +907,9 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
         propertyparts = self._properties[index.column()].split('.')
         try:
             obj = self._model[index.row()]
+        except IndexError:
+            return None  # Row doesn't exist
+        try:
             prop = propertyparts.pop(0)
 
             while True:
@@ -876,7 +917,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
                 obj = value
         except IndexError:
-            pass
+            pass  # No more propertyparts
         except AttributeError:
             pass
 
