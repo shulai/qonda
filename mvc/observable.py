@@ -94,6 +94,22 @@ class ObservableObject(Observable):
         if notifiables:
             object.__setattr__(self, '_notifiables_', notifiables)
 
+    try:
+        @orm.reconstructor
+        def reconstructor(self):
+            super().reconstructor()
+            # Besides creating the callback dict via super()
+            # must rebuild the attributes' observation chain
+            # as SQLAlchemy doesn't set attributes using __setattr__
+            for name, value in vars(self).items():
+                try:
+                    if value != self:
+                        value.add_callback(self._observe_attr, name)
+                except AttributeError:
+                    pass
+    except NameError:
+        pass
+
     def __setattr__(self, name, value):
         if self._notifiables_ is None:
             if name[0] == '_':
@@ -129,7 +145,8 @@ class ObservableObject(Observable):
             pass  # If invoked in object construction
 
     def _observe_attr(self, sender, event_type, my_attr, related_attrs):
-        self._notify('update', [my_attr + '.' + attr for attr in related_attrs])
+        self._notify(event_type, [my_attr + '.' + attr
+            for attr in related_attrs])
 
 
 class ReadOnlyProxy(object):
