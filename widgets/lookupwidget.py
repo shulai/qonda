@@ -157,6 +157,9 @@ class LookupWidget(QtWidgets.QLineEdit):
             self.clear()
         else:
             self.setText(self.display_formatter(self._value))
+            # When the value representation is wider than the widget,
+            # the leftmost part must be visible
+            self.setCursorPosition(0)
 
     def _search_value(self):
         text = self.text()
