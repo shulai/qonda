@@ -34,6 +34,9 @@ from .observable import ObservableObject, ObservableListProxy
 PythonObjectRole = 32
 QondaResizeRole = 64
 
+class QondaMetadataError(Exception):
+    pass
+
 
 class AdapterReader(object):
     """
@@ -82,6 +85,8 @@ class AdapterReader(object):
                     return m(o)
                 except TypeError:
                     return m
+                except:
+                    raise QondaMetadataError
             except KeyError:  # No key in the column meta
                 o = self.getPyObject(index)
                 try:
