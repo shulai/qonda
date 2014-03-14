@@ -125,6 +125,9 @@ class EditableView(object):
             if delegate:
                 self.setItemDelegateForColumn(column, delegate)
 
+    def currentPyObject(self):
+        return self.model().getPyObject(self.currentIndex())
+
 
 class TableView(QtWidgets.QTableView, EditableView):
 

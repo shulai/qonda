@@ -140,6 +140,10 @@ class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
             self._addMapping(widget, section, delegate)
         self.toFirst()
 
+    def currentPyObject(self):
+        index = self.model().index(self.currentIndex(), 0)
+        return self.model().getPyObject(index)
+
 
 QtWidgets.QComboBox._mappingDelegateClass = delegates.ComboBoxDelegate
 QtWidgets.QLabel._mappingPropertyName = "text"

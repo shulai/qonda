@@ -698,6 +698,8 @@ to stock ``QDataWidgetMapper``:
 * Adds an ``addMappings`` method for quick setting of mappings
 * Widgets can be mapped with no model assigned, and mappings persists after a call to ``setModel()``
 * ``setModel()`` automatically do ``toFirst()``
+* Adds a convenience ``currentPyObject()`` method to get the Python object for
+  the current row.
 
 Widgets
 -------
@@ -789,6 +791,8 @@ New methods:
     hand. To skip a column, use ``None``.
 * ``TreeView`` implements the handy ``resizeColumnsToContents()`` method,
     already present in ``QTableView``.
+* ``currentPyObject()``: Returns the Python object for the current index of
+    the view. A shorthand for the ``getPyObject()`` method of the adapters.
 
 New signals:
 

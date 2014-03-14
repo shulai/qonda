@@ -328,7 +328,6 @@ class MetaPropertyWrapper(object):
 
     def __call__(self, *a, **kw):
         o = a[0]
-        print  "Wrapper", o, self._property_name, self._meta_property
         return self._meta_property(getattr(o, self._property_name))
 
 
