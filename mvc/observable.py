@@ -145,8 +145,9 @@ class ObservableObject(Observable):
             pass  # If invoked in object construction
 
     def _observe_attr(self, sender, event_type, my_attr, related_attrs):
-        self._notify(event_type, [my_attr + '.' + attr
-            for attr in related_attrs])
+        if event_type in ('before_update', 'update'):
+            self._notify(event_type, [my_attr + '.' + attr
+                for attr in related_attrs])
 
 
 class ReadOnlyProxy(object):
