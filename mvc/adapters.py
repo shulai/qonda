@@ -34,6 +34,7 @@ from .observable import ObservableObject, ObservableListProxy
 PythonObjectRole = 32
 QondaResizeRole = 64
 
+
 class QondaMetadataError(Exception):
     pass
 
@@ -987,7 +988,17 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         QtCore.QAbstractItemModel.__init__(self, qparent)
 
         self._class = class_
-        self._properties = properties
+
+        if column_meta is not None:
+            # Up to 0.4.x behavior: Meta declarations separate
+            # from property list
+            self._properties = properties
+        else:
+            # 0.5 behavior:
+            self._properties = [x if isinstance(x, str) else x[0]
+                for x in properties]
+            column_meta = [{} if isinstance(x, str) else x[1]
+                for x in properties]
 
         self.rootless = rootless
         if rootless:
