@@ -58,7 +58,7 @@ class ItemDelegate(QtWidgets.QItemDelegate):
         except (AttributeError, TypeError):
             pass
 
-        delegate = self.parent()._delegates[editor]
+        delegate = self.parent()._delegates.get(editor)
         if delegate:
             delegate.setEditorData(editor, index)
         else:
@@ -71,7 +71,7 @@ class ItemDelegate(QtWidgets.QItemDelegate):
             editor.setProperty(n, v)
 
     def setModelData(self, editor, model, index):
-        delegate = self.parent()._delegates[editor]
+        delegate = self.parent()._delegates.get(editor)
         if delegate:
             delegate.setModelData(editor, model, index)
         else:
