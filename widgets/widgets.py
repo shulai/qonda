@@ -172,6 +172,8 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
         super(DecimalSpinBox, self).__init__(parent)
         self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
         self.__allowEmpty = True
+        localeconv = locale.localeconv()
+        self._decimal_point = localeconv['decimal_point']
 
     def value(self):
         v = super(DecimalSpinBox, self).value()
@@ -190,7 +192,12 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
             self.setValue(self.minimum())
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Delete:
+        if (event.key() == Qt.Key_Period):
+            if (self._decimal_point != '.'
+                    and event.modifiers() == Qt.KeypadModifier):
+                event = QtGui.QKeyEvent(QEvent.KeyPress, Qt.Key_Comma,
+                    event.modifiers(), self._decimal_point)
+        elif event.key() == Qt.Key_Delete:
             self.clear()
             event.accept()
             return
@@ -277,9 +284,12 @@ class NumberEdit(QtWidgets.QLineEdit):
         if not self.hasFocus():
             s = self._removeMask(s)
         try:
-            v = locale.atof(s) if self._decimals > 0 else int(s)
-            return (Decimal(v)
-                if self._returnDecimal else v)
+            if self._returnDecimal:
+                return Decimal(
+                    s.replace(self._thousands_sep, '')
+                    .replace(self._decimal_point,'.'))
+            else:
+                return locale.atof(s) if self._decimals > 0 else int(s)
         except ValueError:
             return None
 
