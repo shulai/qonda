@@ -427,31 +427,27 @@ metadata::
             self.name = name
             self.phone = phone
 
-Alternatively lack of coupling can be preserved assigning
-``_qonda_column_meta_`` outside the class definition::
+.. tip:: Alternatively lack of coupling can be preserved assigning
+    `` _qonda_column_meta_`` outside the class definition::
 
-    Contact._qonda_column_meta_ = {
-        'name': {
-            'width': 30
-            }
-        }
+	    Contact._qonda_column_meta_ = {
+		'name': {
+		    'width': 30
+		    }
+		}
 
-Instead of a dict you can use the type (class) of an attribute.
-In that case, the key '.' in the attribute class metadata is used for such
-attribute. Besides the special '.' key, also the '*' key is allowed, in order to
-set metadata properties affecting the presentation of all the attributes,
-(e.g. a full row in a view)::
+Using class level metadata only works when the class argument is set in the
+adapter constructor. See next section for details.
+
+Also, instead of a dict you can use the type (class) of an attribute.
+In that case, the special key '.' in the attribute class metadata is used 
+for such attribute.::
 
     class Contact(ObservableObject):
 
         _qonda_column_meta_ = {
             '.': {  # Metadata for this class when used as a value
                 'width': 30
-            },
-            '*' {  # Common metadata for all attributes of this class instances
-                'foreground': QColor("blue")  # All attributes displayed in blue
-                                              # unless foreground is set in
-                                              # an attribute key
             },
             'name': {
                 'title': "Full Name",
@@ -465,13 +461,31 @@ set metadata properties affecting the presentation of all the attributes,
             'contact': Contact  # Use metadata from '.' key from Contact
             }
 
-
 If you plan to use composited attributes in your adapters (like 'contact.phone',
 make sure to use types as metadata, this way Qonda will be able to find the
 proper metadata following the chain of metadata definitions.
 
-Using class level metadata only works when the class argument is set in the
-adapter constructor. See next section for details.
+Besides the special '.' key, you can define the special '*' key, in order to
+set metadata properties affecting the presentation of all the attributes,
+(e.g. a full row in a view), without repeating them for
+each attribute::
+
+    class Contact(ObservableObject):
+
+        _qonda_column_meta_ = {
+            },
+            '*' {  
+		# Common metadata for all attributes of this class instances
+                'foreground': QColor("blue")  # All attributes displayed in blue
+                                              # unless foreground is set in
+                                              # an attribute key
+            },
+            'name': {
+                'title': "Full Name",
+                'width': 30,
+		'foreground': QColor("white")  # This overrides the blue foreground
+                }
+            }
 
 
 Adapter level metadata
@@ -595,17 +609,31 @@ Adapter API
 Adapters inherits from ``QAbstractItemModel``, and as such implements all
 of its methods and properties. Also implements the next methods.
 
-* ``getPyModel()``: Returns the Python model of the adapter.
+* ``getPyModel()``: Returns the Python model of the adapter.::
+
+	# What's the current model for this adapter?
+	model = self.adapter.getPyModel()
+	model.foo = 5
 
 * ``getPyObject(index)``: Returns the entity matching the given ``QModelIndex``.
         In ObjectAdapter returns the model for any index, in ObjectListAdapter
         returns the row of the list for the matching row of the index, and
-        so on.
+        so on.::
+
+		# See also datawidgetmapper.DataWidgetMapper.currentPyObject(), 
+		# widgets.views TableView.currentPyObject(),
+		# and widgets.views TreeView.currentPyObject()
+		current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
 
 * ``getPropertyColumn(propertyname)``: Returns the column number of the given
-    property.
+    property.::
+
+	# Hide the column for phone without having the column number at hand
+	column = self.adapter.getPropertyColumn('phone')
+	self.ui.contact.setColumnHidden(column, True)
 
 * ``getColumnProperty(col)``: Returns the property name of the given column.
+
 
 Other adapters
 --------------
@@ -653,25 +681,64 @@ and draw values in the view.
 Qonda provides several custom delegates, in order to use alternative editor
 in views, and being able to customize the editor properties:
 
-* ComboBoxDelegate: Use QComboBox in views.
-* SpinBoxDelegate: Use QSpinBox in views.
-* DateEditDelegate: Use QDateEdit in views.
-* LineEditDelegate: Use QLineEdit with alignment, inputMask, etc.
-* CheckBoxDelegate: Use QCheckBoxDelegate in views.
-* LookupWidgetDelegate: Use LookupWidgetDelegate in views.
-* PixmapDelegate: Show pixmap values in views.
+* ComboBoxDelegate: Use QComboBox in views::
+
+    mvc.delegates.ComboBoxDelegate(parent=None, model=None, **properties)
+
+* SpinBoxDelegate: Use QSpinBox in views::
+
+    mvc.delegates.SpinBoxDelegate(parent=None, **properties)
+
+* DateEditDelegate: Use QDateEdit in views::
+
+    mvc.delegates.DateEditDelegate(parent=None, **properties)
+
+* LineEditDelegate: Use QLineEdit with alignment, inputMask, etc.::
+
+    mvc.delegates.LineEditDelegate(parent=None, validator=None, **properties):
+
+* CheckBoxDelegate: Use QCheckBoxDelegate in views.::
+
+    mvc.delegates.CheckBoxDelegate(parent=None, **properties)
+
+* LookupWidgetDelegate: Use LookupWidgetDelegate in views.::
+
+    widgets.LookupWidgetDelegate(parent=None, search_function=None, search_window=None,
+            display_formatter=unicode):
+
+* PixmapDelegate: Show pixmap values in views.::
+
+    mvc.delegates.PixMapDelegate(parent=None, scale=False)
 
 Also delegates uses the customized widgets (see below).
 
 ``ComboBoxDelegate`` is also special. Working with vanilla ``QComboBox``
 means working with the chosen value index. ``ComboBoxDelegate`` uses
 the model value directly, so setting a model attribute to the selected
-value transparent.
+value (being the value a string or any arbitrary type) will be transparent.
 
-``DataWidgetMapper`` use this delegates automatically when appropiate. If
-you need to use a customized delegate (e.g. setting editor properties),
+If QComboBox.editable is set to True, the property should be always a str, as
+it returns QCombBox.currentText() as the model value.
+
+Qt uses delegates along with (Q)DataWidgetMapper for value parsing and formatting,
+and in views (QTableView/QTreeView) for editor widget creation.
+
+``DataWidgetMapper`` (see below) use this delegates automatically when appropiate::
+
+    from qonda.datawidgetmapper import DataWidgetMapper
+    ...
+    self.mapper = DataWidgetMapper()
+    self.mapper.addMappings(
+        self.ui.name,
+        self.ui.phone,
+        # if contactType is a QComboBox, mapper will use 
+	# a ComboBoxDelegate automatically.
+	self.ui.contactType)
+
+If you need to use a customized delegate (e.g. setting editor properties),
 use the ``addMapping()`` method with the ``delegate`` argument::
 
+    from qonda.datawidgetmapper import DataWidgetMapper
     from qonda.mvc.delegates import LineEditDelegate
 
     ...
@@ -692,14 +759,47 @@ DataWidgetMapper
 ``DataWidgetMapper`` provides a more powerful and convenient alternative
 to stock ``QDataWidgetMapper``:
 
-* Uses the appropiate, alternative delegate if registered in the ``_mappingDelegateClass`` attribute of the widget class, or via the delegate attribute in the ``addMapping()`` method
-* Uses an enhanced ``ItemDelegate`` delegate, in order to set widget colors and fonts along the value.
+* Uses the appropiate, alternative delegate if registered in the 
+  ``_mappingDelegateClass`` attribute of the widget class, or via the 
+  delegate attribute in the ``addMapping()`` method::
+
+    from qonda.datawidgetmapper import DataWidgetMapper
+    ...
+    self.mapper = QDataWidgetMapper()
+    ...
+    # If category is a QComboBox, uses ComboBoxDelegate automatically
+    self.mapper.addMapping(self.ui.category)
+
+* Uses an enhanced ``ItemDelegate`` delegate, in order to set widget colors 
+  and fonts along the value.
 * Enhances the ``addMapping()`` method to specify an alternate delegate.
-* Adds an ``addMappings`` method for quick setting of mappings
-* Widgets can be mapped with no model assigned, and mappings persists after a call to ``setModel()``
-* ``setModel()`` automatically do ``toFirst()``
+
+    self.mapper.addMapping(self.ui.image, delegate=ImageDelegate(self))
+
+* Adds an ``addMappings`` method for quick setting of mappings.::
+
+    # This is the same as 2 addMapping() calls with sections 0 and 1
+    self.mapper.addMappings(
+	self.ui.name,
+	self.ui.phone) 
+
+* Widgets can be mapped with no model assigned, and mappings persists after a
+  call to ``setModel()``
+* ``setModel()`` automatically do ``toFirst()``::
+
+    self.mapper = DataWidgetMapper()
+    self.mapper.addMappings(
+	self.ui.name,
+	self.ui.phone) 
+    self.mapper.setModel(model)  # New model doesn't clear mappings
+    				 # Already shows first row
+
 * Adds a convenience ``currentPyObject()`` method to get the Python object for
-  the current row.
+  the current row.::
+
+    # Same as
+    # current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
+    current_contact = self.ui.contacts.currentPyObject()
 
 Widgets
 -------
@@ -732,8 +832,8 @@ New properties:
 * decimals(getDecimals/setDecimals), default=0
 
 * returnDecimal(getReturnDecimal/setReturnDecimal), default=False: If False,
-    returned values are of type ``float``, if True are of type
-    ``decimal.Decimal``.
+  returned values are of type ``float``, if True are of type
+  ``decimal.Decimal``.
 
 
 LookupWidget
@@ -787,12 +887,22 @@ New Properties:
 New methods:
 
 * ``setItemDelegatesForColumns(delegate, ...])``: a shorthand for a sequence
-    of ``setItemDelegateForColumn()```calls, and avoid counting columns by
-    hand. To skip a column, use ``None``.
+  of ``setItemDelegateForColumn()```calls, and avoid counting columns by
+  hand. To skip a column, use ``None``.::
+
+        self.ui.contacts.setItemDelegatesForColums(
+            None,
+            None,
+            ComboBoxDelegate(ValueListAdapter(categories)))
+
 * ``TreeView`` implements the handy ``resizeColumnsToContents()`` method,
-    already present in ``QTableView``.
+  already present in ``QTableView``.
 * ``currentPyObject()``: Returns the Python object for the current index of
-    the view. A shorthand for the ``getPyObject()`` method of the adapters.
+  the view. A shorthand for the ``getPyObject()`` method of the adapters.::
+
+        # Same as
+        # current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
+        current_contact = self.ui.contacts.currentPyObject()
 
 New signals:
 
