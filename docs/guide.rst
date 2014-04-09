@@ -440,7 +440,7 @@ Using class level metadata only works when the class argument is set in the
 adapter constructor. See next section for details.
 
 Also, instead of a dict you can use the type (class) of an attribute.
-In that case, the special key '.' in the attribute class metadata is used 
+In that case, the special key '.' in the attribute class metadata is used
 for such attribute.::
 
     class Contact(ObservableObject):
@@ -474,7 +474,7 @@ each attribute::
 
         _qonda_column_meta_ = {
             },
-            '*' {  
+            '*' {
 		# Common metadata for all attributes of this class instances
                 'foreground': QColor("blue")  # All attributes displayed in blue
                                               # unless foreground is set in
@@ -620,7 +620,7 @@ of its methods and properties. Also implements the next methods.
         returns the row of the list for the matching row of the index, and
         so on.::
 
-		# See also datawidgetmapper.DataWidgetMapper.currentPyObject(), 
+		# See also datawidgetmapper.DataWidgetMapper.currentPyObject(),
 		# widgets.views TableView.currentPyObject(),
 		# and widgets.views TreeView.currentPyObject()
 		current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
@@ -634,6 +634,7 @@ of its methods and properties. Also implements the next methods.
 
 * ``getColumnProperty(col)``: Returns the property name of the given column.
 
+* ``properties()``: Returns the property list
 
 Other adapters
 --------------
@@ -731,7 +732,7 @@ and in views (QTableView/QTreeView) for editor widget creation.
     self.mapper.addMappings(
         self.ui.name,
         self.ui.phone,
-        # if contactType is a QComboBox, mapper will use 
+        # if contactType is a QComboBox, mapper will use
 	# a ComboBoxDelegate automatically.
 	self.ui.contactType)
 
@@ -759,8 +760,8 @@ DataWidgetMapper
 ``DataWidgetMapper`` provides a more powerful and convenient alternative
 to stock ``QDataWidgetMapper``:
 
-* Uses the appropiate, alternative delegate if registered in the 
-  ``_mappingDelegateClass`` attribute of the widget class, or via the 
+* Uses the appropiate, alternative delegate if registered in the
+  ``_mappingDelegateClass`` attribute of the widget class, or via the
   delegate attribute in the ``addMapping()`` method::
 
     from qonda.datawidgetmapper import DataWidgetMapper
@@ -770,7 +771,7 @@ to stock ``QDataWidgetMapper``:
     # If category is a QComboBox, uses ComboBoxDelegate automatically
     self.mapper.addMapping(self.ui.category)
 
-* Uses an enhanced ``ItemDelegate`` delegate, in order to set widget colors 
+* Uses an enhanced ``ItemDelegate`` delegate, in order to set widget colors
   and fonts along the value.
 * Enhances the ``addMapping()`` method to specify an alternate delegate.
 
@@ -780,8 +781,18 @@ to stock ``QDataWidgetMapper``:
 
     # This is the same as 2 addMapping() calls with sections 0 and 1
     self.mapper.addMappings(
-	self.ui.name,
-	self.ui.phone) 
+        self.ui.name,
+        self.ui.phone)
+
+* Alternatively, mapping can be set from a list or property names using
+  ``mapFromPropertyList``.::
+
+    # This will map to widgets "name", "phone", "city" and "city_province"
+    self.mapper.mapFromPropertyList(self.ui,
+        ('name', 'phone', 'city', 'city.province'))
+
+    # Using properties from an adapter
+    self.mapper.mapFromPropertyList(self.ui, adapter.properties())
 
 * Widgets can be mapped with no model assigned, and mappings persists after a
   call to ``setModel()``
@@ -789,10 +800,10 @@ to stock ``QDataWidgetMapper``:
 
     self.mapper = DataWidgetMapper()
     self.mapper.addMappings(
-	self.ui.name,
-	self.ui.phone) 
+        self.ui.name,
+        self.ui.phone)
     self.mapper.setModel(model)  # New model doesn't clear mappings
-    				 # Already shows first row
+                                 # Already shows first row
 
 * Adds a convenience ``currentPyObject()`` method to get the Python object for
   the current row.::

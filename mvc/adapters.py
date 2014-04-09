@@ -447,7 +447,7 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         if column_meta is not None:
             # Up to 0.4.x behavior: Meta declarations separate
             # from property list
-            self._properties = properties
+            self._properties = tuple(properties)
         else:
             # 0.5 behavior:
             self._properties = [x if isinstance(x, str) else x[0]
@@ -472,6 +472,9 @@ class BaseAdapter(QtCore.QAbstractTableModel):
 
     def getPyModel(self):
         return self._model
+
+    def properties(self):
+        return self._properties
 
     def getPropertyColumn(self, prop):
         return self._properties.index(prop)
