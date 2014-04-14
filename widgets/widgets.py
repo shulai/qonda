@@ -17,7 +17,7 @@
 # along with Qonda; If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import locale
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
@@ -287,10 +287,11 @@ class NumberEdit(QtWidgets.QLineEdit):
             if self._returnDecimal:
                 return Decimal(
                     s.replace(self._thousands_sep, '')
-                    .replace(self._decimal_point,'.'))
+                    .replace(self._decimal_point, '.'))
             else:
                 return locale.atof(s) if self._decimals > 0 else int(s)
-        except ValueError:
+        except (ValueError,            # atof
+                InvalidOperation):     # Decimal
             return None
 
     def setValue(self, value):
