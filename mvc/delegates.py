@@ -112,8 +112,12 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
         if editor.isEditable():  # if editable, item index are strings
             model.setData(index, editor.currentText(), role=PythonObjectRole)
             return
+        list_index = editor.currentIndex()
         try:
-            value = editor.model().getPyModel()[editor.currentIndex()]
+            if list_index == -1:  # -1 is a valid index!!!
+                value = None
+            else:
+                value = editor.model().getPyModel()[list_index]
         except IndexError:
             value = None  # If not item selected returns None
         except AttributeError as e:
