@@ -3,7 +3,10 @@ syntax: glob
 *.pyc
 *~
 *_ui.py
+*_rc.py
+*.orig
 
 syntax: regexp
 ^build/.*
-
+^dist/.*
+^qonda.egg-info/
