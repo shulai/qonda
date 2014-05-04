@@ -160,3 +160,5 @@ QtWidgets.QPushButton._mappingReadOnly = True
 QtWidgets.QCheckBox._mappingDelegateClass = delegates.CheckBoxDelegate
 QtWidgets.QDateEdit._mappingDelegateClass = delegates.DateEditDelegate
 widgets.NumberEdit._mappingDelegateClass = delegates.NumberEditDelegate
+widgets.SpinBox._mappingDelegateClass = delegates.SpinBoxDelegate
+widgets.DecimalSpinBox._mappingDelegateClass = delegates.DecimalSpinBoxDelegate

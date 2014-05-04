@@ -49,7 +49,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         try:
             value = int(index.model().data(index, Qt.EditRole))
             editor.setValue(value)
-        except ValueError:
+        except (TypeError, ValueError):
             editor.setValue(editor.minimum())
 
     def setModelData(self, editor, model, index):
@@ -59,6 +59,27 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+
+class DecimalSpinBoxDelegate(SpinBoxDelegate):
+
+    def createEditor(self, parent, option, index):
+        editor = widgets.DecimalSpinBox(parent)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
+        return editor
+
+    def setEditorData(self, editor, index):
+        try:
+            value = index.model().data(index, PythonObjectRole)
+            editor.setValue(value)
+        except (TypeError, ValueError):
+            editor.setValue(editor.minimum())
+
+    def setModelData(self, editor, model, index):
+        editor.interpretText()
+        value = editor.value()
+        model.setData(index, value, PythonObjectRole)
 
 
 class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
