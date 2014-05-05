@@ -299,7 +299,7 @@ class NumberEdit(QtWidgets.QLineEdit):
     def setValue(self, value):
         if self.hasFocus():
             self.setText(locale.format('%.*f', (self._decimals,
-                    float(value)), grouping=False))
+                float(value)), grouping=False))
         else:
             if value is None:
                 self.clear()

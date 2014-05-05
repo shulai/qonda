@@ -593,7 +593,7 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                         self.dataChanged.emit(index, index)
 
 
-class BaseListAdapter(AdapterReader):
+class BaseListAdapter(AdapterReader, AdapterWriter):
 
     def observe(self, sender, event_type, list_row, attrs):
         if sender != self._model:
@@ -734,14 +734,15 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         PyQt QAbstractTableModel.
     """
     def __init__(self, model, parent=None, class_=None, column_meta=None,
-            row_meta=None):
+            row_meta=None, options=None, item_factory=None):
         # super is *really* harmful
         BaseListAdapter.__init__(self)
         QtCore.QAbstractListModel.__init__(self, parent)
         self._model = model
         self._column_meta = column_meta
         self._row_meta = _combine_row_metas(class_, row_meta)
-        self.options = set()
+        self.options = set(['edit', 'append']) if options is None else options
+        self.item_factory = item_factory if item_factory is not None else class_
         try:
             model.add_callback(self.observe)
         except AttributeError:
@@ -749,7 +750,12 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
             "Notice: " + str(type(model)) + " is not observable"
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self._model)
+        if parent != QtCore.QModelIndex():
+            return 0
+        count = len(self._model)
+        if count == 0 and 'append' in self.options:
+            count = 1
+        return count
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         if parent != QtCore.QModelIndex():
@@ -762,12 +768,17 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
             # Non hierarchical item model has no valid parent
             return QtCore.QModelIndex()
 
-        if not (0 <= row < len(self._model)):  # item model has a single row
-            print "Warning: ValueListAdapter: invalid row", row
-            return QtCore.QModelIndex()
-
         if column != 0:
             print "Warning: ValueListAdapter: invalid column", column
+            return QtCore.QModelIndex()
+
+        if row == len(self._model) and 'append' in self.options:
+            # Return index for placeholder append row
+            # The row object will be appended in _set_value() if needed
+            return self.createIndex(row, 0, None)
+
+        if not (0 <= row < len(self._model)):  # item model has a single row
+            print "Warning: ValueListAdapter: invalid row", row
             return QtCore.QModelIndex()
 
         return self.createIndex(row, column, self._model[row])
@@ -784,12 +795,30 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
     def _get_value(self, index):
         if index.column() != 0:
             raise IndexError
-        return self._model[index.row()]
+        try:
+            return self._model[index.row()]
+        except IndexError:
+            return None
+
+    def _set_value(self, index, value):
+        if (index.row() == 0 and len(self._model) == 0
+                and 'append' in self.options):
+            self._model.append(value)
+        else:
+            try:
+                self._model[index.row()] = value
+            except (IndexError, AttributeError):
+                return False
+        return True
 
     def _get_value_object(self, index):
         if index.column() != 0:
             raise IndexError
-        return self._model[index.row()]
+        try:
+            return self._model[index.row()]
+        except IndexError:
+            print "IndexError", index.row(), index.column()
+            return None  # Index doesn't exist
 
     def data(self, index, role=Qt.DisplayRole):
 
@@ -803,6 +832,43 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
             return None
 
         return AdapterReader.data(self, index, role)
+
+    def _insert_placeholder(self):
+        self.beginInsertRows(QtCore.QModelIndex(), 0, 0)
+        self.endInsertRows()
+
+    def _remove_placeholder(self):
+        self.beginRemoveRows(QtCore.QModelIndex(), 0, 0)
+        self.endRemoveRows()
+
+    # TODO: Put insertRows and removeRows in BaseListAdapter
+    # (use item_factory=lambda: None)
+    def insertRows(self, row, count, parent=QtCore.QModelIndex()):
+        if parent != QtCore.QModelIndex():
+            return False
+        if row > len(self._model):
+            return False
+        # Observable models are managed in observe
+        if not isinstance(self._model, ObservableListProxy):
+            self.beginInsertRows(parent, row, row + count - 1)
+        newrows = [None for x in range(0, count)]
+        self._model[row:row] = newrows
+        if not isinstance(self._model, ObservableListProxy):
+            self.endInsertRows()
+        return True
+
+    def removeRows(self, row, count, parent=QtCore.QModelIndex()):
+        if parent != QtCore.QModelIndex():
+            return False
+        if count < 1 or row + count > len(self._model):
+            return False
+        # Observable models are managed in observe
+        if not isinstance(self._model, ObservableListProxy):
+            self.beginRemoveRows(parent, row, row + count - 1)
+        self._model[row:row + count] = []
+        if not isinstance(self._model, ObservableListProxy):
+            self.endRemoveRows()
+        return True
 
 
 class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
@@ -904,9 +970,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                 obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
             setattr(obj, prop, value)
-        except IndexError:
-            return False
-        except AttributeError:
+        except (IndexError, AttributeError):
             return False
         return True
 
