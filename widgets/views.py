@@ -179,3 +179,22 @@ class TreeView(QtWidgets.QTreeView, EditableView):
         QtWidgets.QTreeView.setModel(self, model)
         if model is not None:
             self._adjustColumnsToModel(self.header(), model)
+
+
+class ListView(QtWidgets.QListView, EditableView):
+
+    currentRowChanged = pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        EditableView.__init__(self)
+        QtWidgets.QListView.__init__(self, parent)
+
+    def keyPressEvent(self, event):
+        self._keyPressEvent(event)
+        super(ListView, self).keyPressEvent(event)
+
+    def currentChanged(self, current, previous):
+        super(ListView, self).currentChanged(current, previous)
+        row = current.row()
+        if row != previous.row():
+            self.currentRowChanged.emit(row)
