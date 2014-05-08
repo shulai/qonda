@@ -18,7 +18,7 @@
 
 
 from collections import MutableSequence
-
+from warnings import warn
 
 try:
     from sqlalchemy import orm
@@ -57,9 +57,8 @@ class Observable(object):
         try:
             del self.__callbacks[callback]
         except KeyError:
-            print ("Notice: Call to Observable.remove_callback for no "
+            warn ("Notice: Call to Observable.remove_callback for no "
                 "registered callback")
-            pass
 
     def get_callback_data(self, callback):
         return self.__callbacks[callback]

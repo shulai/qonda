@@ -21,6 +21,7 @@ from functools import partial
 
 from .. import PYQT_VERSION
 import collections
+from warnings import warn
 
 if PYQT_VERSION == 5:
     from PyQt5 import QtCore, QtGui
@@ -60,45 +61,42 @@ class AdapterReader(object):
 
         def formatter(key, self, index):
             "Partial function for functional, value derived metadata"
+            #try:
+            v = self._get_value(index)
+            #except:
+            #    return None
             try:
-                v = self._get_value(index)
-            except:
-                return None
-            try:
-                return self._column_meta[index.column()][key](v)
-            except (IndexError, KeyError, TypeError):
+                f = self._column_meta[index.column()][key]
+            except (IndexError, KeyError):
+                # No column meta, no metadata key,
                 return unicode(v) if v is not None else u''
+            return f(v)
 
         def callable_constant_meta(key, self, index):
             """Partial function for functional, object entity derived, or
             constant metadata"""
-            try:
-                #o = self.getPyObject(index)
-                o = self._get_value_object(index)
-            except Exception as e:
-                print "Error!!!", str(e)
-                return None
-            #if o is None:
+            #try:
+            o = self._get_value_object(index)
+            #except Exception as e:
+            #    print "Error!!!", str(e)
             #    return None
             try:
                 m = self._column_meta[index.column()][key]
-                try:
+                if callable(m):
                     return m(o)
-                except TypeError:
+                else:
                     return m
-                except:
-                    raise QondaMetadataError
             except KeyError:  # No key in the column meta
                 o = self.getPyObject(index)
                 try:
                     m = self._row_meta[key]
-                    try:
+                    if callable(m):
                         return m(o)
-                    except TypeError:  # Object not callable
+                    else:
                         return m
-                except (KeyError, TypeError):  # No key in the row meta, dont remember when raises TypeError
+                except KeyError:  # No key in row meta
                     return None
-            except (IndexError, TypeError):  # TODO: Verify when this happens
+            except IndexError:  # No column meta
                 return None
 
         def constant_meta(key, self, index):
@@ -108,9 +106,9 @@ class AdapterReader(object):
             except KeyError:  # No key in the column meta
                 try:
                     return self._row_meta[key]
-                except (KeyError, TypeError):  # No key in the row meta, don't remember when raises TypeError
+                except KeyError:  # No key in the row meta
                     return None
-            except (IndexError, TypeError):  # TODO: Verify when this happens
+            except IndexError:  # No column meta
                 return None
 
         self._get_display_role = partial(formatter, 'displayFormatter',
@@ -133,12 +131,15 @@ class AdapterReader(object):
 
     def data(self, index, role=Qt.DisplayRole):
 
-        def get_size_hint_role(section):
+        def get_size_hint_role(index):
+            # Note there is other get_size_hint_role in headerData
+            # *Both* seems to be called by the views
+            section = index.column()
             try:
                 w = self._column_meta[section]['width']
                 return QtCore.QSize(w * QtGui.QApplication.instance()
                     .fontMetrics().averageCharWidth(), 20)
-            except (KeyError, TypeError):
+            except (IndexError, KeyError):
                 return None
 
         if not index.isValid():
@@ -160,7 +161,7 @@ class AdapterReader(object):
         }
         try:
             return role_resolvers[role](index)
-        except (KeyError, IndexError):
+        except KeyError:  # Role resolver not specified
             return None
 
     def headerData(self, section, orientation, role):
@@ -168,23 +169,25 @@ class AdapterReader(object):
         def get_title(section):
             try:
                 return self._column_meta[section]['title']
-            except (KeyError, TypeError):
+            except (IndexError, KeyError):  # No column meta or no meta key
                 return (self._properties[section].split('.').pop().
                     title().replace('_', ' '))
 
         def get_size_hint_role(section):
+            # Note there is other get_size_hint_role in headerData
+            # *Both* seems to be called by the views
             try:
                 w = self._column_meta[section]['width']
                 return QtCore.QSize(w * QtGui.QApplication.instance()
                     .fontMetrics().averageCharWidth(), 20)
-            except (KeyError, TypeError):
+            except (IndexError, KeyError):  # No column meta or no meta key
                 return None
 
         # Qonda extension: Handle QHeaderView resizemodes using roles
         def get_resize_role(section):
             try:
                 return self._column_meta[section]['columnResizeMode']
-            except (KeyError, TypeError):
+            except (IndexError, KeyError):  # No column meta or no meta key
                 return None
 
         if orientation == Qt.Horizontal:
@@ -204,7 +207,7 @@ class AdapterReader(object):
             }
             try:
                 return role_resolvers[role](section)
-            except KeyError:
+            except KeyError:  # Role resolver not specified
                 return None
 
             if role == Qt.DisplayRole:
@@ -232,7 +235,7 @@ class AdapterReader(object):
                 try:
                     m = self._column_meta[index.column()]['mime']
                     return m(o)
-                except (KeyError, TypeError):
+                except (IndexError, KeyError):
                     return None
             return None
 
@@ -280,16 +283,16 @@ class AdapterReader(object):
 
         flags = Qt.ItemFlags()
         try:
-            for flagbit, flagvalue in (self._column_meta[i_c]
-                ['flags'].iteritems()):
-                try:
+            for flagbit, flagvalue in (
+                    self._column_meta[i_c]['flags'].iteritems()):
+                if callable(flagvalue):
                     if flagvalue(o):
                         flags |= flagbit
-                except TypeError:
+                else:
                     if flagvalue:
                         flags |= flagbit
             return flags
-        except (KeyError, TypeError):
+        except (IndexError, KeyError):  # No column meta, no meta key
             return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
 
@@ -310,7 +313,7 @@ class AdapterWriter(object):
         if role == Qt.EditRole:
             try:
                 value = self._column_meta[index.column()]['parser'](value)
-            except (IndexError, KeyError, TypeError):
+            except (IndexError, KeyError):
                 if value == u'':
                     value = None
             if self._get_value(index) == value:
@@ -515,19 +518,20 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         value = None
         if index.row() != 0:
             raise IndexError
-        propertyparts = self._properties[index.column()].split('.')
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+        except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
+
         try:
             obj = self._model
             prop = propertyparts.pop(0)
-
-            while True:
-                value = getattr(obj, prop)
-                obj = value
+            while propertyparts:
+                obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-        except IndexError:
-            pass
+            value = getattr(obj, prop)
         except AttributeError:
-            pass
+            warn("Adapter property " + prop + "not found in the model")
 
         return value
 
@@ -543,8 +547,10 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             setattr(obj, prop, value)
         except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
             return False
         except AttributeError:
+            warn("Adapter property " + prop + "not found in the model")
             return False
         return True
 
@@ -552,22 +558,19 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         """
         Return the object currently holding the value
         """
-        value = None
         if index.row() != 0:
             raise IndexError
         propertyparts = self._properties[index.column()].split('.')
         try:
             obj = self._model
             prop = propertyparts.pop(0)
-
-            while True:
-                value = getattr(obj, prop)
+            while propertyparts:
+                obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-                obj = value
         except IndexError:
-            pass
+            warn("No adapter property for the column " + str(index.column()))
         except AttributeError:
-            pass
+            warn("Adapter property " + prop + "not found in the model")
 
         return obj
 
@@ -578,7 +581,7 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
 
     def observe(self, sender, event_type, observer_data, attrs):
         if sender != self._model:
-            print "Error: Received spurious event"
+            warn("Received an event but the sender isn't the adapter's model.")
             return
         if event_type == "update":
             for updated_prop in attrs:
@@ -606,7 +609,7 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
-                except AttributeError:
+                except AttributeError:  # list item is not Observable
                     pass
             # Insert/remove the difference of lines
             if removing > inserting:
@@ -624,13 +627,13 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
             for i in range(start, stop):
                 try:
                     sender[i].add_callback(self.observe_item, i)
-                except AttributeError:
+                except AttributeError:  # list item is not Observable
                     pass
             # Update observer_data after the slice
             for i, row in enumerate(sender[stop:]):
                 try:
                     row.set_callback_data(self.observe_item, stop + i)
-                except AttributeError:
+                except AttributeError:  # list item is not Observable
                     pass
             if removing > inserting:
                 self.endRemoveRows()
@@ -648,7 +651,7 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
-                except AttributeError:
+                except AttributeError:  # list item is not Observable
                     pass
             self.beginRemoveRows(QtCore.QModelIndex(), start, stop - 1)
 
@@ -672,13 +675,13 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
         def insert(i):
             try:
                 sender[i].add_callback(self.observe_item, i)
-            except AttributeError:
+            except AttributeError:  # list item is not Observable
                 pass
             # Update observer_data after the inserted element
             for j, row in enumerate(sender[i + 1:]):
                 try:
                     row.set_callback_data(self.observe_item, j + i)
-                except AttributeError:
+                except AttributeError:  # list item is not Observable
                     pass
             self.endInsertRows()
 
@@ -690,7 +693,7 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
         def append(dummy):
             try:
                 sender[-1].add_callback(self.observe_item, len(sender) - 1)
-            except AttributeError:
+            except AttributeError:  # list item is not Observable
                 pass
             if not ('append' in self.options and len(sender) == 1):
                 self.endInsertRows()
@@ -705,7 +708,7 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
             for i in range(-n):
                 try:
                     sender[i].add_callback(self.observe_item, i)
-                except AttributeError:
+                except AttributeError:  # list item is not Observable
                     pass
             self.endInsertRows()
 
@@ -739,7 +742,7 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         BaseListAdapter.__init__(self)
         QtCore.QAbstractListModel.__init__(self, parent)
         self._model = model
-        self._column_meta = column_meta
+        self._column_meta = column_meta or []
         self._row_meta = _combine_row_metas(class_, row_meta)
         self.options = set(['edit', 'append']) if options is None else options
         self.item_factory = item_factory if item_factory is not None else class_
@@ -939,19 +942,33 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
 
     def _get_value(self, index):
         value = None
-        propertyparts = self._properties[index.column()].split('.')
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+        except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
+            return None
         try:
             obj = self._model[index.row()]
-            prop = propertyparts.pop(0)
-
-            while True:
-                value = getattr(obj, prop)
-                obj = value
-                prop = propertyparts.pop(0)
         except IndexError:
-            pass
+            # Ok if "shadow" append row
+            if not (index.row() == 0 and len(self._model) == 0
+                    and 'append' in self.options):
+                warn("There is no row " + str(index.column()) + " in the model")
+            return None
+        try:
+            prop = propertyparts.pop(0)
+            #while True:
+                #value = getattr(obj, prop)
+                #if not propertyparts:
+                    #break
+                #obj = value
+                #prop = propertyparts.pop(0)
+            while propertyparts:
+                obj = getattr(obj, prop)
+                prop = propertyparts.pop(0)
+            value = getattr(obj, prop)
         except AttributeError:
-            pass
+            warn("Adapter property " + prop + "not found in the model")
 
         return value
 
@@ -963,35 +980,49 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
 
         try:
             propertyparts = self._properties[index.column()].split('.')
+        except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
+        try:
             obj = self._model[index.row()]
-            prop = propertyparts.pop(0)
+        except IndexError:
+            warn("There is no row " + str(index.column()) + " in the model")
 
-            while len(propertyparts):
+        try:
+            prop = propertyparts.pop(0)
+            while propertyparts:
                 obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
             setattr(obj, prop, value)
-        except (IndexError, AttributeError):
+        except AttributeError:
+            warn("Adapter property " + prop + "not found in the model")
             return False
         return True
 
     def _get_value_object(self, index):
-        value = None
-        propertyparts = self._properties[index.column()].split('.')
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+        except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
         try:
             obj = self._model[index.row()]
         except IndexError:
-            return None  # Row doesn't exist
+            # Ok if "shadow" append row
+            if not (index.row() == 0 and len(self._model) == 0
+                    and 'append' in self.options):
+                warn("There is no row " + str(index.column()) + " in the model")
+            return None
         try:
             prop = propertyparts.pop(0)
-
-            while True:
-                value = getattr(obj, prop)
+            #while True:
+                #value = getattr(obj, prop)
+                #prop = propertyparts.pop(0)
+                #obj = value
+            while propertyparts:
+                obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-                obj = value
-        except IndexError:
-            pass  # No more propertyparts
+
         except AttributeError:
-            pass
+            warn("Adapter property " + prop + "not found in the model")
 
         return obj
 
@@ -1184,19 +1215,20 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
 
     def _get_value(self, index):
         value = None
-        propertyparts = self._properties[index.column()].split('.')
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+        except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
         try:
             obj = index.internalPointer()
             prop = propertyparts.pop(0)
 
-            while True:
-                value = getattr(obj, prop)
-                obj = value
+            while propertyparts:
+                obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-        except IndexError:
-            pass
+            value = getattr(obj, prop)
         except AttributeError:
-            pass
+            warn("Adapter property " + prop + "not found in the model")
 
         return value
 
@@ -1204,27 +1236,29 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         # TODO: Append
         # TODO: handling compound properties
         try:
-            setattr(index.internalPointer(), self._properties[index.column()],
-                    value)
+            prop = self._properties[index.column()]
+            setattr(index.internalPointer(), prop, value)
             return True
         except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
             return False
+        except AttributeError:
+            warn("Adapter property " + prop + "not found in the model")
 
     def _get_value_object(self, index):
-        value = None
-        propertyparts = self._properties[index.column()].split('.')
+        try:
+            propertyparts = self._properties[index.column()].split('.')
+        except IndexError:
+            warn("No adapter property for the column " + str(index.column()))
         try:
             obj = index.internalPointer()
             prop = propertyparts.pop(0)
 
-            while True:
-                value = getattr(obj, prop)
+            while propertyparts:
+                obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-                obj = value
-        except IndexError:
-            pass
         except AttributeError:
-            pass
+            warn("Adapter property " + prop + "not found in the model")
 
         return obj
 
@@ -1321,7 +1355,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
-                except AttributeError:
+                except AttributeError:  # Item not observable
                     pass
             # Insert/remove the difference of lines
             if removing > inserting:
@@ -1341,14 +1375,14 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                     row_index = self.index(i, 0, list_index)
                     sender[i].add_callback(self.observe_item,
                         QtCore.QModelIndex(row_index))
-                except AttributeError:
+                except AttributeError:  # Item not observable
                     pass
             # Update observer_data after the slice
             for i, row in enumerate(sender[stop:]):
                 try:
                     row_index = self.index(stop + i, 0, list_index)
                     row.set_callback_data(self.observe_item, row_index)
-                except AttributeError:
+                except AttributeError:  # Item not observable
                     pass
 
             if removing > inserting:
@@ -1367,7 +1401,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
-                except AttributeError:
+                except AttributeError:  # Item not observable
                     pass
             self.beginRemoveRows(list_index, start, stop - 1)
 
@@ -1392,13 +1426,13 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 row_index = self.index(i, 0, list_index)
                 sender[i].add_callback(self.observe_item,
                     QtCore.QModelIndex(row_index))
-            except AttributeError:
+            except AttributeError:  # Item not observable
                 pass
             for j, row in enumerate(sender[i + 1:], i + 1):
                 try:
                     row_index = self.index(j, 0, list_index)
                     row.set_callback_data(self.observe_item, row_index)
-                except AttributeError:
+                except AttributeError:  # Item not observable
                     pass
             self.endInsertRows()
 
@@ -1411,7 +1445,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             try:
                 row_index = self.index(len(sender) - 1, 0, list_index)
                 sender[-1].add_callback(self.observe_item, row_index)
-            except AttributeError:
+            except AttributeError:  # Item not observable
                 pass
             # The view must reflect the append if there is no placeholder row
             if not('append' in self.options and len(sender) == 1):
@@ -1431,7 +1465,7 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                     row_index = self.index(i, 0, list_index)
                     sender[i].add_callback(self.observe_item,
                         QtCore.QModelIndex(row_index))
-                except AttributeError:
+                except AttributeError:  # Item not observable
                     pass
             self.endInsertRows()
 
