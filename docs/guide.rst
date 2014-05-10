@@ -362,7 +362,7 @@ Hence, an observer for an ObservableObject could be::
                 sender.total = sender.price + sender.tax
 
 While ``attributes`` is a tuple of length 1 as a generalization.
-Your observers should be written, a best practice, for an arbitrary number
+Your observers should be written, as best practice, for an arbitrary number
 of attributes,  and use ``for`` and ``in``, so they will work correctly if
 you use them with other Observable objects that could emit events with
 several attributes at once.
@@ -570,6 +570,9 @@ background         Callable or constant   ``QBrush`` or ``QColor`` BackgroundRol
 foreground         Callable or constant   ``QBrush`` or ``QColor`` ForegroundRole Color/brush used to paint the value on the
                                                                                   widget or field. If it's a callable it
                                                                                   receives the entity as argument.
+mime               Callable                object                                 A callable returning data representing the
+                                                                                  item in order to be serialized in a
+                                                                                  call to mimeData(). See Drag 'n Drop support.
 flags              dict, keys are
                    ``Qt.ItemFlags``,      bool                                    Flags of the Interview model item, such as
                    values are callables                                           the item being enabled, editable or
@@ -611,26 +614,26 @@ of its methods and properties. Also implements the next methods.
 
 * ``getPyModel()``: Returns the Python model of the adapter.::
 
-	# What's the current model for this adapter?
-	model = self.adapter.getPyModel()
-	model.foo = 5
+    # What's the current model for this adapter?
+    model = self.adapter.getPyModel()
+    model.foo = 5
 
 * ``getPyObject(index)``: Returns the entity matching the given ``QModelIndex``.
-        In ObjectAdapter returns the model for any index, in ObjectListAdapter
-        returns the row of the list for the matching row of the index, and
-        so on.::
+    In ObjectAdapter returns the model for any index, in ObjectListAdapter
+    returns the row of the list for the matching row of the index, and
+    so on.::
 
-		# See also datawidgetmapper.DataWidgetMapper.currentPyObject(),
-		# widgets.views TableView.currentPyObject(),
-		# and widgets.views TreeView.currentPyObject()
-		current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
+        # See also datawidgetmapper.DataWidgetMapper.currentPyObject(),
+        # widgets.views TableView.currentPyObject(),
+        # and widgets.views TreeView.currentPyObject()
+        current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
 
 * ``getPropertyColumn(propertyname)``: Returns the column number of the given
     property.::
 
-	# Hide the column for phone without having the column number at hand
-	column = self.adapter.getPropertyColumn('phone')
-	self.ui.contact.setColumnHidden(column, True)
+        # Hide the column for phone without having the column number at hand
+        column = self.adapter.getPropertyColumn('phone')
+        self.ui.contact.setColumnHidden(column, True)
 
 * ``getColumnProperty(col)``: Returns the property name of the given column.
 
@@ -918,6 +921,62 @@ New methods:
 New signals:
 
 * currentRowChanged(int)
+
+Qonda and SQLAlchemy
+====================
+
+Currently, Qonda and SQLAlchemy make a good match, with the following
+caveats:
+
+* Classes inheriting from both Observable or ObservableObject and a SQLAlchemy
+  Base class, must use the proper order and have an ``__init__`` method calling
+  for both parents::
+
+      class Model(Base, ObservableObject):
+          ...
+
+          def __init__(self):
+              Base.__init__(self)
+              ObservableObject.__init__(self)
+
+* Classes inheriting Observable (and hence ObservableObject), when a
+  _reconstructor_ method is required, must call it ``reconstructor`` and
+  must call the inherited ``super().reconstructor()`` in order to work
+  properly.
+
+* If an object managed by SQLAlchemy is refreshed, Qonda won't notice,
+  therefore currently a manual refresh of the views must be required.
+
+Qonda provides functionality created specifically to be used with SQLAlchemy.
+See ``ListSessionManager`` and ``QueryResult`` classes below for details.
+
+Drag and Drop
+=============
+
+Qonda currently allows of items in-app DnD. The source view items must
+set have flags available in the metadata, with set Qt.ItemIsDragEnabled to True.
+
+Below there is a snippet for drop support::
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('application/qonda.pyobject'):
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+
+        obj = pickle.loads(event.mimeData().
+            data('application/qonda.pyobject'))
+        try:
+            # Add obj in the destination model here
+            event.acceptProposedAction()
+            event.accept()
+        except:
+            event.ignore()
+
+While this simple setup works, it leads to a copy of your original object, so
+you usually will use set metadata *mime* key to a function that returns a value used to
+reference the dragged object in the dropEvent method.
+
 
 Other goodies
 =============
