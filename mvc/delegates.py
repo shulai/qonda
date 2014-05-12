@@ -47,7 +47,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         try:
-            value = int(index.model().data(index, Qt.EditRole))
+            value = int(index.model().data(index, PythonObjectRole))
             editor.setValue(value)
         except (TypeError, ValueError):
             editor.setValue(editor.minimum())
@@ -55,7 +55,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         editor.interpretText()
         value = editor.value()
-        model.setData(index, value, Qt.EditRole)
+        model.setData(index, value, PythonObjectRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
