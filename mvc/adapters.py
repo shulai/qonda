@@ -423,7 +423,8 @@ def _combine_column_metas(class_, adapter_meta, properties):
 def _combine_row_metas(class_, adapter_meta):
 
     if class_ is None:
-        return adapter_meta
+        return {} if adapter_meta is None else adapter_meta
+
     try:
         class_meta = class_._qonda_column_meta_['*']
     except (AttributeError, KeyError):
@@ -820,7 +821,9 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         try:
             return self._model[index.row()]
         except IndexError:
-            print "IndexError", index.row(), index.column()
+            if not (index.row() == 0 and len(self._model) == 0
+                    and 'append' in self.options):
+                warn("There is no row " + str(index.column()) + " in the model")
             return None  # Index doesn't exist
 
     def data(self, index, role=Qt.DisplayRole):
