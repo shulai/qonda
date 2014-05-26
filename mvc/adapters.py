@@ -401,7 +401,7 @@ def _combine_column_metas(class_, adapter_meta, properties):
     if class_ is None:
         print ("Warning: Adapter has no model class defined. Will use only "
             "provided metadata")
-        return adapter_meta
+        return () if adapter_meta is None else adapter_meta
 
     class_meta = _build_class_meta(class_, properties)
     if adapter_meta is None:
@@ -520,7 +520,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         if index.row() != 0:
             raise IndexError
         try:
-            propertyparts = self._properties[index.column()].split('.')
+            propertyname = self._properties[index.column()]
+            propertyparts = propertyname.split('.')
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
 
@@ -561,7 +562,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         """
         if index.row() != 0:
             raise IndexError
-        propertyparts = self._properties[index.column()].split('.')
+        propertyname = self._properties[index.column()]
+        propertyparts = propertyname.split('.')
         try:
             obj = self._model
             prop = propertyparts.pop(0)
@@ -571,7 +573,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname
+                + "not found in the model" + str(obj))
 
         return obj
 
@@ -743,7 +746,7 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
         BaseListAdapter.__init__(self)
         QtCore.QAbstractListModel.__init__(self, parent)
         self._model = model
-        self._column_meta = column_meta or []
+        self._column_meta = _combine_column_metas(class_, column_meta, '.')
         self._row_meta = _combine_row_metas(class_, row_meta)
         self.options = set(['edit', 'append']) if options is None else options
         self.item_factory = item_factory if item_factory is not None else class_
@@ -946,7 +949,8 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
     def _get_value(self, index):
         value = None
         try:
-            propertyparts = self._properties[index.column()].split('.')
+            propertyname = self._properties[index.column()]
+            propertyparts = propertyname.split('.')
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
             return None
@@ -971,7 +975,8 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             value = getattr(obj, prop)
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname
+                + " not found in the model " + str(obj))
 
         return value
 
@@ -982,14 +987,17 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
             self._model.append(self._class())
 
         try:
-            propertyparts = self._properties[index.column()].split('.')
+            propertyname = self._properties[index.column()]
+            propertyparts = propertyname.split('.')
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
         try:
             obj = self._model[index.row()]
         except IndexError:
-            warn("There is no row " + str(index.column()) + " in the model")
-
+            if not (index.row() == 0 and len(self._model) == 0
+                    and 'append' in self.options):
+                warn("There is no row " + str(index.column()) + " in the model")
+            return None
         try:
             prop = propertyparts.pop(0)
             while propertyparts:
@@ -997,13 +1005,15 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             setattr(obj, prop, value)
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname
+                + "not found in the model " + str(obj))
             return False
         return True
 
     def _get_value_object(self, index):
         try:
-            propertyparts = self._properties[index.column()].split('.')
+            propertyname = self._properties[index.column()]
+            propertyparts = propertyname.split('.')
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
         try:
@@ -1025,7 +1035,8 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
 
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname
+                + "not found in the model " + str(obj))
 
         return obj
 
@@ -1219,7 +1230,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
     def _get_value(self, index):
         value = None
         try:
-            propertyparts = self._properties[index.column()].split('.')
+            propertyname = self._properties[index.column()]
+            propertyparts = propertyname.split('.')
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
         try:
@@ -1231,7 +1243,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 prop = propertyparts.pop(0)
             value = getattr(obj, prop)
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname
+                + "not found in the model")
 
         return value
 
@@ -1239,18 +1252,22 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
         # TODO: Append
         # TODO: handling compound properties
         try:
-            prop = self._properties[index.column()]
-            setattr(index.internalPointer(), prop, value)
+            propertyname = self._properties[index.column()]
+            obj = index.internalPointer()
+            prop = propertyname
+            setattr(obj, prop, value)
             return True
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
             return False
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname
+                + "not found in the model " + str(obj))
 
     def _get_value_object(self, index):
         try:
-            propertyparts = self._properties[index.column()].split('.')
+            propertyname = self._properties[index.column()]
+            propertyparts = propertyname.split('.')
         except IndexError:
             warn("No adapter property for the column " + str(index.column()))
         try:
@@ -1261,7 +1278,8 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
+            warn("Adapter property " + propertyname + "not found in the model"
+                + str(obj))
 
         return obj
 
