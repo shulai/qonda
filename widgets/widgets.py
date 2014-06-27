@@ -121,6 +121,10 @@ class ComboBox(QtWidgets.QComboBox):
     def resetAllowEmpty(self):
         self.__allowEmpty = True
 
+    def setModel(self, model):
+        super(ComboBox, self).setModel(model)
+        self.setCurrentIndex(-1 if self.__allowEmpty else 0)
+
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
 
 
