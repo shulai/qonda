@@ -138,7 +138,7 @@ class AdapterReader(object):
             try:
                 w = self._column_meta[section]['width']
                 return QtCore.QSize(w * QtGui.QApplication.instance()
-                    .fontMetrics().averageCharWidth(), 20)
+                    .fontMetrics().averageCharWidth() * 1.4, 20)
             except (IndexError, KeyError):
                 return None
 
@@ -179,7 +179,7 @@ class AdapterReader(object):
             try:
                 w = self._column_meta[section]['width']
                 return QtCore.QSize(w * QtGui.QApplication.instance()
-                    .fontMetrics().averageCharWidth(), 20)
+                    .fontMetrics().averageCharWidth() * 1.4, 20)
             except (IndexError, KeyError):  # No column meta or no meta key
                 return None
 
