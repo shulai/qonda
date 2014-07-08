@@ -20,7 +20,10 @@ import cPickle
 from functools import partial
 
 from .. import PYQT_VERSION
-import collections
+try:
+    from UserDict import UserDict    # Python 2
+except ImportError:
+    from collections import UserDict  # Python 3, 2to3 doesn't fix it
 from warnings import warn
 
 if PYQT_VERSION == 5:
@@ -340,7 +343,7 @@ class MetaPropertyWrapper(object):
         return self._meta_property(getattr(o, self._property_name))
 
 
-class PropertyMetadataWrapper(collections.UserDict):
+class PropertyMetadataWrapper(UserDict):
     """
     A wrapper for attribute metadata that wraps individual metadata properties
     in MetaPropertyWrapper.
@@ -533,8 +536,8 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             value = getattr(obj, prop)
         except AttributeError:
-            warn("Adapter property " + prop + "not found in the model")
-
+            warn("Adapter property {} ({}) not found in the model {}({})".format(
+                propertyname, prop, self._model, self._class))
         return value
 
     def _set_value(self, index, value):

@@ -105,7 +105,7 @@ model is created in the editor window, and the attribute values should be
 properly shown in the editor fields.
 
 Also, an ``ObjectAdapter`` is created. ``ObjectAdapter`` is part of the core
-Qonda functionality, presenting the attributes of a Python object a Qt
+Qonda functionality, presenting the attributes of a Python object as a Qt
 Interview model suitable to be used in a Qt view::
 
     adapter = ObjectAdapter(
@@ -118,7 +118,7 @@ arguments will be used in further chapters of this tutorial, and also could
 be found in the reference.
 
 Attributes can hold simple values like unicode strings or integers, or any
-object, if no formatter if available the adapter will use unicode() to get
+object, if no formatter is provided the adapter will use unicode() to get
 a proper value.
 
 Adapters support composition too. So, you could also do the following and the
@@ -132,7 +132,7 @@ adapter will do the right thing::
         model)
 
 
-In order to build a view from independend widgets, Qt provides the
+In order to build a view from independent widgets, Qt provides the
 ``QDataWidgetMapper`` class. ``QDataWidgetMapper`` has the ``addMapping()``
 method, that maps a widget to a column of the Interview model.
 Qonda has an improved version, ``qonda.mvc.datawidgetmapper.DataWidgetMapper``.
@@ -239,7 +239,7 @@ will need to write your own ``__init__()`` method and call either ``__init__()``
 individually there.
 
 Also, Observable (and hence ObservableObject) has support for objects persisted
-using SQLAlchemy implementing a _reconstructor_ method. Therefore Observable
+using SQLAlchemy implementing a *reconstructor* method. Therefore Observable
 descendants implementing a reconstructor must call ``super().reconstructor()``.
 
 Adapters observe observable objects automatically, no further action is
@@ -263,8 +263,8 @@ you can use ``ObservableProxy``::
 
 Of course, the catch is that any further changes to the model should be done
 through the proxy in order to get the views updated. Eventually you could wrap
-any methods of the model update the attributes in order to emit the update
-events after the change.
+any method of the model that updates the attributes in order to emit the update
+event after the change.
 
 Observable lists
 ----------------
@@ -372,26 +372,26 @@ ObservableListProxy events
 
 ``ObservableListProxy`` objects emit the following events:
 
-* before_setitem: Before doing l[i] = x or l[i:j] = new_items
-  Event data: index (or slice), and new value length
-* setitem: After doing l[i] = x or l[i:j] = new_items
-  Event data: index (or slice), and new value length
-* before_delitem: Before doing del l[i], l.remove(x) or l.pop()
-  Event data: index
-* delitem: After doing del l[i], l.remove(x) or l.pop()
-  Event data: index
-* before_insert: Before doing l.insert(i, x)
-  Event data: index
-* insert: After doing l.insert(i, x)
-  Event data: index
-* before_append: Before doing l.append(x)
-  Event data: None
-* append: After doing l.append(x)
-  Event data: None
-* before_extend: Before doing l.extend(items)
-  Event data: len(items)
-* extend: After doing l.extend(items)
-  Event data: len(items)
+* before_setitem: Before doing ``l[i] = x or l[i:j] = new_items``.
+  Event data: index (or slice), and new value length.
+* setitem: After doing ``l[i] = x or l[i:j] = new_items``.
+  Event data: index (or slice), and new value length.
+* before_delitem: Before doing ``del l[i]``, ``l.remove(x)`` or ``l.pop()``.
+  Event data: index.
+* delitem: After doing ``del l[i]``, ``l.remove(x)`` or ``l.pop()``.
+  Event data: index.
+* before_insert: Before doing ``l.insert(i, x)``.
+  Event data: index.
+* insert: After doing ``l.insert(i, x)``.
+  Event data: index.
+* before_append: Before doing ``l.append(x)``.
+  Event data: None.
+* append: After doing ``l.append(x)``.
+  Event data: None.
+* before_extend: Before doing ``l.extend(items)``.
+  Event data: len(items).
+* extend: After doing ``l.extend(items)``.
+  Event data: len(items).
 
 Qonda and metadata
 ==================
@@ -410,7 +410,7 @@ Class level Metadata
 
 You can add metadata to your model classes, using the ``_qonda_column_meta_``
 class. Those are dicts, with keys being the name of the attributes the
-metadata is being defined, and values are either dicts of attribute specific
+metadata is being defined, and values are dicts of attribute specific
 metadata::
 
     class Contact(ObservableObject):
@@ -591,7 +591,7 @@ The full syntax for ``ObjectAdapter`` creation is::
 * properties: A list (but usually a Python tuple) of attribute names
 * model: The model entity object
 * class\_: The class of the model, for metadata purposes, as model eventually could be None. See also ``ObjectListAdapter``.
-* column_meta: The adapter level metadata, a list or tuple of dict. * DEPRECATED *
+* column_meta: The adapter level metadata, a list or tuple of dict **(DEPRECATED)**.
 * row_meta: Adapter level row wide metadata, a dict.
 * parent: As adapters are QObject inheritors, can have parents for memory management purposes. Usually not used.
 
@@ -812,8 +812,9 @@ to stock ``QDataWidgetMapper``:
   the current row.::
 
     # Same as
-    # current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
-    current_contact = self.ui.contacts.currentPyObject()
+    # current_contact = self.adapter.getPyObject(
+    #     self.adapter.index(self.mapper.currentIndex(), 0))
+    current_contact = self.mapper.currentPyObject()
 
 Widgets
 -------
@@ -902,7 +903,7 @@ New methods:
 
 * ``setItemDelegatesForColumns(delegate, ...])``: a shorthand for a sequence
   of ``setItemDelegateForColumn()```calls, and avoid counting columns by
-  hand. To skip a column, use ``None``.::
+  hand. To skip a column, use ``None`` .::
 
         self.ui.contacts.setItemDelegatesForColums(
             None,
@@ -940,7 +941,7 @@ caveats:
               ObservableObject.__init__(self)
 
 * Classes inheriting Observable (and hence ObservableObject), when a
-  _reconstructor_ method is required, must call it ``reconstructor`` and
+  *reconstructor* method is required, must call it ``reconstructor`` and
   must call the inherited ``super().reconstructor()`` in order to work
   properly.
 
@@ -954,7 +955,7 @@ Drag and Drop
 =============
 
 Qonda currently allows of items in-app DnD. The source view items must
-set have flags available in the metadata, with set Qt.ItemIsDragEnabled to True.
+set have the Qt.ItemIsDragEnabled flag set to True in the metadata.
 
 Below there is a snippet for drop support::
 
@@ -973,9 +974,10 @@ Below there is a snippet for drop support::
         except:
             event.ignore()
 
-While this simple setup works, it leads to a copy of your original object, so
-you usually will use set metadata *mime* key to a function that returns a value used to
-reference the dragged object in the dropEvent method.
+While this simple setup works, dropEvents get a copy of your original object, so
+you usually will use set metadata *mime* key to provide a function that returns
+a value used to reference the dragged object, then use this reference
+ in the dropEvent method to get the object itself.
 
 
 Other goodies
