@@ -180,11 +180,11 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
         self._decimal_point = localeconv['decimal_point']
 
     def value(self):
+        if self.__allowEmpty and v == self.minimum():
+            return None
         v = Decimal(self.cleanText()
             #.replace(self._thousands_sep, '')
             .replace(self._decimal_point, '.'))
-        if self.__allowEmpty and v == self.minimum():
-            return None
         return Decimal(v)
 
     def setValue(self, value):
@@ -214,6 +214,10 @@ class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
 
     def setAllowEmpty(self, value):
         self.__allowEmpty = value
+        if value:
+            self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
+        else:
+            self.setSpecialValueText('')
 
     def resetAllowEmpty(self):
         self.__allowEmpty = True
