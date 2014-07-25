@@ -36,27 +36,33 @@ class ItemDelegate(QtWidgets.QItemDelegate):
 
         palette = editor.palette()
 
-        fgcolor = index.data(Qt.ForegroundRole)
-        if not fgcolor:
-            fgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Text)
-        palette.setColor(QtGui.QPalette.Text, fgcolor)
-
-        bgcolor = index.data(Qt.BackgroundRole)
-        if not bgcolor:
-            bgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Base)
-        palette.setColor(QtGui.QPalette.Base, bgcolor)
-
-        if fgcolor or bgcolor:
-            editor.setPalette(palette)
-
-        font = index.data(Qt.FontRole)
-        editor.setFont(font if font else QtGui.QFont())
-
-        icon = index.data(Qt.DecorationRole)
+        # Quick workaround for unsupported flavor of setColor
+        # on older PyQt versions
         try:
-            editor.setIcon(icon)
-        except (AttributeError, TypeError):
+            fgcolor = index.data(Qt.ForegroundRole)
+            if not fgcolor:
+                fgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Text)
+            palette.setColor(QtGui.QPalette.Text, fgcolor)
+
+            bgcolor = index.data(Qt.BackgroundRole)
+            if not bgcolor:
+                bgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Base)
+            palette.setColor(QtGui.QPalette.Base, bgcolor)
+
+            if fgcolor or bgcolor:
+                editor.setPalette(palette)
+
+            font = index.data(Qt.FontRole)
+            editor.setFont(font if font else QtGui.QFont())
+
+            icon = index.data(Qt.DecorationRole)
+            try:
+                editor.setIcon(icon)
+            except (AttributeError, TypeError):
+                pass
+        except TypeError:
             pass
+
 
         delegate = self.parent()._delegates.get(editor)
         if delegate:
