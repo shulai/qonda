@@ -19,4 +19,5 @@
 from . widgets import (DateEdit, DateTimeEdit, ComboBox, SpinBox,
     DecimalSpinBox, MaskedLineEdit, NumberEdit)
 from . lookupwidget import LookupWidget, LookupWidgetDelegate
+from .radiogroup import RadioButtonGroup
 from . import views
