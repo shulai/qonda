@@ -138,10 +138,14 @@ class ObservableObject(Observable):
         object.__setattr__(self, name, value)
         try:
             self._notify('update', (name,))
+        except AttributeError as e:
+              # If invoked in object construction
+            print('Notice: AttributeError on update event', str(e))
+        try:
             if value != self:  # Avoid circular references
                 value.add_callback(self._observe_attr, name)
-        except AttributeError:
-            pass  # If invoked in object construction
+        except AttributeError as e:
+            pass
 
     def _observe_attr(self, sender, event_type, my_attr, related_attrs):
         if event_type in ('before_update', 'update'):
