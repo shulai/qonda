@@ -701,14 +701,18 @@ in views, and being able to customize the editor properties:
 
     mvc.delegates.LineEditDelegate(parent=None, validator=None, **properties):
 
-* CheckBoxDelegate: Use QCheckBoxDelegate in views.::
+* CheckBoxDelegate: Use QCheckBox in views.::
 
     mvc.delegates.CheckBoxDelegate(parent=None, **properties)
 
 * LookupWidgetDelegate: Use LookupWidgetDelegate in views.::
 
     widgets.LookupWidgetDelegate(parent=None, search_function=None, search_window=None,
-            display_formatter=unicode):
+            display_formatter=unicode)
+
+* NumberEditDelegate: Use NumberEdit in views.::
+
+    widgets.NumberEditDelegate(parent=None, decimals=0, returnDecimal=False)
 
 * PixmapDelegate: Show pixmap values in views.::
 
