@@ -47,7 +47,9 @@ class Aggregator(object):
                 continue
             agg_value = 0
             for item in source:
-                agg_value += attrgetter(attr)(item)
+                value = attrgetter(attr)(item)
+                if value is not None:
+                    agg_value += value
             self.__values[attr] = agg_value
 
         for item in source:
@@ -73,7 +75,9 @@ class Aggregator(object):
                     continue
                 total = self.__new_values[attr]
                 for i in item_range:
-                    total -= getattr(sender[i], attr)
+                    value = getattr(sender[i], attr)
+                    if value is not None:
+                        total -= value
                 self.__new_values[attr] = total
             self.__new_values['*'] -= len(item_range)
             for i in item_range:
@@ -95,7 +99,9 @@ class Aggregator(object):
                     continue
                 total = self.__new_values[attr]
                 for i in item_range:
-                    total += getattr(sender[i], attr)
+                    value = getattr(sender[i], attr)
+                    if value is not None:
+                        total += value
                 self.__new_values[attr] = total
             self.__new_values['*'] += length
 
@@ -114,10 +120,9 @@ class Aggregator(object):
             for attr in self.__attributes.keys():
                 if attr == '*':
                     continue
-                try:
-                    self.__values[attr] += getattr(sender[i], attr)
-                except TypeError:
-                    pass  # Probably no value set in the column yet
+                value = getattr(sender[i], attr)
+                if value is not None:
+                    self.__values[attr] += value
             self.__values['*'] += 1
             self.update_target()
 
@@ -134,7 +139,9 @@ class Aggregator(object):
                 if attr == '*':
                     continue
                 for i in item_range:
-                    self.__values[attr] += getattr(sender[i], attr)
+                    value = getattr(sender[i], attr)
+                    if value is not None:
+                        self.__values[attr] += value
             self.__values['*'] += length
             self.update_target()
 
@@ -149,11 +156,12 @@ class Aggregator(object):
         if attr in self.__attributes.keys():
             if event_type == 'before_update':
                 # self._notify('before_update', 'total')
-                try:
-                    self.__values[attr] -= getattr(sender, attr)
-                except TypeError:
-                    pass  # Probably no value set in the column yet
+                value = getattr(sender, attr)
+                if value is not None:
+                    self.__values[attr] -= value
             elif event_type == 'update':
-                self.__values[attr] += getattr(sender, attr)
+                value = getattr(sender, attr)
+                if value is not None:
+                    self.__values[attr] += value
                 # self._notify('update', 'total')
                 self.update_target()
