@@ -536,8 +536,9 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             value = getattr(obj, prop)
         except AttributeError:
-            warn("Adapter property {} ({}) not found in the model {}({})".format(
-                propertyname, prop, self._model, self._class))
+            if obj is not None:
+                warn("Adapter property {} ({}) not found in the model {}({})"
+                    .format(propertyname, prop, self._model, self._class))
         return value
 
     def _set_value(self, index, value):
@@ -978,8 +979,9 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                 prop = propertyparts.pop(0)
             value = getattr(obj, prop)
         except AttributeError:
-            warn("Adapter property " + propertyname
-                + " not found in the model " + str(obj))
+            if obj is not None:
+                warn("Adapter property {} ({}) not found in the model {}"
+                    .format(propertyname, prop, obj))
 
         return value
 
@@ -1246,8 +1248,9 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                 prop = propertyparts.pop(0)
             value = getattr(obj, prop)
         except AttributeError:
-            warn("Adapter property " + propertyname
-                + "not found in the model")
+            if obj is not None:
+                warn("Adapter property {} ({}) not found in the model {}"
+                    .format(propertyname, prop, obj))
 
         return value
 
