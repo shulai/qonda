@@ -245,6 +245,18 @@ descendants implementing a reconstructor must call ``super().reconstructor()``.
 Adapters observe observable objects automatically, no further action is
 required.
 
+.. note:: When a ``x`` attribute of an ObservableObject instance is set to
+    an ObservableObject instance, the first instance will observe the second
+    instance automatically, and a ``y`` attribute update in the second instance
+    will be seen by observers of the first one as updates of the ``x.y``
+    attribute.
+
+    While this is usually convenient, in large models this could cause
+    innecessary overhead, specially if objects relate to each other.
+    In those cases you should consider using ``_notifiables_``, to limit
+    events retransmission.
+
+
 Observable proxies
 ------------------
 

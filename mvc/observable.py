@@ -57,7 +57,7 @@ class Observable(object):
         try:
             del self.__callbacks[callback]
         except KeyError:
-            warn ("Notice: Call to Observable.remove_callback for no "
+            warn("Notice: Call to Observable.remove_callback for no "
                 "registered callback")
 
     def get_callback_data(self, callback):
@@ -135,7 +135,7 @@ class ObservableObject(Observable):
             # don't have callbacks set
             pass
 
-        self.__update_set.add(name)
+        self.__update_set.add((self, name))
         self._notify('before_update', (name,))
         object.__setattr__(self, name, value)
         try:
@@ -143,7 +143,7 @@ class ObservableObject(Observable):
         except AttributeError as e:
               # If invoked in object construction
             print('Notice: AttributeError on update event', str(e))
-        self.__update_set.remove(name)
+        self.__update_set.remove((self, name))
         try:
             if value != self:  # Avoid circular references
                 value.add_callback(self._observe_attr, name)
@@ -151,7 +151,7 @@ class ObservableObject(Observable):
             pass
 
     def _observe_attr(self, sender, event_type, my_attr, related_attrs):
-        
+
         def get_obj(obj, attr):
             for name in attr.split("."):
                 obj = getattr(obj, name)
@@ -159,21 +159,27 @@ class ObservableObject(Observable):
 
         if event_type in ('before_update', 'update'):
             # While setting _observe_attr as callback to itself is avoided,
-            # more complex cases of recursion in callback calls can't be so easily
-            # managed.
-            # The following code detect updates in own attributes from circular references
-            # and remove from the notification list to avoid infinite recursion
+            # more complex cases of recursion in callback calls can't be so
+            # easily managed.
+            # The following code detect updates in own attributes from circular
+            # references and remove from the notification list to avoid infinite
+            # recursion
             notify_attrs = []
             for attr in related_attrs:
-                updating_obj, updating_attr = (my_attr + '.' + attr).rsplit('.', 1)
-                if updating_attr in self.__update_set and self == get_obj(self, updating_obj):
+                obj_name, attr_name = (
+                    my_attr + '.' + attr).rsplit('.', 1)
+                obj = get_obj(self, obj_name)
+                if ((obj, attr_name) in self.__update_set):
                     continue
+                self.__update_set.add((obj, attr_name))
                 notify_attrs.append(attr)
             if not notify_attrs:
                 return
 
             self._notify(event_type, [my_attr + '.' + attr
                 for attr in notify_attrs])
+            if obj is not self:
+                self.__update_set.remove((obj, attr_name))
 
 
 class ReadOnlyProxy(object):
