@@ -1,6 +1,22 @@
 Changelog
 =========
 
+0.6.0:
+------
+
+* Adjust sizeHint calculation
+* ValueListAdapter now is editable.
+* Add DataWidgetMapper.addMappingsFromPropertyList() and
+  BaseAdapter.properties()
+* Adds currentPyObject() method to TableView, TreeView and DataWidgetMapper
+* Add DecimalSpinBoxDelegate.
+* Add ListView (editable) widget
+* Add RadioButtonGroup widget
+* Fix: ObservableObject observe related objects when recreated by SQLAlchemy
+* Fix: ObservableObject generates proper event for related object attributes
+* Fix: ObservableObject must relay only events from other ObservableObject
+* Fix: Make ObjectTreeAdapter understand properties as tuples (name, metadata)
+
 0.5.5:
 ------
 
