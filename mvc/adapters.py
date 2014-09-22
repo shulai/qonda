@@ -296,7 +296,19 @@ class AdapterReader(object):
                         flags |= flagbit
             return flags
         except (IndexError, KeyError):  # No column meta, no meta key
-            return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+            try:
+                for flagbit, flagvalue in (
+                        self._row_meta['flags'].iteritems()):
+                    if callable(flagvalue):
+                        if flagvalue(o):
+                            flags |= flagbit
+                    else:
+                        if flagvalue:
+                            flags |= flagbit
+                return flags
+            except KeyError:  # no meta key
+                return (Qt.ItemIsSelectable | Qt.ItemIsEditable
+                    | Qt.ItemIsEnabled)
 
 
 class AdapterWriter(object):
@@ -1313,7 +1325,16 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
                     flags |= flagbit if flagvalue else 0
             return flags
         except (KeyError, TypeError):
-            return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+            try:
+                for flagbit, flagvalue in (self._row_meta['flags'].iteritems()):
+                    try:
+                        flags |= flagbit if flagvalue(o) else 0
+                    except TypeError:
+                        flags |= flagbit if flagvalue else 0
+                return flags
+            except (KeyError, TypeError):
+                return (Qt.ItemIsSelectable | Qt.ItemIsEditable
+                    | Qt.ItemIsEnabled)
 
     def _insert_placeholder(self, parent):
         self.beginInsertRows(parent, 0, 0)
