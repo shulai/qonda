@@ -128,6 +128,10 @@ class EditableView(object):
     def currentPyObject(self):
         return self.model().getPyObject(self.currentIndex())
 
+    def selectionList(self):
+        return [self.model().getPyObject(idx)
+            for idx in self.selectionModel().selectedRows()]
+
 
 class TableView(QtWidgets.QTableView, EditableView):
 
