@@ -128,7 +128,7 @@ class EditableView(object):
     def currentPyObject(self):
         return self.model().getPyObject(self.currentIndex())
 
-    def selectionList(self):
+    def selectedObjects(self):
         return [self.model().getPyObject(idx)
             for idx in self.selectionModel().selectedRows()]
 
