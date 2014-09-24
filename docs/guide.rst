@@ -6,7 +6,7 @@
 Qonda guide
 ===========
 
-Version 0.6.0, 2014-03-07
+Version 0.6.2, 2014-09-24
 
 Intro
 =====
@@ -935,6 +935,8 @@ New methods:
         # current_contact = self.adapter.getPyObject(self.ui.contacts.currentIndex())
         current_contact = self.ui.contacts.currentPyObject()
 
+* ``selectedObjects``: Returns a list of Python objects for the view selection.
+
 New signals:
 
 * currentRowChanged(int)
@@ -947,7 +949,7 @@ caveats:
 
 * Classes inheriting from both Observable or ObservableObject and a SQLAlchemy
   Base class, must use the proper order and have an ``__init__`` method calling
-  for both parents::
+  ``__init__`` for both superclasses::
 
       class Model(Base, ObservableObject):
           ...
@@ -993,7 +995,7 @@ Below there is a snippet for drop support::
 While this simple setup works, dropEvents get a copy of your original object, so
 you usually will use set metadata *mime* key to provide a function that returns
 a value used to reference the dragged object, then use this reference
- in the dropEvent method to get the object itself.
+in the dropEvent method to get the object itself.
 
 
 Other goodies
@@ -1046,6 +1048,32 @@ update the summary values::
 
 In this example, summary is updated on changes on amounts or quantity of
 items. See the aggregator.py example for further details.
+
+
+SortFilterProxyModel
+--------------------
+
+``SortFilterProxyModel`` implements the methods from Adapter API over 
+``QSortFilterProxyModel``, therefore making the use of a proxy as
+simple as using the adapter directly::
+
+    ...
+    from qonda.util.aggregator import Aggregator
+    ...
+ 
+    class ContactList(QWidget):
+
+        def __init__(self):
+            ...
+            adapter = ObjectListAdapter(
+                ('name', 'phone'),
+                self.model)
+
+            proxy = SortFilterProxyModel()
+            proxy.setModel(adapter)
+            self.ui.contacts.setModel(proxy)
+            ...
+            contact = self.ui.contacts.currentPyObject() # Just works!
 
 
 ListSessionManager
