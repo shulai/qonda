@@ -1058,7 +1058,7 @@ SortFilterProxyModel
 simple as using the adapter directly::
 
     ...
-    from qonda.util.aggregator import Aggregator
+    from qonda.util.sortfilter import SortFilterProxyModel
     ...
  
     class ContactList(QWidget):
@@ -1070,7 +1070,7 @@ simple as using the adapter directly::
                 self.model)
 
             proxy = SortFilterProxyModel()
-            proxy.setModel(adapter)
+            proxy.setSourceModel(adapter)
             self.ui.contacts.setModel(proxy)
             ...
             contact = self.ui.contacts.currentPyObject() # Just works!
