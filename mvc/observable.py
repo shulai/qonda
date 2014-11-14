@@ -98,6 +98,7 @@ class ObservableObject(Observable):
         @orm.reconstructor
         def reconstructor(self):
             super(ObservableObject, self).reconstructor()
+            self.__dict__['_ObservableObject__update_set'] = set()
             # Besides creating the callback dict via super()
             # must rebuild the attributes' observation chain
             # as SQLAlchemy doesn't set attributes using __setattr__
