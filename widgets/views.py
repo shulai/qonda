@@ -47,21 +47,41 @@ class EditableView(object):
         current_row = idx.row()
         parent = idx.parent()
         row_count = self.model().rowCount(parent)
-        if mod == Qt.NoModifier:
-            if key == Qt.Key_Delete:
+        if mod in (Qt.NoModifier, Qt.KeypadModifier):
+            if key in (Qt.Key_Return, Qt.Key_Enter):
+                col = idx.column()
+                if idx.column() + 1 < self.model().columnCount(parent):
+                    # Next column
+                    idx = self.model().index(current_row, col + 1, parent)
+                    self.setCurrentIndex(idx)
+                    event.accept()
+                else:
+                    if current_row + 1 < row_count:
+                        # Next row
+                        idx = self.model().index(current_row + 1, 0, parent)
+                        self.setCurrentIndex(idx)
+                        event.accept()
+                    else:
+                        if self.__allowAppends:
+                            # Appends row
+                            self.model().insertRow(row_count, parent)
+                            idx = self.model().index(current_row + 1, 0, parent)
+                            self.setCurrentIndex(idx)
+                            event.accept()
+            elif key == Qt.Key_Delete:
                 self.model().setData(idx, u'', Qt.EditRole)
                 self.dataChanged(idx, idx)
                 event.accept()
             elif key == Qt.Key_Down and current_row + 1 == row_count:
                 if self.__allowAppends:
-                    idx = self.model().index(current_row + 1, 0, idx.parent())
+                    idx = self.model().index(current_row + 1, 0, parent)
                     self.model().insertRow(row_count, parent)
                     self.setCurrentIndex(idx)
                     event.accept()
         elif mod == Qt.ControlModifier:
             if key == Qt.Key_Insert:
                 if self.__allowInserts:
-                    idx = self.model().index(idx.row(), 0, idx.parent())
+                    idx = self.model().index(idx.row(), 0, parent)
                     self.model().insertRow(current_row, parent)
                     # Selections get funny after insert
                     selection = QtCore.QItemSelectionModel(self.model())
