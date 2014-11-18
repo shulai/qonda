@@ -1,6 +1,30 @@
 Changelog
 =========
 
+0.6.3:
+------
+
+* Fix: Define ObservableObject.__update_set attribute in reconstructor method.
+* Return/Enter keys advance fields/appends records in TableView, ListView
+* Fix: Use self.item_factory instead of self._class in ObjectListAdapter
+  when appending the first row
+
+0.6.2:
+------
+
+* ObservableObject handles recursion in update notifications when the observed
+  object and related object have references to each other.
+* Adapters now recognizes the flag key when defined in row_meta argument.
+* SortFilterProxyModel proxy class added
+* Add selectedObject() method to TableView, TreeView and ListView
+
+0.6.1:
+------
+
+* Aggregators ignore None values
+* ObjectAdapter doesn't emit a invalid property warn if there are None values
+  along the attribute path
+
 0.6.0:
 ------
 
