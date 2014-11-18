@@ -1001,7 +1001,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
 
         if (index.row() == 0 and len(self._model) == 0
                 and 'append' in self.options):
-            self._model.append(self._class())
+            self._model.append(self.item_factory())
 
         try:
             propertyname = self._properties[index.column()]
