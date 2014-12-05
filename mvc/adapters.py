@@ -86,7 +86,7 @@ class AdapterReader(object):
             try:
                 m = self._column_meta[index.column()][key]
                 if callable(m):
-                    return m(o)
+                    return m(o) if o else None
                 else:
                     return m
             except KeyError:  # No key in the column meta
@@ -94,7 +94,7 @@ class AdapterReader(object):
                 try:
                     m = self._row_meta[key]
                     if callable(m):
-                        return m(o)
+                        return m(o) if o else None
                     else:
                         return m
                 except KeyError:  # No key in row meta
