@@ -42,7 +42,10 @@ class ItemDelegate(QtWidgets.QItemDelegate):
             fgcolor = index.data(Qt.ForegroundRole)
             if not fgcolor:
                 fgcolor = QtWidgets.QApplication.palette().color(QtGui.QPalette.Text)
+            # Edits and such
             palette.setColor(QtGui.QPalette.Text, fgcolor)
+            # Labels, Group boxes and such
+            palette.setColor(QtGui.QPalette.WindowText, fgcolor)
 
             bgcolor = index.data(Qt.BackgroundRole)
             if not bgcolor:
@@ -62,7 +65,6 @@ class ItemDelegate(QtWidgets.QItemDelegate):
                 pass
         except TypeError:
             pass
-
 
         delegate = self.parent()._delegates.get(editor)
         if delegate:
