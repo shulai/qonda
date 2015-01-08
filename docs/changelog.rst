@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.6.4:
+------
+* SortFilterProxyModel sorts using Python ordering.
+
 0.6.3:
 ------
 

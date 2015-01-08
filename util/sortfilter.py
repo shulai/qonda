@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4.QtGui import QSortFilterProxyModel
+from ..mvc.adapters import PythonObjectRole
 
 
 class SortFilterProxyModel(QSortFilterProxyModel):
@@ -24,3 +25,9 @@ class SortFilterProxyModel(QSortFilterProxyModel):
 
     def properties(self):
         return self.sourceModel().properties()
+
+    def lessThan(self, left, right):
+        """
+            Sort using Python ordering
+        """
+        return left.data(PythonObjectRole) < right.data(PythonObjectRole)
