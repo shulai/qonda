@@ -501,6 +501,12 @@ class BaseAdapter(QtCore.QAbstractTableModel):
     def getColumnProperty(self, col):
         return self._properties[col]
 
+    def setPyModel(self, model):
+        """Changes the underlying python model"""
+        self.beginResetModel()
+        self._model = model
+        self.endResetModel()
+
 
 class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
     """
@@ -808,6 +814,12 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
 
     def getPyModel(self):
         return self._model
+
+    def setPyModel(self, model):
+        """Changes the underlying python model"""
+        self.beginResetModel()
+        self._model = model
+        self.endResetModel()
 
     def getPyObject(self, index):
         try:
@@ -1195,6 +1207,15 @@ class ObjectTreeAdapter(AdapterReader, AdapterWriter,
             idx = QtCore.QModelIndex()
 
         return idx
+
+    def getPyModel(self):
+        return self._model
+
+    def setPyModel(self, model):
+        """Changes the underlying python model"""
+        self.beginResetModel()
+        self._model = model
+        self.endResetModel()
 
     def getPyObject(self, index):
         return index.internalPointer()
