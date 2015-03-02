@@ -4,6 +4,9 @@ Changelog
 0.6.4:
 ------
 * SortFilterProxyModel sorts using Python ordering.
+* Fix role color handling in QLabels.
+* Don't call callable metadata when object is None
+* Add setPyModel() method to adapter classes
 
 0.6.3:
 ------

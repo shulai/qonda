@@ -6,7 +6,7 @@
 Qonda guide
 ===========
 
-Version 0.6.2, 2014-09-24
+Version 0.6.4, 2015-03-02
 
 Intro
 =====
@@ -630,6 +630,12 @@ of its methods and properties. Also implements the next methods.
     model = self.adapter.getPyModel()
     model.foo = 5
 
+* ``setPyModel(model)``: Changes the underlying Python model of the adapter.::
+
+    # Need to completely replace the model for a new one
+    self.adapter.setPyModel(model)
+
+
 * ``getPyObject(index)``: Returns the entity matching the given ``QModelIndex``.
     In ObjectAdapter returns the model for any index, in ObjectListAdapter
     returns the row of the list for the matching row of the index, and
@@ -1053,14 +1059,14 @@ items. See the aggregator.py example for further details.
 SortFilterProxyModel
 --------------------
 
-``SortFilterProxyModel`` implements the methods from Adapter API over 
+``SortFilterProxyModel`` implements the methods from Adapter API over
 ``QSortFilterProxyModel``, therefore making the use of a proxy as
 simple as using the adapter directly::
 
     ...
     from qonda.util.sortfilter import SortFilterProxyModel
     ...
- 
+
     class ContactList(QWidget):
 
         def __init__(self):
@@ -1094,7 +1100,7 @@ of an ObservableListProxy into the associated SQLAlchemy session::
 QueryResult
 -----------
 
-``QueryResult`` is a list like object whose items comes from the provided
+``QueryResult`` is a list-like object whose items comes from the provided
 SQLAlchemy query, but retrieving the items incrementally as required,
 allowing a fast setup of views with a lot of items::
 
