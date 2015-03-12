@@ -22,11 +22,20 @@ import locale
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
     from PyQt5 import QtGui
-    from PyQt5.QtCore import Qt, QEvent, pyqtProperty
+    from PyQt5.QtCore import Qt, QEvent, pyqtProperty, QDate
 else:
     from PyQt4 import QtGui  # lint:ok
-    from PyQt4.QtCore import Qt, QEvent, pyqtProperty  # lint:ok
+    from PyQt4.QtCore import Qt, QEvent, pyqtProperty, QDate  # lint:ok
     QtWidgets = QtGui
+
+
+class CalendarWidget(QtWidgets.QCalendarWidget):
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.selectedDate() == QDate(1752, 9, 14):
+            today = datetime.date.today()
+            super().setCurrentPage(today.year, today.month)
 
 
 class DateEdit(QtWidgets.QDateEdit):
@@ -36,6 +45,12 @@ class DateEdit(QtWidgets.QDateEdit):
         self.setMinimumDate(datetime.date(1752, 9, 14))
         self.setSpecialValueText(u'\xa0')  # Qt ignores '' and regular space
         self.__allowEmpty = True
+
+    def setCalendarPopup(self, enable):
+        super().setCalendarPopup(enable)
+        if enable:
+            self._calendar = CalendarWidget()
+            self.setCalendarWidget(self._calendar)
 
     def clear(self):
         if self.__allowEmpty:
