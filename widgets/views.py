@@ -46,7 +46,10 @@ class EditableView(object):
         idx = self.currentIndex()
         current_row = idx.row()
         parent = idx.parent()
-        row_count = self.model().rowCount(parent)
+        try:
+            row_count = self.model().rowCount(parent)
+        except AttributeError:  # No model
+            return
         if mod in (Qt.NoModifier, Qt.KeypadModifier):
             if key in (Qt.Key_Return, Qt.Key_Enter):
                 col = idx.column()
