@@ -105,11 +105,8 @@ class LookupWidget(QtWidgets.QLineEdit):
         #super(LookupWidget, self).focusOutEvent(event)
 
     def mousePressEvent(self, event):
-        if self.isReadOnly():
-            self.selectAll()
-            event.accept()
-        else:
-            self._edit()
+        self.selectAll()
+        event.accept()
 
     def keyPressEvent(self, event):
         if self.isReadOnly():
@@ -122,7 +119,8 @@ class LookupWidget(QtWidgets.QLineEdit):
             else:
                 super(LookupWidget, self).keyPressEvent(event)
             return
-        if event.text() == '':  # Avoid dead keys events erasing the text
+        # Avoid Enter and dead keys events erasing the text
+        if event.text().strip() == '':
             return
         self._edit()
         super(LookupWidget, self).keyPressEvent(event)
