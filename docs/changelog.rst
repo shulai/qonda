@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.6.5:
+------
+* Fix: When DateEdit is empty, calendar popup show current month instead Sep 1752.
+* Fix: Don't process insertion/deletion keypresses in view widgets when there is no model set
+* Change LookupWidget behavior: Mouse clicks and enter key don't erase current value.
+
 0.6.4:
 ------
 * SortFilterProxyModel sorts using Python ordering.
