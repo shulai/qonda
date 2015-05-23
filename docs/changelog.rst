@@ -1,11 +1,21 @@
 Changelog
 =========
 
+0.6.6:
+------
+* Fix: Calendar popup shows current month from empty value when using 
+  DateEditDelegate.
+* Ignoring KeyError when a cycling dependency between attributes mess with 
+  attribute chain observing logic.
+
 0.6.5:
 ------
-* Fix: When DateEdit is empty, calendar popup show current month instead Sep 1752.
-* Fix: Don't process insertion/deletion keypresses in view widgets when there is no model set
-* Change LookupWidget behavior: Mouse clicks and enter key don't erase current value.
+* Fix: When DateEdit is empty, calendar popup shows current month instead 
+  Sep 1752.
+* Fix: Don't process insertion/deletion keypresses in view widgets when there 
+  is no model set
+* Change LookupWidget behavior: Mouse clicks and enter key don't erase current 
+  value.
 
 0.6.4:
 ------
