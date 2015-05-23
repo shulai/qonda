@@ -167,6 +167,14 @@ class DateEditDelegate(QtWidgets.QStyledItemDelegate):
         editor = widgets.DateEdit(parent)
         for prop_name, prop_value in self.__properties.iteritems():
             editor.setProperty(prop_name, prop_value)
+        try:
+            # Because setCalendarPopup is not virtual, hence setting the
+            # property at Qt level doesn't call qonda's setCalendarPopup
+            if self.__properties['calendarPopup']:
+                editor.setCalendarPopup(True)
+        except KeyError:
+            pass
+
         return editor
 
     def setModelData(self, editor, model, index):
