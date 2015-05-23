@@ -144,7 +144,16 @@ class ObservableObject(Observable):
         except AttributeError as e:
               # If invoked in object construction
             print('Notice: AttributeError on update event', str(e))
-        self.__update_set.remove((self, name))
+        try:
+            self.__update_set.remove((self, name))
+        except KeyError:
+            # A cyclic dependence causes this, I can't handle properly
+            # Yet this only affect observing of attributes in the
+            # chain of this attribute. Ignore the exception for good.
+            # I guess the best approach should be requiring a list of
+            # attributes that requires observing the chain, or changing
+            # the whole logic with something else.
+            pass
         try:
             if value != self:  # Avoid circular references
                 value.add_callback(self._observe_attr, name)
