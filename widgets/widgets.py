@@ -296,7 +296,6 @@ class NumberEdit(QtWidgets.QLineEdit):
         try:
             n = locale.atof(s)
         except ValueError:  # Invalid, value is None
-            print "NumberEdit: basura!"
             self.clear()
             return
         return locale.format('%.*f', (self._decimals, n), grouping=True)
@@ -321,8 +320,11 @@ class NumberEdit(QtWidgets.QLineEdit):
 
     def setValue(self, value):
         if self.hasFocus():
-            self.setText(locale.format('%.*f', (self._decimals,
-                float(value)), grouping=False))
+            if value is None:
+                self.clear()
+            else:
+                self.setText(locale.format('%.*f', (self._decimals,
+                    float(value)), grouping=False))
         else:
             if value is None:
                 self.clear()
