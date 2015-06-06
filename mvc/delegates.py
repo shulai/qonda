@@ -100,18 +100,14 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
     def setEditorData(self, editor, index):
         value = index.data(role=PythonObjectRole)
         if value is None:  # Clear if no value present
-            try:
-                if editor.allowEmpty:
-                    editor.setCurrentIndex(-1)
-                else:
-                    try:
-                        index.model().setData(index, editor.model().getPyModel()[0])
-                        editor.setCurrentIndex(0)
-                    except IndexError:
-                        pass
-            except AttributeError:  # if not Qonda's but regular QComboBox
+            if getattr(editor, 'allowEmpty', False):
+                # Empty value allowed
+                editor.setCurrentIndex(-1)
+            else:
+                # Empty value not allowed or regular QComboBox
                 try:
-                    index.model().setData(index, editor.model().getPyModel()[0])
+                    index.model().setData(index, editor.model().getPyModel()[0],
+                        PythonObjectRole)
                     editor.setCurrentIndex(0)
                 except IndexError:
                     pass
