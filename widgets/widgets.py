@@ -354,6 +354,8 @@ class NumberEdit(QtWidgets.QLineEdit):
         if after == '':
             return
         try:
+            if after in ('-', '+'):  # Sign without digits is OK
+                return
             if self._decimals == 0:
                 int(after)
             else:
