@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.6.7:
+------
+* Fix: Handle empty value in NumberEdit when has focus.
+* Fix: Force value from QComboBox options whe value is None and combo
+  doesn't allow an empty value.
+
 0.6.6:
 ------
 * Fix: Calendar popup shows current month from empty value when using 
