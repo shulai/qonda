@@ -65,7 +65,7 @@ class RadioButtonGroup(QtWidgets.QWidget):
 
     def addOption(self, text, value):
         """
-        Add an existing child button as an option button
+        Create a new option button
         """
         button = QtWidgets.QRadioButton(text, self)
         self.layout().addWidget(button)
