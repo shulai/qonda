@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.6.8:
+------
+* Fix: Allow typing a negative sign in an empty NumberEdit
+* Make widgets commit its value immediately when appropiate.
+
 0.6.7:
 ------
 * Fix: Handle empty value in NumberEdit when has focus.
