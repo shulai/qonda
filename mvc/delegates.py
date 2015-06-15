@@ -49,6 +49,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
         try:
             value = int(index.model().data(index, PythonObjectRole))
             editor.setValue(value)
+            editor.valueChanged.connect(self.widgetValueChanged)
         except (TypeError, ValueError):
             editor.setValue(editor.minimum())
 
@@ -59,6 +60,9 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+    def widgetValueChanged(self, value):
+        self.commitData.emit(self.sender())
 
 
 class DecimalSpinBoxDelegate(SpinBoxDelegate):
@@ -73,6 +77,7 @@ class DecimalSpinBoxDelegate(SpinBoxDelegate):
         try:
             value = index.model().data(index, PythonObjectRole)
             editor.setValue(value)
+            editor.valueChanged.connect(self.widgetValueChanged)
         except (TypeError, ValueError):
             editor.setValue(editor.minimum())
 
@@ -109,11 +114,13 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
                     index.model().setData(index, editor.model().getPyModel()[0],
                         PythonObjectRole)
                     editor.setCurrentIndex(0)
+                    editor.currentIndexChanged.connect(self.widgetValueChanged)
                 except IndexError:
                     pass
             return
         try:
             editor.setCurrentIndex(editor.model().getPyModel().index(value))
+            editor.currentIndexChanged.connect(self.widgetValueChanged)
         except ValueError:
             if editor.isEditable():
                 editor.setEditText(index.data())
@@ -162,6 +169,9 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+    def widgetValueChanged(self, value):
+        self.commitData.emit(self.sender())
 
 
 class DateEditDelegate(QtWidgets.QStyledItemDelegate):
@@ -247,6 +257,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
     def setEditorData(self, editor, index):
         value = index.data(PythonObjectRole)
         editor.setChecked(bool(value))
+        editor.stateChanged.connect(self.widgetValueChanged)
 
     def setModelData(self, editor, model, index):
         model.setData(index, bool(editor.isChecked()), PythonObjectRole)
@@ -278,6 +289,9 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
             - checkbox_rect.width() / 2)
         style.drawControl(QtWidgets.QStyle.CE_CheckBox, opt, painter)
         painter.restore()
+
+    def widgetValueChanged(self, value):
+        self.commitData.emit(self.sender())
 
 
 class NumberEditDelegate(QtWidgets.QStyledItemDelegate):

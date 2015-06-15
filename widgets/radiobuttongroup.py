@@ -21,7 +21,7 @@ class RadioButtonGroupDelegate(QtWidgets.QStyledItemDelegate):
         value = index.data(role=PythonObjectRole)
         try:
             editor.setValue(value)
-            editor.valueChanged.connect(self._onGroupValueChanged)
+            editor.valueChanged.connect(self.widgetValueChanged)
         except KeyError:
             raise ValueError(
                 'Value "{0}" not present in {1} RadioButtonGroup values!'
@@ -32,7 +32,7 @@ class RadioButtonGroupDelegate(QtWidgets.QStyledItemDelegate):
         model.setData(index, value, role=PythonObjectRole)
 
     @QtCore.pyqtSlot()
-    def _onGroupValueChanged(self):
+    def widgetValueChanged(self):
         self.commitData.emit(self.sender())
 
 

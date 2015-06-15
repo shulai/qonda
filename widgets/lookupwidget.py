@@ -19,10 +19,10 @@
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
     from PyQt5 import QtCore, QtGui
-    from PyQt5.QtCore import Qt
+    from PyQt5.QtCore import Qt, pyqtSignal
 else:
     from PyQt4 import QtCore, QtGui  # lint:ok
-    from PyQt4.QtCore import Qt  # lint:ok
+    from PyQt4.QtCore import Qt, pyqtSignal  # lint:ok
     QtWidgets = QtGui
 from ..icons import icons_rc  # lint:ok
 
@@ -51,12 +51,16 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         editor.setValue(index.data(role=PythonObjectRole))
+        editor.valueChanged.connect(self.widgetValueChanged)
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.value(), role=PythonObjectRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+    def widgetValueChanged(self, value):
+        self.commitData.emit(self.sender())
 
 
 class LookupWidget(QtWidgets.QLineEdit):
@@ -68,6 +72,8 @@ class LookupWidget(QtWidgets.QLineEdit):
         objects
     """
     _mappingDelegateClass = LookupWidgetDelegate
+
+    valueChanged = pyqtSignal()
 
     def __init__(self, parent=None):
         QtWidgets.QLineEdit.__init__(self, parent)
@@ -135,6 +141,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         if self._editing:
             self._edit_finished()
         self._show_value()
+        self.valueChanged.emit()
 
     def _edit(self):
         self.setText('')
