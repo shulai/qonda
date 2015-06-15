@@ -59,7 +59,7 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
-    def widgetValueChanged(self, value):
+    def widgetValueChanged(self):
         self.commitData.emit(self.sender())
 
 

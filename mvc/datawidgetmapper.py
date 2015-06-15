@@ -131,10 +131,10 @@ class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
         if not delegate:
             try:
                 delegate = widget._mappingDelegateClass()
+                delegate.commitData.connect(self._delegate.dataCommited)
             except AttributeError:
                 pass
         self._delegates[widget] = delegate
-        delegate.commitData.connect(self._delegate.dataCommited)
 
     def addMapping(self, widget, section, delegate=None):
         self._mappings[widget] = (section, delegate)
