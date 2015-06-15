@@ -850,6 +850,8 @@ Qonda also provides a set of enhanced widgets:
 * MaskedLineEdit: A ``QLineEdit`` that filters out the mask separators from
     the value.
 * NumberEdit: A ``QLineEdit`` for localized number editing.
+* RadioButtonGroup: A ``QWidget`` containing ``QRadioButton`` representing a 
+  discrete value.
 
 DateEdit, DateTimeEdit, SpinBox and ComboBox
 --------------------------------------------
@@ -900,6 +902,46 @@ input for a search function that returns the real value::
     # Set the search function in the form setup:
     self.ui.city.search_function = lookup_city
 
+Attributes:
+
+* search_function: This attribute must be set to a callable that gets a string
+and returns a list of values of any type. Note that search strings doesn't
+need to resemble at all to the returned values. If search_function returns
+an empty list, nothing happens. If there is single value in the list, it becomes
+the widget value. If multiple values are returned, 
+
+* display_formatter: This attribute can be set to a callable used to get a
+  string representation of the value. By default unicode() is used.
+
+Functions:
+
+* __init__(self, parent=None, search_function=None, search_window=None,
+    display_formatter=unicode):
+
+* value(): Returns the current value of the widget.
+
+* setValue(value): Set the value of the widget.
+
+RadioButtonGroup
+----------------
+
+A ``RadioButtonGroup`` is mostly a plain ``QWidget``, 
+
+* addButton(button, value): Declares an existing QRadioButton representing the
+  given value.
+
+* addButtons([(button1, value1), (button2, value2),...]): Declares several 
+  buttons at once.
+
+* addOption(text, value): Creates a new child QRadioButton for the given value.
+
+* addOptions([(text1, value1), (text2, value2), ...]): Adds several buttons
+  at once.
+
+* value(): Returns the current value of the widget.
+
+* setValue(value): Set the value of the widget.
+
 
 TableView and TreeView
 ----------------------
@@ -908,7 +950,7 @@ TableView and TreeView
 key combinations:
 
 * Delete: Erases the selected value
-* Down: If pressed while the current row is the last row, appends a new row.
+    * Down: If pressed while the current row is the last row, appends a new row.
 * Control + Insert: Inserts a new row.
 * Control + Delete: Deletes the current row.
 

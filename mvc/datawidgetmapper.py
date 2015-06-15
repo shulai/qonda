@@ -98,6 +98,8 @@ class ItemDelegate(QtWidgets.QItemDelegate):
             # Set the editor again, with new, possibly formatted, model value.
             self.setEditorData(editor, index)
 
+    def dataCommited(self, sender):
+        self.commitData.emit(sender)
 
 class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
     """
@@ -132,6 +134,7 @@ class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
             except AttributeError:
                 pass
         self._delegates[widget] = delegate
+        delegate.commitData.connect(self._delegate.dataCommited)
 
     def addMapping(self, widget, section, delegate=None):
         self._mappings[widget] = (section, delegate)
