@@ -37,6 +37,7 @@ class EditableView(object):
         self.__allowAppends = True
         self.__allowInserts = True
         self.__allowDeletes = True
+        self.__confirmDeletion = False
 
     # TODO: Add attribute confirmDeletion
     def _keyPressEvent(self, event):
@@ -94,6 +95,13 @@ class EditableView(object):
                     event.accept()
             elif key == Qt.Key_Delete:
                 if self.__allowDeletes:
+                    if self.__confirmDeletion:
+                        if QtGui.QMessageBox.question(None,
+                                'Borra fila', '¿Confirma?',
+                                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                QtGui.QMessageBox.No) == QtGui.QMessageBox.No:
+                            event.accept()
+                            return
                     if current_row + 1 == row_count:
                         self.setCurrentIndex(self.model().index(
                             current_row - 1, idx.column(), parent))
@@ -132,6 +140,18 @@ class EditableView(object):
         self.__allowDeletes = True
 
     allowDeletes = pyqtProperty('bool', getAllowDeletes, setAllowDeletes)
+
+    def getConfirmDeletion(self):
+        return self.__confirmDeletion
+
+    def setConfirmDeletion(self, value):
+        self.__confirmDeletion = value
+
+    def resetConfirmDeletion(self):
+        self.__confirmDeletion = False
+
+    confirmDeletion = pyqtProperty('bool', getConfirmDeletion,
+        setConfirmDeletion)
 
     def _adjustColumnsToModel(self, header, model):
         for i in range(0, model.columnCount()):
