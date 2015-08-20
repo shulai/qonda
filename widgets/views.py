@@ -78,8 +78,8 @@ class EditableView(object):
                 event.accept()
             elif key == Qt.Key_Down and current_row + 1 == row_count:
                 if self.__allowAppends:
-                    idx = self.model().index(current_row + 1, 0, parent)
                     self.model().insertRow(row_count, parent)
+                    idx = self.model().index(current_row + 1, 0, parent)
                     self.setCurrentIndex(idx)
                     event.accept()
         elif mod == Qt.ControlModifier:
