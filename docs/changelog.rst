@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.6.9:
+------
+
+* Fix: When appending a row using down arrow on TableView and the
+  model is a QSortFilterProxyModel instance, the new row didn't
+  become active, but first row was instead.
+
 0.6.8:
 ------
 * Fix: Allow typing a negative sign in an empty NumberEdit
