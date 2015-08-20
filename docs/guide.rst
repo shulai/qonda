@@ -1,12 +1,13 @@
-.. image:: images/logo.png
-    :alt: Qonda Logo
-    :align: center
-
 ===========
 Qonda guide
 ===========
 
-Version 0.6.4, 2015-03-02
+.. image:: images/logo.png
+    :alt: Qonda Logo
+    :align: center
+
+
+Version 0.6.9, 2015-08-20
 
 Intro
 =====
@@ -600,7 +601,8 @@ The full syntax for ``ObjectAdapter`` creation is::
     ObjectAdapter(properties, model=None, class_=None,
             column_meta=None, row_meta=None, parent=None)
 
-* properties: A list (but usually a Python tuple) of attribute names
+* properties: A list (but usually a Python tuple) of either attribute names, or 
+  tuples containing each attribute name along a dict with adapter level metadata.
 * model: The model entity object
 * class\_: The class of the model, for metadata purposes, as model eventually could be None. See also ``ObjectListAdapter``.
 * column_meta: The adapter level metadata, a list or tuple of dict **(DEPRECATED)**.
@@ -905,10 +907,10 @@ input for a search function that returns the real value::
 Attributes:
 
 * search_function: This attribute must be set to a callable that gets a string
-and returns a list of values of any type. Note that search strings doesn't
-need to resemble at all to the returned values. If search_function returns
-an empty list, nothing happens. If there is single value in the list, it becomes
-the widget value. If multiple values are returned, 
+  and returns a list of values of any type. Note that search strings doesn't
+  need to resemble at all to the returned values. If search_function returns
+  an empty list, nothing happens. If there is single value in the list, it becomes
+  the widget value. If multiple values are returned, 
 
 * display_formatter: This attribute can be set to a callable used to get a
   string representation of the value. By default unicode() is used.
