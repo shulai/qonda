@@ -21,7 +21,7 @@ from decimal import Decimal, InvalidOperation
 import locale
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
-    from PyQt5 import QtGui
+    from PyQt5 import QtGui, QtWidgets
     from PyQt5.QtCore import Qt, QEvent, pyqtProperty, QDate
 else:
     from PyQt4 import QtGui  # lint:ok

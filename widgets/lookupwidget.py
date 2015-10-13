@@ -18,7 +18,7 @@
 
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
-    from PyQt5 import QtCore, QtGui
+    from PyQt5 import QtCore, QtGui, QtWidgets
     from PyQt5.QtCore import Qt, pyqtSignal
 else:
     from PyQt4 import QtCore, QtGui  # lint:ok
@@ -204,7 +204,7 @@ class LookupWidget(QtWidgets.QLineEdit):
                 self.setFocus()
                 return False  # Nothing found, back to editing
 
-    @QtCore.pyqtSignature("")
+    @QtCore.pyqtSlot()
     def openSearchWindow(self):
         if self.search_window:
             self.search_window.setWindowModality(Qt.ApplicationModal)
