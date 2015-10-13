@@ -143,6 +143,10 @@ class LookupWidget(QtWidgets.QLineEdit):
         self._show_value()
         self.valueChanged.emit()
 
+    def clear(self):
+        super().clear()
+        self._value = None
+
     def _edit(self):
         self.setText('')
         self._editing = True
