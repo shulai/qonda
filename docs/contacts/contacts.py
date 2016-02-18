@@ -152,19 +152,21 @@ class ContactView(QtGui.QFrame):
         # Set up model adapter and widget mapper
         self.model = model
         self.list_adapter = ObjectListAdapter(
-            ('name', 'phones', 'loaned'),
-            self.model, Contact,
-            column_meta=[
-                {'title': u'Full Name'},
-                {
-                    'width': 10,
+            (
+                ('name', {
+                    'title': u'Full Name',
+                    'columnResizeMode': QtGui.QHeaderView.Stretch
+                }),
+                ('phones', {
+                    'width': 20,
                     'flags': {
                         Qt.ItemIsSelectable: True,
                         Qt.ItemIsEnabled: True
                         }
-                },
-                {
-                }])
+                }),
+                'loaned'),
+            self.model, 
+            Contact)
         self.ui.tableView.setModel(self.list_adapter)
         self.ui.tableView.resizeColumnsToContents()
         self.setEditorModel(model[0])
@@ -184,9 +186,9 @@ class ContactView(QtGui.QFrame):
         self.ui.phones.setModel(self.phones_adapter)
 
     def on_tableView_clicked(self):
-        # Debería implementar un método en los adapter para obtener
-        # el item a partir del indice
-        model = self.list_adapter.getPyObject(self.ui.tableView.currentIndex())
+        # The next line is equivalent to:
+        # model = self.list_adapter.getPyObject(self.ui.tableView.currentIndex())
+        model = self.ui.tableView.currentPyObject()
         self.setEditorModel(model)
 
     def on_clear_clicked(self):
