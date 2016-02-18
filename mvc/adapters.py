@@ -721,7 +721,10 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
                 sender[-1].add_callback(self.observe_item, len(sender) - 1)
             except AttributeError:  # list item is not Observable
                 pass
-            if not ('append' in self.options and len(sender) == 1):
+            if ('append' in self.options and len(sender) == 1):
+                self.dataChanged.emit(self.index(0, 0),
+                    self.createIndex(0, self.columnCount() - 1))
+            else:
                 self.endInsertRows()
 
         def before_extend(n):
