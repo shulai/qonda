@@ -54,22 +54,38 @@ class EditableView(object):
         if mod in (Qt.NoModifier, Qt.KeypadModifier):
             if key in (Qt.Key_Return, Qt.Key_Enter):
                 col = idx.column()
-                if idx.column() + 1 < self.model().columnCount(parent):
-                    # Next column
-                    idx = self.model().index(current_row, col + 1, parent)
+                column_count = self.model().columnCount(parent)
+                # Go to next column if exist and is not hidden
+                new_col = col + 1
+                processed = False
+                while new_col < column_count:
+                    print(new_col, column_count)
+                    if self.isColumnHidden(new_col):
+                        new_col += 1
+                        continue
+                    idx = self.model().index(current_row, new_col, parent)
                     self.setCurrentIndex(idx)
-                    event.accept()
-                else:
+                    processed = True
+                    break
+                if not processed:
                     if current_row + 1 < row_count:
                         # Next row
-                        idx = self.model().index(current_row + 1, 0, parent)
+                        # First non hidden column
+                        new_col = next((acol for acol in range(column_count)
+                            if not self.isColumnHidden(acol)))
+                        idx = self.model().index(current_row + 1, new_col,
+                            parent)
                         self.setCurrentIndex(idx)
                         event.accept()
                     else:
                         if self.__allowAppends:
                             # Appends row
                             self.model().insertRow(row_count, parent)
-                            idx = self.model().index(current_row + 1, 0, parent)
+                            # First non hidden column
+                            new_col = next((acol for acol in range(column_count)
+                                if not self.isColumnHidden(acol)))
+                            idx = self.model().index(current_row + 1, new_col,
+                                parent)
                             self.setCurrentIndex(idx)
                             event.accept()
             elif key == Qt.Key_Delete:
