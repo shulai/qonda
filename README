@@ -5,13 +5,13 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 any later version.
 
-At this time this is *alpha* code. It works, but further enhancements can broke the API.
+At this time the code is mostly stable, but I can't promise it can't broke.
 
 Requirements
 ============
 
 * Python 2.7 or 3.x is supported.
-* Qt4, 4.8 or higher recommended.
+* Qt4, 4.8 or higher recommended. PyQt5 support is unfinished.
 * PyQt4, 4.9 or higher recommended.
 * Knowledge of Python and Qt/PyQt programming.
 
