@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.6.10:
+-------
+
+* PyQt5 compatibility imports
+* Add method LookupWidget.clear()
+* Proper key navigation in views when there are hidden columns
+* Fix: Emit dataChanged signal on row appending if fake row was present
+
 0.6.9:
 ------
 
@@ -21,18 +29,18 @@ Changelog
 
 0.6.6:
 ------
-* Fix: Calendar popup shows current month from empty value when using 
+* Fix: Calendar popup shows current month from empty value when using
   DateEditDelegate.
-* Ignoring KeyError when a cycling dependency between attributes mess with 
+* Ignoring KeyError when a cycling dependency between attributes mess with
   attribute chain observing logic.
 
 0.6.5:
 ------
-* Fix: When DateEdit is empty, calendar popup shows current month instead 
+* Fix: When DateEdit is empty, calendar popup shows current month instead
   Sep 1752.
-* Fix: Don't process insertion/deletion keypresses in view widgets when there 
+* Fix: Don't process insertion/deletion keypresses in view widgets when there
   is no model set
-* Change LookupWidget behavior: Mouse clicks and enter key don't erase current 
+* Change LookupWidget behavior: Mouse clicks and enter key don't erase current
   value.
 
 0.6.4:
