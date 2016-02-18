@@ -601,7 +601,7 @@ The full syntax for ``ObjectAdapter`` creation is::
     ObjectAdapter(properties, model=None, class_=None,
             column_meta=None, row_meta=None, parent=None)
 
-* properties: A list (but usually a Python tuple) of either attribute names, or 
+* properties: A list (but usually a Python tuple) of either attribute names, or
   tuples containing each attribute name along a dict with adapter level metadata.
 * model: The model entity object
 * class\_: The class of the model, for metadata purposes, as model eventually could be None. See also ``ObjectListAdapter``.
@@ -848,11 +848,13 @@ Qonda also provides a set of enhanced widgets:
 * DateEdit: A ``QDateEdit`` allowing empty values
 * DateTimeEdit: A ``QDateTimeEdit`` allowing empty values
 * SpinBox: A ``QSpinBox`` allowing empty values
+* DecimalSpinBox: A ``QDoubleSpinBox`` returning Decimal and allowing empty
+  values
 * ComboBox: A ``QComboBox`` allowing empty values:
 * MaskedLineEdit: A ``QLineEdit`` that filters out the mask separators from
     the value.
 * NumberEdit: A ``QLineEdit`` for localized number editing.
-* RadioButtonGroup: A ``QWidget`` containing ``QRadioButton`` representing a 
+* RadioButtonGroup: A ``QWidget`` containing ``QRadioButton`` representing a
   discrete value.
 
 DateEdit, DateTimeEdit, SpinBox and ComboBox
@@ -910,7 +912,7 @@ Attributes:
   and returns a list of values of any type. Note that search strings doesn't
   need to resemble at all to the returned values. If search_function returns
   an empty list, nothing happens. If there is single value in the list, it becomes
-  the widget value. If multiple values are returned, 
+  the widget value. If multiple values are returned,
 
 * display_formatter: This attribute can be set to a callable used to get a
   string representation of the value. By default unicode() is used.
@@ -927,12 +929,12 @@ Functions:
 RadioButtonGroup
 ----------------
 
-A ``RadioButtonGroup`` is mostly a plain ``QWidget``, 
+A ``RadioButtonGroup`` is mostly a plain ``QWidget``,
 
 * addButton(button, value): Declares an existing QRadioButton representing the
   given value.
 
-* addButtons([(button1, value1), (button2, value2),...]): Declares several 
+* addButtons([(button1, value1), (button2, value2),...]): Declares several
   buttons at once.
 
 * addOption(text, value): Creates a new child QRadioButton for the given value.
