@@ -659,6 +659,7 @@ of its methods and properties. Also implements the next methods.
 
 * ``properties()``: Returns the property list
 
+
 Other adapters
 --------------
 
@@ -926,10 +927,17 @@ Functions:
 
 * setValue(value): Set the value of the widget.
 
+* clear(): Clear the value of the widget.
+
+
 RadioButtonGroup
 ----------------
 
-A ``RadioButtonGroup`` is mostly a plain ``QWidget``,
+A ``RadioButtonGroup`` is mostly a plain ``QWidget``, with a value the user can
+set using the child radio buttons in the group. Buttons can be either added
+by hand and registered with an associated value using addButton() or addButtons()
+methods, or using addOption() or addOptions() methods, that insert new buttons
+and register them in a single step.
 
 * addButton(button, value): Declares an existing QRadioButton representing the
   given value.
@@ -966,6 +974,10 @@ New Properties:
   insertion.
 * allowDeletes (getAllowDeletes/setAllowDeletes), default=True: Allows row
   deletion.
+* confirmDeletion (getConfirmDeletion/setConfirmDeletion), default=False: Ask
+  for confirmation on row deletion. (Currently messages in Spanish. Feel free
+  to contribute i18n patches).
+
 
 New methods:
 
@@ -992,6 +1004,19 @@ New methods:
 New signals:
 
 * currentRowChanged(int)
+
+Manipulating models, views and adapters
+---------------------------------------
+
+So, when doing changes to values in code, where is better? Model, adapter, or view (widgets)?
+
+* Most value changes must be done in the model, if the model is observable the view
+  should update automatically, else you can force view updates.
+* UI related changes can be done in adapters, for example, a button inserting or
+  deleting a row in a view can do it on the adapter using insertRow() and removeRow()
+  methods.
+* Widgets themselves are seldom the place to introduce value changes, as long
+  have an adapter set.
 
 Qonda and SQLAlchemy
 ====================
