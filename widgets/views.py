@@ -59,7 +59,6 @@ class EditableView(object):
                 new_col = col + 1
                 processed = False
                 while new_col < column_count:
-                    print(new_col, column_count)
                     if self.isColumnHidden(new_col):
                         new_col += 1
                         continue
