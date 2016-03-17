@@ -331,6 +331,8 @@ class AdapterWriter(object):
             except (IndexError, KeyError):
                 if value == u'':
                     value = None
+                elif isinstance(value, basestring):
+                    value = value.strip()
             if self._get_value(index) == value:
                 return True
             return self._set_value(index, value)
