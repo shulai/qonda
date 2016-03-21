@@ -27,11 +27,12 @@ except ImportError:
 from warnings import warn
 
 if PYQT_VERSION == 5:
-    from PyQt5 import QtCore, QtGui
+    from PyQt5 import QtCore, QtWidgets
     from PyQt5.QtCore import Qt
 else:
     from PyQt4 import QtCore, QtGui  # lint:ok
     from PyQt4.QtCore import Qt  # lint:ok
+    QtWidgets = QtGui
 
 from .observable import ObservableObject, ObservableListProxy
 
@@ -140,7 +141,7 @@ class AdapterReader(object):
             section = index.column()
             try:
                 w = self._column_meta[section]['width']
-                return QtCore.QSize(w * QtGui.QApplication.instance()
+                return QtCore.QSize(w * QtWidgets.QApplication.instance()
                     .fontMetrics().averageCharWidth() * 1.4, 20)
             except (IndexError, KeyError):
                 return None
@@ -181,7 +182,7 @@ class AdapterReader(object):
             # *Both* seems to be called by the views
             try:
                 w = self._column_meta[section]['width']
-                return QtCore.QSize(w * QtGui.QApplication.instance()
+                return QtCore.QSize(w * QtWidgets.QApplication.instance()
                     .fontMetrics().averageCharWidth() * 1.4, 20)
             except (IndexError, KeyError):  # No column meta or no meta key
                 return None

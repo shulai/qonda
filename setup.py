@@ -32,6 +32,7 @@ class build(build_py):
     def _compile_ui(self):
         print("Compiling Qt resource file")
         self.pyrcc4 = 'pyrcc4'
+        self.pyrcc5 = 'pyrcc5'
 
         if sys.version_info[0] == 2:
             option = '-py2'
@@ -40,12 +41,30 @@ class build(build_py):
 
         try:
             subprocess.call([self.pyrcc4, option, 'icons/icons.qrc', '-o',
-                             'icons/icons_rc.py'])
+                             'icons/icons_pyqt4_rc.py'])
+            pyrcc4_sucess = True
         except OSError:
+            pyrcc4_sucess = False
 
+        try:
+            subprocess.call([self.pyrcc5, 'icons/icons.qrc', '-o',
+                             'icons/icons_pyqt5_rc.py'])
+            pyrcc5_sucess = True
+        except OSError:
+            pyrcc5_sucess = False
+
+        if not pyrcc4_sucess:
+            print("rcc command failed - make sure that pyrcc5 "
+                  "is in your $PATH")
+
+        if not pyrcc5_sucess:
             print("rcc command failed - make sure that pyrcc4 "
-                  "or pyside-rcc4 is in your $PATH, or specify "
-                  "a custom command with --rcc=command")
+                  "is in your $PATH")
+            
+        if not (pyrcc4_sucess or pyrcc5_sucess):
+            print("Resource compilation failed for both PyQt4 and PyQt5. Process can't continue")
+            sys.exit(1)
+
 
     def run(self):
 

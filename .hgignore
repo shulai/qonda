@@ -3,7 +3,8 @@ syntax: glob
 *.pyc
 *~
 *_ui.py
-*_rc.py
+*pyqt4_rc.py
+*pyqt5_rc.py
 *.orig
 
 syntax: regexp
