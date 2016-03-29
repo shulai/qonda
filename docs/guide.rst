@@ -122,6 +122,9 @@ Attributes can hold simple values like unicode strings or integers, or any
 object, if no formatter is provided the adapter will use unicode() to get
 a proper value.
 
+As a special case, and empty string in the attribute list can be used to refer
+to the model itself.
+
 Adapters support composition too. So, you could also do the following and the
 adapter will do the right thing::
 
