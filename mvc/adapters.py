@@ -555,7 +555,7 @@ class ObjectAdapter(AdapterReader, AdapterWriter, BaseAdapter):
             while propertyparts:
                 obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-            value = getattr(obj, prop)
+            value = getattr(obj, prop) if prop != '' else obj
         except AttributeError:
             if obj is not None:
                 warn("Adapter property {} ({}) not found in the model {}({})"
@@ -1007,7 +1007,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
             while propertyparts:
                 obj = getattr(obj, prop)
                 prop = propertyparts.pop(0)
-            value = getattr(obj, prop)
+            value = getattr(obj, prop) if prop != '' else obj
         except AttributeError:
             if obj is not None:
                 warn("Adapter property {} ({}) not found in the model {}"
