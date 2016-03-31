@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+from .. import PYQT_VERSION
 
-from PyQt4.QtGui import QSortFilterProxyModel
+if PYQT_VERSION == 5:
+    from PyQt5.QtCore import QSortFilterProxyModel
+else:
+    from PyQt4.QtGui import QSortFilterProxyModel
 from ..mvc.adapters import PythonObjectRole
 
 
