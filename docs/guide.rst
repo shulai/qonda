@@ -7,7 +7,11 @@ Qonda guide
     :align: center
 
 
-Version 0.6.9, 2015-08-20
+Version 0.7.0, 2016-03-31
+
+
+.. contents::
+
 
 Intro
 =====
@@ -31,6 +35,18 @@ Requisites
 A basic knowledge of Python and PyQt programming are required to follow
 this tutorial. If you are able to build a widget based UI with PyQt and
 make it work you are ready to go!
+
+Qonda currently supports Python 2.7 and 3.x. Qonda sources are 2.7, but
+mostly used in 3.4 so version specific bugs can exists if you use it in 2.7.
+For use with Python 3.x, sources are translated using 2to3 at install time
+(plus some manual adjustment).
+
+Also Qonda supports both PyQt4 and PyQt5. PyQt4 is the default. See
+`PyQt5 support`_ for details.
+
+This guide assumes use of Python 2.7 and PyQt4, but few (if any) changes are
+required between versions, the main difference being unicode strings becoming
+the standard string type en Python 3.
 
 Interview overview
 ==================
@@ -56,7 +72,10 @@ First steps
 ===========
 
 Please note these aren't complete, runnable examples. Separate
-example source files are provided along this document.
+example source files are provided along this document. Also, this examples
+are meant to be as simple and understandable as possible, enhancements in
+code and presentation are of course possible either using PyQt or Qonda
+features.
 
 Let's start with a simple model for a contact list::
 
@@ -123,7 +142,13 @@ object, if no formatter is provided the adapter will use unicode() to get
 a proper value.
 
 As a special case, and empty string in the attribute list can be used to refer
-to the model itself.
+to the model itself [#]_.
+
+.. [#] This can be useful if the object has a ``__unicode__`` or ``__str__``
+       method, but also if bending the rules you want to use a formatter
+       to present a result calculated from the model state. The recommended
+       approach in this case, nevertheless, is to define a new property in the
+       model class with ``@property``.
 
 Adapters support composition too. So, you could also do the following and the
 adapter will do the right thing::
@@ -1020,6 +1045,24 @@ So, when doing changes to values in code, where is better? Model, adapter, or vi
   methods.
 * Widgets themselves are seldom the place to introduce value changes, as long
   have an adapter set.
+
+.. `PyQt5 support`
+
+PyQt5 support
+=============
+
+Currently Qonda has support for the legacy features in PyQt5, that is, it
+doesn't include support for the heavily promoted QtQuick UIs. It however
+supports both PyQt4 and PyQt5 with the same package.
+
+In order to enable PyQt5 support, you must include the following in your
+initialization code:
+
+    import qonda
+    qonda.PYQT_VERSION = 5
+
+Is also a good idea if you also set PYQT_VERSION in your PyQt4 application,
+as Qonda default value for PYQT_VERSION can change in the future.
 
 Qonda and SQLAlchemy
 ====================
