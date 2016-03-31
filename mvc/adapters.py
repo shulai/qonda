@@ -358,6 +358,18 @@ class MetaPropertyWrapper(object):
         return self._meta_property(getattr(o, self._property_name))
 
 
+class MetaFormatterPropertyWrapper(object):
+    """
+    A metadata property wrapper that pass the proper object to callables
+    """
+    def __init__(self, meta_property):
+        self._meta_property = meta_property
+
+    def __call__(self, *a, **kw):
+        o = a[0]
+        return self._meta_property(o)
+
+
 class PropertyMetadataWrapper(UserDict):
     """
     A wrapper for attribute metadata that wraps individual metadata properties
@@ -373,7 +385,10 @@ class PropertyMetadataWrapper(UserDict):
     def __getitem__(self, key):
         meta_property = self.data[key]
         if callable(meta_property):
-            return MetaPropertyWrapper(self._property_name, meta_property)
+            if key in ('displayFormatter', 'editFormatter'):
+                return MetaFormatterPropertyWrapper(meta_property)
+            else:
+                return MetaPropertyWrapper(self._property_name, meta_property)
         else:
             return meta_property
 
