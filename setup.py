@@ -60,11 +60,11 @@ class build(build_py):
         if not pyrcc5_sucess:
             print("rcc command failed - make sure that pyrcc4 "
                   "is in your $PATH")
-            
-        if not (pyrcc4_sucess or pyrcc5_sucess):
-            print("Resource compilation failed for both PyQt4 and PyQt5. Process can't continue")
-            sys.exit(1)
 
+        if not (pyrcc4_sucess or pyrcc5_sucess):
+            print("Resource compilation failed for both PyQt4 and PyQt5. "
+                "Process can't continue")
+            sys.exit(1)
 
     def run(self):
 
@@ -75,7 +75,7 @@ cmdclass = {'build_py': build}
 
 setup(
     name='qonda',
-    version='0.6.10',
+    version='0.7.0',
     description="A Model-View framework based on Qt Interview",
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',

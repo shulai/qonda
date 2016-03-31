@@ -1,9 +1,16 @@
 Changelog
 =========
 
+0.7.0:
+-------
+* Proper PyQt5 support: use of PyQt4 and PyQt4 are determined at run time.
+* Allow empty string in adapter property lists as a reference to object iself.
+* Adapters now strip strings by default
+* Fix: Use of formatters with composite adapter properties.
+* Enhanced Documentation.
+
 0.6.10:
 -------
-
 * PyQt5 compatibility imports
 * Add method LookupWidget.clear()
 * Proper key navigation in views when there are hidden columns
@@ -11,7 +18,6 @@ Changelog
 
 0.6.9:
 ------
-
 * Fix: When appending a row using down arrow on TableView and the
   model is a QSortFilterProxyModel instance, the new row didn't
   become active, but first row was instead.
