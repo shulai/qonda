@@ -176,7 +176,10 @@ class EditableView(object):
             mode = model.headerData(i, Qt.Horizontal, QondaResizeRole)
             if mode is None:
                 mode = header.Interactive
-            header.setResizeMode(i, mode)
+            if PYQT_VERSION == 4:
+                header.setResizeMode(i, mode)
+            else:
+                header.setSectionResizeMode(i, mode)
 
     def setItemDelegatesForColumns(self, *delegates):
         for column, delegate in enumerate(delegates):
