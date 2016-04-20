@@ -649,6 +649,10 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
         def before_setitem(attrs):
             i, inserting = attrs
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = len(sender)
             removing = stop - start
             for i in range(start, stop):
                 try:
@@ -692,6 +696,10 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
 
         def before_delitem(i):
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = len(sender)
             for i in range(start, stop):
                 try:
                     sender[i].remove_callback(self.observe_item)
