@@ -72,6 +72,8 @@ class DateEdit(QtWidgets.QDateEdit):
 
     def setAllowEmpty(self, value):
         self.__allowEmpty = value
+        # Qt ignores '' and regular space, '' disables special value
+        self.setSpecialValueText(u'\xa0' if value else '')
 
     def resetAllowEmpty(self):
         self.__allowEmpty = True
@@ -107,6 +109,8 @@ class DateTimeEdit(QtWidgets.QDateTimeEdit):
 
     def setAllowEmpty(self, value):
         self.__allowEmpty = value
+        # Qt ignores '' and regular space, '' disables special value
+        self.setSpecialValueText(u'\xa0' if value else '')
 
     def resetAllowEmpty(self):
         self.__allowEmpty = True
@@ -178,11 +182,27 @@ class SpinBox(QtWidgets.QSpinBox):
 
     def setAllowEmpty(self, value):
         self.__allowEmpty = value
+        # Qt ignores '' and regular space, '' disables special value
+        self.setSpecialValueText(u'\xa0' if value else '')
 
     def resetAllowEmpty(self):
         self.__allowEmpty = True
 
     allowEmpty = pyqtProperty('bool', getAllowEmpty, setAllowEmpty)
+
+    def minimumValue(self):
+        if self.__allowEmpty():
+            # True minimum is the empty value
+            return super().minimumValue() + 1
+        else:
+            return super().minimumValue()
+
+    def setMinimumValue(self, value):
+        if self.__allowEmpty():
+            # True minimum is the empty value
+            return super().setMinimumValue(value - 1)
+        else:
+            return super().setMinimumValue(value)
 
 
 class DecimalSpinBox(QtWidgets.QDoubleSpinBox):
