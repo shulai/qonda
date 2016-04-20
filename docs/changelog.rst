@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.7.1:
+------
+* Add setProperty method to delegates to be able to change properties used
+  in editor creation.
+* Fix: When setting allowEmpty to False in SpinBox, DateEdit, don't show empty
+  as value for minimumValue()
+*
+
 0.7.0:
 -------
 * Proper PyQt5 support: use of PyQt4 and PyQt4 are determined at run time.
