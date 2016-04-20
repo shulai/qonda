@@ -64,7 +64,7 @@ class SpinBoxDelegate(QtWidgets.QStyledItemDelegate):
     def widgetValueChanged(self, value):
         self.commitData.emit(self.sender())
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
@@ -89,7 +89,7 @@ class DecimalSpinBoxDelegate(SpinBoxDelegate):
         value = editor.value()
         model.setData(index, value, PythonObjectRole)
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
@@ -179,7 +179,7 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
     def widgetValueChanged(self, value):
         self.commitData.emit(self.sender())
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
@@ -217,7 +217,7 @@ class DateEditDelegate(QtWidgets.QStyledItemDelegate):
         else:
             editor.clear()
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
@@ -253,7 +253,7 @@ class LineEditDelegate(QtWidgets.QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
@@ -308,7 +308,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
     def widgetValueChanged(self, value):
         self.commitData.emit(self.sender())
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
@@ -332,7 +332,7 @@ class NumberEditDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.getValue(), PythonObjectRole)
 
-    def setProperties(self, properties):
+    def setProperties(self, **properties):
         self.__properties = properties
 
 
