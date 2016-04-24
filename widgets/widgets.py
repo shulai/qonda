@@ -32,10 +32,10 @@ else:
 class CalendarWidget(QtWidgets.QCalendarWidget):
 
     def showEvent(self, event):
-        super().showEvent(event)
+        super(CalendarWidget, self).showEvent(event)
         if self.selectedDate() == QDate(1752, 9, 14):
             today = datetime.date.today()
-            super().setCurrentPage(today.year, today.month)
+            super(CalendarWidget, self).setCurrentPage(today.year, today.month)
 
 
 class DateEdit(QtWidgets.QDateEdit):
@@ -47,7 +47,7 @@ class DateEdit(QtWidgets.QDateEdit):
         self.__allowEmpty = True
 
     def setCalendarPopup(self, enable):
-        super().setCalendarPopup(enable)
+        super(DateEdit, self).setCalendarPopup(enable)
         if enable:
             self._calendar = CalendarWidget()
             self.setCalendarWidget(self._calendar)
@@ -155,7 +155,7 @@ class SpinBox(QtWidgets.QSpinBox):
         self.__allowEmpty = True
 
     def value(self):
-        v = super().value()
+        v = super(SpinBox, self).value()
         if self.__allowEmpty and v == self.minimum():
             return None
         return v
@@ -193,16 +193,16 @@ class SpinBox(QtWidgets.QSpinBox):
     def minimumValue(self):
         if self.__allowEmpty():
             # True minimum is the empty value
-            return super().minimumValue() + 1
+            return super(SpinBox, self).minimumValue() + 1
         else:
-            return super().minimumValue()
+            return super(SpinBox, self).minimumValue()
 
     def setMinimumValue(self, value):
         if self.__allowEmpty():
             # True minimum is the empty value
-            return super().setMinimumValue(value - 1)
+            return super(SpinBox, self).setMinimumValue(value - 1)
         else:
-            return super().setMinimumValue(value)
+            return super(SpinBox, self).setMinimumValue(value)
 
 
 class DecimalSpinBox(QtWidgets.QDoubleSpinBox):

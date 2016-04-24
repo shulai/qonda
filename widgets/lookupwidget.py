@@ -144,7 +144,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         self.valueChanged.emit()
 
     def clear(self):
-        super().clear()
+        super(LookupWidget, self).clear()
         self._value = None
 
     def _edit(self):
