@@ -689,7 +689,7 @@ class BaseListAdapter(AdapterReader, AdapterWriter):
                 self.endInsertRows()
                 self.dataChanged.emit(self.index(stop, 0),
                     self.createIndex(start + inserting - 1,
-                    len(self._properties) - 1))
+                    self.columnCount() - 1))
 
             if 'append' in self.options and len(sender) == 0:
                 self._insert_placeholder()
