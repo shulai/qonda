@@ -271,11 +271,19 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         value = index.data(PythonObjectRole)
-        editor.setChecked(bool(value))
+        if value is None:
+            editor.setCheckState(Qt.PartiallyChecked)
+        else:
+            editor.setChecked(bool(value))
         editor.stateChanged.connect(self.widgetValueChanged)
 
     def setModelData(self, editor, model, index):
-        model.setData(index, bool(editor.isChecked()), PythonObjectRole)
+        v = {
+            Qt.Unchecked: False,
+            Qt.Checked: True,
+            Qt.PartiallyChecked: None
+            }[editor.checkState()]
+        model.setData(index, v, PythonObjectRole)
 
     def updateEditorGeometry(self, editor, option, index):
         style = QtWidgets.QApplication.style()
