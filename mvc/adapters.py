@@ -993,7 +993,7 @@ class ObjectListAdapter(BaseListAdapter, AdapterWriter, BaseAdapter):
                     return self.createIndex(row, column, None)
                 else:
                     return QtCore.QModelIndex()
-            return self.createIndex(row, column, self._model[row])
+            return self.createIndex(row, column, None)
         except IndexError:
             return QtCore.QModelIndex()
 
