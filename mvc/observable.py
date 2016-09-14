@@ -24,6 +24,8 @@ try:
     from sqlalchemy import orm
 except ImportError:
     pass
+# This is part of a compatibility workaround
+from .. import IGNORE_ATTRIBUTE_ERRORS_ON_CALLBACKS
 
 
 class Observable(object):
@@ -142,6 +144,14 @@ class ObservableObject(Observable):
         try:
             self._notify('update', (name,))
         except AttributeError as e:
+            # Compatibility workaround: Older versions of Qonda
+            # ignored "errors should never pass silently" principle
+            # because callbacks could be fired during __init__ when object
+            # state is not fully built and attributes could be missing.
+            # Newer Qonda raises AttributeError, unless
+            # IGNORE_ATTRIBUTE_ERRORS_ON_CALLBACKS is set to True
+            if not IGNORE_ATTRIBUTE_ERRORS_ON_CALLBACKS:
+                raise
               # If invoked in object construction
             print('Notice: AttributeError on update event', str(e))
         try:
