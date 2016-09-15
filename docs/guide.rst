@@ -1124,7 +1124,7 @@ caveats:
   therefore currently a manual refresh of the views must be required.
 
 Qonda provides functionality created specifically to be used with SQLAlchemy.
-See ``ListSessionManager`` and ``QueryResult`` classes below for details.
+See ``ObjectListManager`` and ``QueryResult`` classes below for details.
 
 Drag and Drop
 =============
@@ -1233,6 +1233,28 @@ simple as using the adapter directly::
             contact = self.ui.contacts.currentPyObject() # Just works!
 
 
+ObjectListManager
+------------------
+
+``ObjectListManager`` manages automatic adding, deleting and merging 
+of an ObservableListProxy items into a SQLAlchemy session::
+
+    from qonda.sqlalchemy import ObjectListManager
+
+    ...
+    session=Session()
+    model = ObservableListProxy(session.query(Stuff).all())
+    session.close()
+    self.list_manager = ListSessionManager(model)
+
+    # Adding and removing items from the model automatically
+    # adds and deletes them from the session.
+
+    session=Session()
+    self.list_manager.apply_to_session(session)
+    session.commit()
+
+
 ListSessionManager
 ------------------
 
@@ -1246,6 +1268,10 @@ of an ObservableListProxy into the associated SQLAlchemy session::
     # Adding and removing items from the model automatically
     # adds and deletes them from the session.
     self.session_manager = ListSessionManager(self.session, model)
+
+This is a mostly DEPRECATED class, as it was meant to be used along a 
+long-lived session (e.g. whose lifetime exceeds a Qt event or slot).
+It could be useful anyway if used non-interactively into an event or slot.
 
 
 QueryResult
