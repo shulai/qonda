@@ -95,6 +95,7 @@ class LookupWidget(QtWidgets.QLineEdit):
 
         self.search_function = True
         self.search_window = None
+        self.on_value_set = None
         self._editing = False
         self.display_formatter = unicode
         self._show_value()
@@ -137,6 +138,10 @@ class LookupWidget(QtWidgets.QLineEdit):
         return self._value
 
     def setValue(self, value):
+        if value == self._value:
+            return
+        if self.on_value_set is not None:
+            value = self.on_value_set(value)
         self._value = value
         if self._editing:
             self._edit_finished()
@@ -144,8 +149,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         self.valueChanged.emit()
 
     def clear(self):
-        super(LookupWidget, self).clear()
-        self._value = None
+        self.setValue(None)
 
     def _edit(self):
         self.setText('')
@@ -170,7 +174,7 @@ class LookupWidget(QtWidgets.QLineEdit):
 
     def _show_value(self):
         if self._value is None:
-            self.clear()
+            super(LookupWidget, self).clear()
         else:
             self.setText(self.display_formatter(self._value))
             # When the value representation is wider than the widget,

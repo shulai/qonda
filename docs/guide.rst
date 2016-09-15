@@ -976,9 +976,9 @@ Attributes:
     # Silly example
     self.lookup.display_formatter = lambda v: '** ' + str(v) + ' **'
 
-* on_value_set: This attribute can be set to a callabe in order to modify or
+* on_value_set: This attribute can be set to a callable in order to modify or
   replace the value passed to setValue. The callable receives the value, and
-  returns the same or a diferent value.
+  returns the same or a different value.
 
 Functions:
 
