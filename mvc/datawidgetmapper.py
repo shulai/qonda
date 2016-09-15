@@ -145,11 +145,13 @@ class DataWidgetMapper(QtWidgets.QDataWidgetMapper):
         for section, widget in enumerate(widgets):
             self.addMapping(widget, section)
 
-    def mapFromPropertyList(self, ui, properties):
+    def mapFromPropertyList(self, ui, properties, prefix=''):
         """
         Map widgets that match the adapter properties
         """
-        self.addMappings(*[getattr(ui, prop.replace('.', '_'))
+        if prefix:
+            prefix += '_'
+        self.addMappings(*[getattr(ui, prefix + prop.replace('.', '_'))
             for prop in properties])
 
     def setModel(self, model):
