@@ -7,7 +7,7 @@ Qonda guide
     :align: center
 
 
-Version 0.7.0, 2016-03-31
+Version 0.8.0, 2016-09-16
 
 
 .. contents::
@@ -620,6 +620,10 @@ flags              dict, keys are
                    or constants                                                   selectable.
 ================== ====================== ======================== ============== ============================================
 
+Also, at the adapter level can be defined the ``alias`` property, used to
+distinguish between two adapter columns when refering to the same model
+attribute, when mapping columns to widgets. See
+``DataWidgetMapper.mapFromPropertyList()`` for details.
 
 Adapters, in detail
 ===================
@@ -687,6 +691,10 @@ of its methods and properties. Also implements the next methods.
 
 * ``properties()``: Returns the property list
 
+* ``propertyAliases()``: Returns the list of property aliases. A property alias
+    is the value of the 'alias' if it's defined, of the property name if it
+    isn't. This is useful with DataWidgetMapper.mapFromPropertyList()
+    (see below).
 
 Other adapters
 --------------
@@ -850,6 +858,25 @@ to stock ``QDataWidgetMapper``:
     # Using properties from an adapter
     self.mapper.mapFromPropertyList(self.ui, adapter.properties())
 
+    # Because adapter.properties() can't be used to map the same model
+    # attribute to two different widgets, the newer propertyAliases() method
+    # exists. But declaring the attribute twice in the adapter and
+    # setting alias allows resolving the problem.
+    self.adapter = ObjectAdapter(
+        (
+            'date',
+            'amount',
+            ('amount', {'alias': 'amount2'})
+        ),
+        Payment,
+        self.model)
+    self.mapper.mapFromPropertyList(self.ui, adapter.propertyAliases())
+
+    # If adapter.properties() returns ("date", "amount"), this will map them
+    # to widgets "payment_date" and "payment_amount", setting attribute prefix.
+    self.mapper.mapFromPropertyList(self.ui, adapter.properties(),
+        prefix='payment')
+
 * Widgets can be mapped with no model assigned, and mappings persists after a
   call to ``setModel()``
 * ``setModel()`` automatically do ``toFirst()``::
@@ -944,7 +971,14 @@ Attributes:
   the widget value. If multiple values are returned,
 
 * display_formatter: This attribute can be set to a callable used to get a
-  string representation of the value. By default unicode() is used.
+  string representation of the value. By default unicode() is used:
+
+    # Silly example
+    self.lookup.display_formatter = lambda v: '** ' + str(v) + ' **'
+
+* on_value_set: This attribute can be set to a callabe in order to modify or
+  replace the value passed to setValue. The callable receives the value, and
+  returns the same or a diferent value.
 
 Functions:
 
