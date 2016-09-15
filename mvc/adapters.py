@@ -513,6 +513,10 @@ class BaseAdapter(QtCore.QAbstractTableModel):
     def properties(self):
         return self._properties
 
+    def propertyAliases(self):
+        return [self._column_meta[i].get('alias', self._properties[i])
+            for i in range(len(self._properties))]
+
     def getPropertyColumn(self, prop):
         return self._properties.index(prop)
 
