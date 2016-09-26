@@ -8,12 +8,22 @@ else:
 from ..mvc.adapters import PythonObjectRole
 
 
+class NoneOrdering:
+
+    FIRST = 1
+    LAST = 2
+
+
 class SortFilterProxyModel(QSortFilterProxyModel):
     """
         A minimal extension to QSortFilterProxyModel implementing
         Qonda's adapters API, notably getPyObject(), required by
         currentPyObject() methods in DataWidgetMapper and *View widgets
     """
+
+    def __init__(self, parent=None, none_ordering=NoneOrdering.FIRST):
+        super(SortFilterProxyModel, self).__init__(parent)
+        self._none_ordering = none_ordering
 
     def getPyModel(self):
         return self.sourceModel.getPyModel()
@@ -34,4 +44,12 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         """
             Sort using Python ordering
         """
-        return left.data(PythonObjectRole) < right.data(PythonObjectRole)
+        left_data = left.data(PythonObjectRole)
+        right_data = right.data(PythonObjectRole)
+        if left_data is None:
+            # None is less if NoneOrdering == FIRST
+            return self._none_ordering == NoneOrdering.FIRST
+        if right_data is None:
+            # None is less if NoneOrdering == FIRST
+            return self._none_ordering == NoneOrdering.LAST
+        return left_data < right_data
