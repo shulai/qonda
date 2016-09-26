@@ -45,7 +45,6 @@ class ObjectListManager(object):
             else:
                 self._deleted.add(item)
 
-
         def before_setitem(attrs):
             i, l = attrs
             start, stop = (i, i + 1) if type(i) == int else (i.start, i.stop)
@@ -81,10 +80,22 @@ class ObjectListManager(object):
         f = locals().get(event_type, None)
         if f is not None:
             f(attrs)
-    
+
     def _observe_target(self, sender, event_type, list_index, attrs):
         if sender not in self._new:
             self._dirty.add(sender)
+
+    @property
+    def new(self):
+        return self._new
+
+    @property
+    def dirty(self):
+        return self._dirty
+
+    @property
+    def deleted(self):
+        return self._deleted
 
     def apply_to_session(self, session):
         for item in self._dirty - self._deleted:
@@ -95,3 +106,8 @@ class ObjectListManager(object):
         session.flush()
         session.add_all(self._new)
         session.flush()
+
+    def reset(self):
+        self._new = set()
+        self._dirty = set()
+        self._deleted = set()
