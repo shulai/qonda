@@ -75,7 +75,7 @@ cmdclass = {'build_py': build}
 
 setup(
     name='qonda',
-    version='0.7.1',
+    version='0.8.0',
     description="A Model-View framework based on Qt Interview",
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',

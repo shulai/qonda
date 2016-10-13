@@ -1,9 +1,27 @@
 Changelog
 =========
 
+0.8.0:
+------
+
+* Raises AttributeError on ObservableObject.__setattr__ if attribute doesn't
+  exist. *BREAKS COMPATIBILITY WITH OLDER RELEASES*. Set
+  qonda.IGNORE_ATTRIBUTE_ERRORS_ON_CALLBACKS = True to override.
+* QCheckBox tristate support
+* Adds ObjectListManager class to replace ListSessionManager without keeping
+  a session open.
+* Adds aliases for adapter properties, to ease binding the same attribute to
+  multiple widgets.
+* Adds prefix parameter to DataWidgetMapper.mapPropertyList(), to ease binding
+  of multiple mappers in the same form.
+* Adds on_value_set attribute to LookupWidget to allow changing the lookup
+  value on the fly. This is useful in certain scenarios using SQLAlchemy.
+* SortFilterProxyModel sorts None value both in Python 2 and 3, optionally
+  sorting None as last values.
+
 0.7.1:
 ------
-* Add setProperty method to delegates to be able to change properties used
+* Adds setProperty method to delegates to be able to change properties used
   in editor creation.
 * Fix: When setting allowEmpty to False in SpinBox, DateEdit, don't show empty
   as value for minimumValue()
@@ -20,7 +38,7 @@ Changelog
 0.6.10:
 -------
 * PyQt5 compatibility imports
-* Add method LookupWidget.clear()
+* Adds method LookupWidget.clear()
 * Proper key navigation in views when there are hidden columns
 * Fix: Emit dataChanged signal on row appending if fake row was present
 
