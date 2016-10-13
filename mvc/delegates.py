@@ -271,7 +271,7 @@ class CheckBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         value = index.data(PythonObjectRole)
-        if value is None:
+        if value is None and editor.isTristate():
             editor.setCheckState(Qt.PartiallyChecked)
         else:
             editor.setChecked(bool(value))
