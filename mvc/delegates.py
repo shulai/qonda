@@ -22,10 +22,10 @@ import datetime
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
     from PyQt5 import QtGui, QtWidgets
-    from PyQt5.QtCore import Qt
+    from PyQt5.QtCore import Qt, QRect
 else:
     from PyQt4 import QtGui  # lint:ok
-    from PyQt4.QtCore import Qt  # lint:ok
+    from PyQt4.QtCore import Qt, QRect  # lint:ok
     QtWidgets = QtGui
 
 from ..widgets import widgets
@@ -252,6 +252,45 @@ class LineEditDelegate(QtWidgets.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+    def setProperties(self, **properties):
+        self.__properties = properties
+
+
+class TextEditDelegate(QtWidgets.QStyledItemDelegate):
+    """
+        Specialized delegate what brings a customizable LineEdit editor
+    """
+    def __init__(self, parent=None, validator=None, **properties):
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
+        self.validator = validator
+        self.__properties = properties
+
+    def createEditor(self, parent, option, index):
+        editor = QtWidgets.QTextEdit(parent)
+        if self.validator:
+            editor.setValidator(self.validator)
+        for prop_name, prop_value in self.__properties.iteritems():
+            editor.setProperty(prop_name, prop_value)
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.EditRole)
+        if editor.acceptRichText():
+            editor.setHtml(value)
+        else:
+            editor.setPlainText(value)
+
+    def setModelData(self, editor, model, index):
+        if editor.acceptRichText():
+            model.setData(index, str(editor.toHtml()), Qt.EditRole)
+        else:
+            model.setData(index, str(editor.toPlainText()), Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        rect = QRect(option.rect.left(), option.rect.top(),
+                     option.rect.width(), option.rect.height() * 3)
+        editor.setGeometry(rect)
 
     def setProperties(self, **properties):
         self.__properties = properties
