@@ -38,6 +38,7 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
         self.search_function = search_function
         self.search_window = search_window
         self.display_formatter = display_formatter
+        self._setting_model_data = False
 
     def createEditor(self, parent, option, index):
         editor = LookupWidget(parent)
@@ -50,11 +51,19 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
         self.search_window = window
 
     def setEditorData(self, editor, index):
+        # Avoid setting editor data inside a setModelData call
+        # This happens when ObjectListAdapter inserts the first row
+        # and the blank value of the new row is sent into the editor
+        # Hope doesn't cause any regressions in other cases.
+        if  self._setting_model_data:
+            return
         editor.setValue(index.data(role=PythonObjectRole))
         editor.valueChanged.connect(self.widgetValueChanged)
 
     def setModelData(self, editor, model, index):
+        self._setting_model_data = True
         model.setData(index, editor.value(), role=PythonObjectRole)
+        self._setting_model_data = False
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
