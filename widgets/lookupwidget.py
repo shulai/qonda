@@ -33,11 +33,12 @@ PythonObjectRole = 32
 class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, search_function=None, search_window=None,
-            display_formatter=unicode):
+            display_formatter=unicode, on_value_set=None):
         QtWidgets.QItemDelegate.__init__(self, parent)
         self.search_function = search_function
         self.search_window = search_window
         self.display_formatter = display_formatter
+        self.on_value_set = on_value_set
         self._setting_model_data = False
 
     def createEditor(self, parent, option, index):
@@ -45,6 +46,7 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
         editor.search_function = self.search_function
         editor.search_window = self.search_window
         editor.display_formatter = self.display_formatter
+        editor.on_value_set = self.on_value_set
         return editor
 
     def setSearchWindow(self, window):
