@@ -190,8 +190,11 @@ class EditableView(object):
         return self.model().getPyObject(self.currentIndex())
 
     def selectedObjects(self):
+        selection_model = self.selectionModel()
+        if not selection_model:
+            return []
         return [self.model().getPyObject(idx)
-            for idx in self.selectionModel().selectedRows()]
+            for idx in selection_model.selectedRows()]
 
 
 class TableView(QtWidgets.QTableView, EditableView):
