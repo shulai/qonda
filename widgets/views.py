@@ -81,8 +81,11 @@ class EditableView(object):
                             # Appends row
                             self.model().insertRow(row_count, parent)
                             # First non hidden column
-                            new_col = next((acol for acol in range(column_count)
-                                if not self.isColumnHidden(acol)))
+                            try:
+                                new_col = next((acol for acol in range(column_count)
+                                    if not self.isColumnHidden(acol)))
+                            except AttributeError:
+                                new_col = 0
                             idx = self.model().index(current_row + 1, new_col,
                                 parent)
                             self.setCurrentIndex(idx)
