@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.8.3:
+------
+
+* Fix bug when first row inserted in a view when a LookupWidgetDelegate is used.
+* Allows setting on_value_set in LookupWidgetDelegate
+* Returns empty list when asking for selectedRows() and there is no selection.
+* Enhanced Documentation.
+
 0.8.0:
 ------
 

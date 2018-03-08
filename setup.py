@@ -75,7 +75,7 @@ cmdclass = {'build_py': build}
 
 setup(
     name='qonda',
-    version='0.8.0',
+    version='0.8.3',
     description="A Model-View framework based on Qt Interview",
     author="Julio Cesar Gazquez",
     author_email='julio@mebamutual.com.ar',
@@ -105,7 +105,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
     ],
-    keywords='gui pyqt4',
+    keywords='gui pyqt pyqt4 pyqt5',
     license='GPL',
     cmdclass=cmdclass
 )
