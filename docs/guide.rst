@@ -592,6 +592,9 @@ displayFormatter   Callable               unicode                  DisplayRole  
 editFormatter      Callable               unicode                  EditRole       A callable that receives the attribute value
                                                                                   and returns the formatted for displaying in
                                                                                   editors.
+parser             Callable               object                   EditRole       A callable that receives a text
+                                                                                  representation of a value and converts it
+                                                                                  into the actual Python value.
 decoration         Callable or constant   ``QIcon``, ``QColor``    DecorationRole Icon for the attribute. If it's a callable
                                           or ``QPixmap``                          it receives the entity as argument.
 tooltip            Callable or constant   unicode                  ToolTipRole    Tooltip for the attribute. If it's a callable
@@ -974,7 +977,7 @@ Attributes:
   string representation of the value. By default unicode() is used:
 
     # Silly example
-    self.lookup.display_formatter = lambda v: '** ' + str(v) + ' **'
+    self.lookup.display_formatter = lambda v: '\*\* ' + str(v) + ' \*\*'
 
 * on_value_set: This attribute can be set to a callable in order to modify or
   replace the value passed to setValue. The callable receives the value, and
@@ -1092,10 +1095,10 @@ supports both PyQt4 and PyQt5 with the same package.
 In order to enable PyQt5 support, you must include the following in your
 initialization code:
 
-    import qonda
-    qonda.PYQT_VERSION = 5
+        import qonda
+        qonda.PYQT_VERSION = 5
 
-Is also a good idea if you also set PYQT_VERSION in your PyQt4 application,
+Is also a good idea setting PYQT_VERSION in your PyQt4 application,
 as Qonda default value for PYQT_VERSION can change in the future.
 
 Qonda and SQLAlchemy
@@ -1122,6 +1125,81 @@ caveats:
 
 * If an object managed by SQLAlchemy is refreshed, Qonda won't notice,
   therefore currently a manual refresh of the views must be required.
+  
+The workflow for using together Qonda and SQLAlchemy is the following:
+
+* As a general rule, sessions life must be constrained to a Qt event or
+  slot, the session should be closed before returning to Qt's event loop.
+  Keeping a session open (e.g. as a member of your form widget) usually 
+  means keeping open a database transaction, and that will bring you
+  problems.
+  
+* To retrieve your model, create a session to retrieve your model.
+  You should load all the related instances required 
+  at this point, either using SQLAlchemy eager loading, or forcing lazy 
+  loading before closing the session::
+  
+    from contextlib import closing
+    from sqlalchemy import orm
+    
+    ...
+    
+    def retrieve_contacts(self):
+        # Use closing() to context-manage your session or a try...finally block
+        with closing(Session()) as session:
+            self._model = session.query(Contact)\
+                .options(
+                    orm.joinedload(Contact.city)
+                        .joinedload(City.province)
+                        )\
+                .all()
+        # Define your adapter and link to the view
+        ...
+
+  One trick to do lazy loading is
+  calling ``update()`` in the proper widget to force loading of all the
+  instance required for presentation::
+
+    def retrieve_contacts(self):
+        # Use closing() to context-manage your session or a try...finally block
+        with closing(Session()) as session:
+            self._model = session.query(Contact)\
+                .all()
+            # Define your adapter and link to the view
+            ...
+            # Force retrieving of required atributes before closing the session
+            self.ui.contacts.update()
+  
+* For combo box models (list of options), you must either retrieve it in
+  the same session as your model, or define ``__eq__`` in the class.
+  Otherwise, if you retrieved the same entity twice in different instances 
+  Qonda won't be able to regard them as equal::
+
+    class Contact(Base, ObservableObject):
+    
+      ...
+      
+      def __eq__(self, other):
+        if type(other) != Contact:
+            return False
+        return self.id == other.id
+        
+     def __hash__(self):
+        # if __eq__ is overriden, must define __hash__
+        return Base.__hash__(self)
+
+* For lookup widget functions, use a session for each search. If the search 
+  results are complex hierarchies, you can use a minimal query sufficient to 
+  show the search results in the widget popup and use 
+  ``LookupWidget.on_value_set`` to requery the selected value with all the 
+  joins required for further display and processing.
+  
+* To save a single model (e.g. not a list), create a new session and use
+  ``add()`` for new objects or ``merge()`` for objects previously retrieved,
+  then use ``commit()`` to commit the transaction.
+  
+* To save a list where the user can do deletions, use an ObjectListManager_
+  to keep track of changes and apply them on the saving session.
 
 Qonda provides functionality created specifically to be used with SQLAlchemy.
 See ``ObjectListManager`` and ``QueryResult`` classes below for details.
@@ -1207,6 +1285,22 @@ In this example, summary is updated on changes on amounts or quantity of
 items. See the aggregator.py example for further details.
 
 
+ItemObserver
+------------
+
+``ItemObserver`` helps in the task of observing events on a list of objects,
+adding and removing your callback as the items in the list changes:
+
+    from qonda.util.itemobserver import ItemObserver
+
+    ...
+    contact_list = ObservableListProxy()
+    contact_list.add_callback(ItemObserver(contact_list, item_observer))
+
+
+
+
+
 SortFilterProxyModel
 --------------------
 
@@ -1232,6 +1326,7 @@ simple as using the adapter directly::
             ...
             contact = self.ui.contacts.currentPyObject() # Just works!
 
+.. _ObjectListManager:
 
 ObjectListManager
 ------------------
