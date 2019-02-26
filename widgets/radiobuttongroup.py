@@ -3,7 +3,6 @@ from .. import PYQT_VERSION
 
 if PYQT_VERSION == 5:
     from PyQt5 import QtCore
-    from PyQt5 import QtGui
     from PyQt5 import QtWidgets
 else:
     from PyQt4 import QtCore  # lint:ok

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.8.4:
+------
+
+* PyQt5 support fixes
+
 0.8.3:
 ------
 

@@ -18,14 +18,13 @@
 
 from .. import PYQT_VERSION
 if PYQT_VERSION == 5:
-    from PyQt5 import QtGui, QtWidgets
-    from PyQt5.QtCore import Qt, pyqtSignal, pyqtProperty
+    from PyQt5.QtCore import Qt, pyqtSignal, pyqtProperty, QItemSelectionModel
+    from PyQt5.QtWidgets import QMessageBox, QTableView, QTreeView, QListView
 else:
     #lint:disable
-    from PyQt4 import QtGui, QtCore
     from PyQt4.QtCore import Qt, pyqtSignal, pyqtProperty
-    QtWidgets = QtGui
-    QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
+    from PyQt4.QtGui import QMessageBox, QTableView, QTreeView, QListView, \
+                            QItemSelectionModel
     #lint:enable
 
 QondaResizeRole = 64
@@ -106,18 +105,18 @@ class EditableView(object):
                     idx = self.model().index(idx.row(), 0, parent)
                     self.model().insertRow(current_row, parent)
                     # Selections get funny after insert
-                    selection = QtCore.QItemSelectionModel(self.model())
-                    selection.select(idx, QtCore.QItemSelectionModel.Select)
+                    selection = QItemSelectionModel(self.model())
+                    selection.select(idx, QItemSelectionModel.Select)
                     self.setSelectionModel(selection)
                     self.setCurrentIndex(idx)
                     event.accept()
             elif key == Qt.Key_Delete:
                 if self.__allowDeletes:
                     if self.__confirmDeletion:
-                        if QtGui.QMessageBox.question(None,
+                        if QMessageBox.question(None,
                                 'Borra fila', '¿Confirma?',
-                                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                                QtGui.QMessageBox.No) == QtGui.QMessageBox.No:
+                                QMessageBox.Yes | QMessageBox.No,
+                                QMessageBox.No) == QMessageBox.No:
                             event.accept()
                             return
                     if current_row + 1 == row_count:
@@ -200,13 +199,13 @@ class EditableView(object):
             for idx in selection_model.selectedRows()]
 
 
-class TableView(QtWidgets.QTableView, EditableView):
+class TableView(QTableView, EditableView):
 
     currentRowChanged = pyqtSignal(int)
 
     def __init__(self, parent=None):
         EditableView.__init__(self)
-        QtWidgets.QTableView.__init__(self, parent)
+        QTableView.__init__(self, parent)
 
     def keyPressEvent(self, event):
         self._keyPressEvent(event)
@@ -219,18 +218,18 @@ class TableView(QtWidgets.QTableView, EditableView):
             self.currentRowChanged.emit(row)
 
     def setModel(self, model):
-        QtWidgets.QTableView.setModel(self, model)
+        QTableView.setModel(self, model)
         if model is not None:
             self._adjustColumnsToModel(self.horizontalHeader(), model)
 
 
-class TreeView(QtWidgets.QTreeView, EditableView):
+class TreeView(QTreeView, EditableView):
 
     currentRowChanged = pyqtSignal(int)
 
     def __init__(self, parent=None):
         EditableView.__init__(self)
-        QtWidgets.QTreeView.__init__(self, parent)
+        QTreeView.__init__(self, parent)
 
     def keyPressEvent(self, event):
         self._keyPressEvent(event)
@@ -247,18 +246,18 @@ class TreeView(QtWidgets.QTreeView, EditableView):
             self.currentRowChanged.emit(row)
 
     def setModel(self, model):
-        QtWidgets.QTreeView.setModel(self, model)
+        QTreeView.setModel(self, model)
         if model is not None:
             self._adjustColumnsToModel(self.header(), model)
 
 
-class ListView(QtWidgets.QListView, EditableView):
+class ListView(QListView, EditableView):
 
     currentRowChanged = pyqtSignal(int)
 
     def __init__(self, parent=None):
         EditableView.__init__(self)
-        QtWidgets.QListView.__init__(self, parent)
+        QListView.__init__(self, parent)
 
     def keyPressEvent(self, event):
         self._keyPressEvent(event)

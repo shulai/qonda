@@ -34,7 +34,7 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, search_function=None, search_window=None,
             display_formatter=unicode, on_value_set=None):
-        QtWidgets.QItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.search_function = search_function
         self.search_window = search_window
         self.display_formatter = display_formatter
