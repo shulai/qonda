@@ -1340,7 +1340,7 @@ of an ObservableListProxy items into a SQLAlchemy session::
     session=Session()
     model = ObservableListProxy(session.query(Stuff).all())
     session.close()
-    self.list_manager = ListSessionManager(model)
+    self.list_manager = ObjectListManager(model)
 
     # Adding and removing items from the model automatically
     # adds and deletes them from the session.
