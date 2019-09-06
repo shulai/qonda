@@ -1,4 +1,4 @@
-PYQT_VERSION = 4
+PYQT_VERSION = 5
 # Compatibility workaround: Older versions of Qonda
 # ignored "errors should never pass silently" principle
 # because callbacks could be fired during __init__ when object
