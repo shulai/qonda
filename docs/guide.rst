@@ -7,7 +7,7 @@ Qonda guide
     :align: center
 
 
-Version 0.8.0, 2016-09-16
+Version 0.9.0, 2019-09-12
 
 
 .. contents::
@@ -41,8 +41,8 @@ mostly used in 3.4 so version specific bugs can exists if you use it in 2.7.
 For use with Python 3.x, sources are translated using 2to3 at install time
 (plus some manual adjustment).
 
-Also Qonda supports both PyQt4 and PyQt5. PyQt4 is the default. See
-`PyQt5 support`_ for details.
+Also Qonda supports both PyQt4 and PyQt5. PyQt5 is now the default. See
+`PyQt4 and PyQt5 support`_ for details.
 
 This guide assumes use of Python 2.7 and PyQt4, but few (if any) changes are
 required between versions, the main difference being unicode strings becoming
@@ -1083,23 +1083,22 @@ So, when doing changes to values in code, where is better? Model, adapter, or vi
 * Widgets themselves are seldom the place to introduce value changes, as long
   have an adapter set.
 
-.. `PyQt5 support`
+.. `PyQt4 and PyQt5 support`
 
-PyQt5 support
-=============
+PyQt4 and PyQt5 support
+=======================
 
 Currently Qonda has support for the legacy features in PyQt5, that is, it
 doesn't include support for the heavily promoted QtQuick UIs. It however
 supports both PyQt4 and PyQt5 with the same package.
 
-In order to enable PyQt5 support, you must include the following in your
-initialization code:
+Currently PyQt5 support is the default, while PyQt4 was the default up to
+the 0.8.x series. In order to enable PyQt4 support, you must include the 
+following in your initialization code:
 
         import qonda
-        qonda.PYQT_VERSION = 5
+        qonda.PYQT_VERSION = 4
 
-Is also a good idea setting PYQT_VERSION in your PyQt4 application,
-as Qonda default value for PYQT_VERSION can change in the future.
 
 Qonda and SQLAlchemy
 ====================
