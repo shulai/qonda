@@ -33,7 +33,7 @@ PythonObjectRole = 32
 class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, parent=None, search_function=None, search_window=None,
-            display_formatter=unicode, on_value_set=None):
+            display_formatter=str, on_value_set=None):
         QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.search_function = search_function
         self.search_window = search_window
@@ -108,7 +108,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         self.search_window = None
         self.on_value_set = None
         self._editing = False
-        self.display_formatter = unicode
+        self.display_formatter = str
         self._show_value()
 
     def resizeEvent(self, event):
