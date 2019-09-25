@@ -1,6 +1,15 @@
 Changelog
 =========
 
+0.9.1:
+------
+
+* Fix: LookupWidget popup closed immediately when triggering the search with Return or Enter keys
+
+0.9.0:
+-----
+* Set PyQt5 as default supported version
+
 0.8.4:
 ------
 
