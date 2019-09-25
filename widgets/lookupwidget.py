@@ -135,7 +135,10 @@ class LookupWidget(QtWidgets.QLineEdit):
                 self._show_value()
                 self._edit_finished()
             else:
-                super(LookupWidget, self).keyPressEvent(event)
+                if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                    event.accept()
+                else:
+                    super(LookupWidget, self).keyPressEvent(event)
             return
         # Avoid Enter and dead keys events erasing the text
         if event.text().strip() == '':
