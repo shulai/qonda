@@ -108,6 +108,7 @@ class LookupWidget(QtWidgets.QLineEdit):
         self.search_window = None
         self.on_value_set = None
         self._editing = False
+        self._search_lock = False
         self.display_formatter = str
         self._show_value()
 
@@ -135,10 +136,7 @@ class LookupWidget(QtWidgets.QLineEdit):
                 self._show_value()
                 self._edit_finished()
             else:
-                if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                    event.accept()
-                else:
-                    super(LookupWidget, self).keyPressEvent(event)
+                super(LookupWidget, self).keyPressEvent(event)
             return
         # Avoid Enter and dead keys events erasing the text
         if event.text().strip() == '':
@@ -196,35 +194,43 @@ class LookupWidget(QtWidgets.QLineEdit):
             self.setCursorPosition(0)
 
     def _search_value(self):
-        text = self.text()
-        if text == '':
-            self.setValue(None)
-            return True
+        def real_search_value():
+            text = self.text()
+            if text == '':
+                self.setValue(None)
+                return True
 
-        values = self.search_function(text)
-        if len(values) == 0:
-            self.setFocus()
-            self.selectAll()
-            return False  # Nothing found, back to editing
-        elif len(values) == 1:
-            self.setValue(values[0])
-            return True
-        else:
-            actions = {}
-            self.menu.clear()
-            for i, value in enumerate(values):
-                action = self.menu.addAction(self.display_formatter(value))
-                actions[action] = i
-                if i == 0:
-                    self.menu.setActiveAction(action)
-            action = self.menu.exec_(self.mapToGlobal(QtCore.QPoint(0,
-                self.size().height())))
-            if action:
-                self.setValue(values[actions[action]])
+            values = self.search_function(text)
+            if len(values) == 0:
+                self.setFocus()
+                self.selectAll()
+                return False  # Nothing found, back to editing
+            elif len(values) == 1:
+                self.setValue(values[0])
                 return True
             else:
-                self.setFocus()
-                return False  # Nothing found, back to editing
+                actions = {}
+                self.menu.clear()
+                for i, value in enumerate(values):
+                    action = self.menu.addAction(self.display_formatter(value))
+                    actions[action] = i
+                    if i == 0:
+                        self.menu.setActiveAction(action)
+                action = self.menu.exec_(self.mapToGlobal(QtCore.QPoint(0,
+                    self.size().height())))
+                if action:
+                    self.setValue(values[actions[action]])
+                    return True
+                else:
+                    self.setFocus()
+                    return False  # Nothing found, back to editing
+
+        if self._search_lock:
+            return False
+        self._search_lock = True
+        found = real_search_value()
+        self._search_lock = False
+        return found
 
     @QtCore.pyqtSlot()
     def openSearchWindow(self):

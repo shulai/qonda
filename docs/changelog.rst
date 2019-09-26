@@ -1,9 +1,12 @@
 Changelog
 =========
 
+0.9.2:
+------
+* Fix: LookupWidget popup closed immediately when triggering the search with Return or Enter keys
+
 0.9.1:
 ------
-
 * Fix: LookupWidget popup closed immediately when triggering the search with Return or Enter keys
 
 0.9.0:
