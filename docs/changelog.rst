@@ -1,6 +1,9 @@
 Changelog
 =========
 
+0.9.3:
+* Fix: Lookupwidget fails when used as a view editor and searching with Return or Enter keys
+
 0.9.2:
 ------
 * Fix: LookupWidget popup closed immediately when triggering the search with Return or Enter keys

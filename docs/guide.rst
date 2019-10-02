@@ -7,7 +7,7 @@ Qonda guide
     :align: center
 
 
-Version 0.9.0, 2019-09-12
+Version 0.9.3, 2019-10-02
 
 
 .. contents::
