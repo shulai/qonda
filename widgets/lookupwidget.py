@@ -41,6 +41,16 @@ class LookupWidgetDelegate(QtWidgets.QStyledItemDelegate):
         self.on_value_set = on_value_set
         self._setting_model_data = False
 
+    def eventFilter(self, editor, event):
+        # Handles pressing of Return/Enter Key correctly
+        if isinstance(editor, LookupWidget) \
+                and event.type() == QtCore.QEvent.KeyPress:
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                editor._search_and_end()
+                self.closeEditor.emit(editor)
+                return True
+        return super().eventFilter(editor, event)
+
     def createEditor(self, parent, option, index):
         editor = LookupWidget(parent)
         editor.search_function = self.search_function
@@ -216,6 +226,7 @@ class LookupWidget(QtWidgets.QLineEdit):
                     actions[action] = i
                     if i == 0:
                         self.menu.setActiveAction(action)
+                QtWidgets.QApplication.processEvents()
                 action = self.menu.exec_(self.mapToGlobal(QtCore.QPoint(0,
                     self.size().height())))
                 if action:
