@@ -97,14 +97,18 @@ class ObjectListManager(object):
     def deleted(self):
         return self._deleted
 
-    def apply_to_session(self, session):
+    def apply_to_session(self, session, merge_new=True):
         for item in self._dirty - self._deleted:
             session.merge(item)
         session.flush()
         for item in self._deleted:
             session.delete(item)
         session.flush()
-        session.add_all(self._new)
+        if merge_new:
+            for item in self._new:
+                session.merge(item)
+        else:
+            session.add_all(self._new)
         session.flush()
 
     def reset(self):
