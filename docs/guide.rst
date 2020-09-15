@@ -7,7 +7,7 @@ Qonda guide
     :align: center
 
 
-Version 0.9.3, 2019-10-02
+Version 0.9.6, 2020-09-15
 
 
 .. contents::
@@ -503,8 +503,20 @@ for such attribute.::
             }
 
 If you plan to use composited attributes in your adapters (like 'contact.phone',
-make sure to use types as metadata, this way Qonda will be able to find the
-proper metadata following the chain of metadata definitions.
+make sure to either use type as metadata, or to set the related type in the 'type'
+metadata key, this way Qonda will be able to find the proper metadata following the
+chain of metadata definitions.::
+
+    class Call(ObservableObject):
+
+        _qonda_column_meta_ = {
+            'contact': {
+                'title': 'Caller',  # Metadata for 'contact' attribute
+                'type': Contact     #  Look for metadata in Contact class for 
+                                    # 'contact.whatever' attributes
+                }
+            }
+
 
 Besides the special '.' key, you can define the special '*' key, in order to
 set metadata properties affecting the presentation of all the attributes,

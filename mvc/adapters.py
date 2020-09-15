@@ -410,6 +410,8 @@ def _build_class_meta(class_, properties):
                 v = class_._qonda_column_meta_[head]
                 if isinstance(v, type):
                     v = resolve_meta(v, tail)
+                elif 'type' in v:
+                    v = resolve_meta(v['type'], tail)
                 else:
                     print ("Warning: Composite attribute found metadata "
                         "doesn't point to a class. "
