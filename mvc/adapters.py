@@ -528,7 +528,15 @@ class BaseAdapter(QtCore.QAbstractTableModel):
     def setPyModel(self, model):
         """Changes the underlying python model"""
         self.beginResetModel()
+        if self._model:
+            self._model.remove_callback(self._observe)
         self._model = model
+        if model:
+            try:
+                model.add_callback(self.observe)
+            except AttributeError:
+                # If not observable (ok if the model doesn't change)
+                "Notice: " + str(type(model)) + " is not observable"
         self.endResetModel()
 
 
