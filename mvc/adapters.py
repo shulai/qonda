@@ -529,7 +529,11 @@ class BaseAdapter(QtCore.QAbstractTableModel):
         """Changes the underlying python model"""
         self.beginResetModel()
         if self._model:
-            self._model.remove_callback(self._observe)
+            try:
+                self._model.remove_callback(self.observe)
+            except AttributeError:
+                # If not observable (ok if the model doesn't change)
+                "Notice: " + str(type(model)) + " is not observable"
         self._model = model
         if model:
             try:
@@ -861,7 +865,19 @@ class ValueListAdapter(BaseListAdapter, QtCore.QAbstractListModel):
     def setPyModel(self, model):
         """Changes the underlying python model"""
         self.beginResetModel()
+        if self._model:
+            try:
+                self._model.remove_callback(self.observe)
+            except AttributeError:
+                # If not observable (ok if the model doesn't change)
+                "Notice: " + str(type(model)) + " is not observable"
         self._model = model
+        if model:
+            try:
+                model.add_callback(self.observe)
+            except AttributeError:
+                # If not observable (ok if the model doesn't change)
+                "Notice: " + str(type(model)) + " is not observable"
         self.endResetModel()
 
     def getPyObject(self, index):
